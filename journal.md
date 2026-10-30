@@ -5,6 +5,20 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-10-30 (2) — Dépannage `link: extra operand`
+
+**Fait**
+- 2e retour utilisateur : `cargo check` et `bun run tauri build` échouent sur `linking with link.exe failed` + `link: extra operand … Try 'link --help'`.
+- **Diagnostic : conflit de binaire, pas un défaut du code.** Ce message est celui de l'outil GNU `link` (coreutils) livré par Git for Windows (`…\Git\usr\bin\link.exe`) ; MSVC parle un tout autre dialecte d'erreurs. Rust invoque `link.exe` et c'est le GNU qui répond → échec sur les build scripts (`proc-macro2`, `quote`, `serde_core`, `zerocopy`) avant tout code projet. Cause probable n°1 : le workload `VCTools` n'a pas fini/été installé (`--passive` rend la main immédiatement) ; cause n°2 : ordre du `PATH` (Git avant MSVC).
+- Frontend **validé sur la machine Windows de l'utilisateur** au passage : `tsc && vite build` → 2294 modules, ✓ built in 12.53 s — preuve que le rebranding n'a rien cassé côté JS.
+- `ELEMENTS_MANQUANTS.md` : section **« 🔧 Dépannage — link: extra operand »** ajoutée (diagnostic `vswhere`, réinstallation du workload, `where.exe link`, correctif `CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER` auto-détecté, alternative « x64 Native Tools Command Prompt »). Avertissement chemin mis à jour (résolu : `projets_git`).
+- Décision : **aucun `.cargo/config.toml` committé** — le chemin du linker est propre à chaque machine.
+
+**À faire ensuite**
+- Utilisateur : appliquer le correctif puis relancer `cargo check` → `bun run tauri build` → tests d'installation.
+
+---
+
 ## 2026-10-30 — Prérequis de build documentés (blocage environnemental Windows)
 
 **Fait**

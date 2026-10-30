@@ -47,7 +47,50 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "--wait
 - **WebView2** : déjà présent sur Windows 10/11 (via Edge) — rien à faire.
 - **NSIS** : téléchargé automatiquement par Tauri au premier `tauri build`.
 
-> ⚠️ **Chemin du dépôt.** `D:\2DS\projet\gaming & git\Islet` contient une espace **et** un `&`. Le `&` est un opérateur PowerShell et plusieurs outils de la chaîne de build (MSVC, NSIS) le gèrent mal. Fortement recommandé : déplacer le clone vers un chemin simple, ex. **`D:\2DS\Islet`**, avant de compiler.
+> ✅ **Chemin du dépôt** : résolu — le clone est passé à `D:\2DS\projet\projets_git\Islet` (plus de `&`). Éviter à l'avenir les `&`, `#`, `%` dans le chemin : ce sont des opérateurs pour PowerShell/NSIS.
+
+### 🔧 Dépannage — `linking with link.exe failed` / `link: extra operand`
+
+**Ce message ne vient PAS du linker MSVC.** `link: extra operand '…rcgu.o'` / `Try 'link --help'` est la sortie de l'outil GNU **`link`** fourni avec Git for Windows (`C:\Program Files\Git\usr\bin\link.exe`). Rust appelle `link.exe`, et c'est ce binaire-là qui répond → l'échec frappe les *build scripts* (`proc-macro2`, `quote`, `serde_core`, `zerocopy`) avant même le code du projet.
+
+**1) Vérifier que le compilateur C++ est réellement installé :**
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+```
+
+- **Sortie vide** → le workload manque (cas le plus fréquent) :
+
+```powershell
+winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+```
+
+  …ou *Visual Studio Installer* → **Build Tools** → *Modifier* → cocher **« Développement Desktop en C++ »** → Installer.
+  ⚠️ `--passive` revient immédiatement : l'installation continue en arrière-plan (~10 min). La relancer/attendre jusqu'à ce que `vswhere` renvoie un chemin.
+
+- **Sortie = un chemin** → MSVC est présent, c'est l'ordre du `PATH` → étape 2.
+
+**2) Vérifier qui gagne :**
+
+```powershell
+where.exe link
+```
+
+Si `C:\Program Files\Git\usr\bin\link.exe` (ou `C:\msys64\usr\bin\link.exe`) apparaît **avant** `…\VC\Tools\MSVC\14.xx\bin\Hostx64\x64\link.exe`, MSVC est masqué.
+
+**Correctif (PowerShell, pour la session) — on indique explicitement le linker à Cargo :**
+
+```powershell
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$vs   = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+$msvc = Get-ChildItem "$vs\VC\Tools\MSVC" | Sort-Object Name -Descending | Select-Object -First 1
+$env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "$($msvc.FullName)\bin\Hostx64\x64\link.exe"
+Test-Path $env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER   # doit afficher True
+```
+
+Puis relancer `cargo check`. Équivalent : ouvrir **« x64 Native Tools Command Prompt for VS 2022 »** (menu Démarrer), dont le `PATH` met MSVC en tête, et y exécuter les commandes.
+
+> Réglage **local à la machine** : aucun `.cargo/config.toml` n'est committé (un chemin absolu n'a pas sa place dans le dépôt).
 
 ### 1️⃣ Validation
 
