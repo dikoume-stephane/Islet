@@ -557,16 +557,16 @@ function OverlayApp() {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [mixerExpanded, setMixerExpanded] = useState(false);
-  const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(() => localStorage.getItem("nectar-volume-overlay-enabled") !== "false");
-  const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(() => localStorage.getItem("nectar-volume-edge-enabled") !== "false");
+  const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(() => localStorage.getItem("islet-volume-overlay-enabled") !== "false");
+  const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(() => localStorage.getItem("islet-volume-edge-enabled") !== "false");
 
   // Brightness state
   const [brightness, setBrightness] = useState(50);
-  const [brightnessOverlayEnabled, setBrightnessOverlayEnabled] = useState(() => localStorage.getItem("nectar-brightness-overlay-enabled") !== "false");
-  const [brightnessEdgeEnabled, setBrightnessEdgeEnabled] = useState(() => localStorage.getItem("nectar-brightness-edge-enabled") !== "false");
+  const [brightnessOverlayEnabled, setBrightnessOverlayEnabled] = useState(() => localStorage.getItem("islet-brightness-overlay-enabled") !== "false");
+  const [brightnessEdgeEnabled, setBrightnessEdgeEnabled] = useState(() => localStorage.getItem("islet-brightness-edge-enabled") !== "false");
 
   // Shared state
-  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("nectar-scale") || "1.0"));
+  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("islet-scale") || "1.0"));
   const timeoutRef = useRef<any>(null);
   const hideWindowTimeoutRef = useRef<any>(null);
   const splashActiveRef = useRef(false);
@@ -590,14 +590,14 @@ function OverlayApp() {
   // Load scale from settings
   useEffect(() => {
     invoke("load_settings").then((settings: any) => {
-      if (settings && settings["nectar-scale"] !== undefined) {
-        setScale(parseFloat(settings["nectar-scale"]));
+      if (settings && settings["islet-scale"] !== undefined) {
+        setScale(parseFloat(settings["islet-scale"]));
       }
-      if (settings && settings["nectar-brightness-overlay-enabled"] !== undefined) {
-        setBrightnessOverlayEnabled(settings["nectar-brightness-overlay-enabled"] === "true");
+      if (settings && settings["islet-brightness-overlay-enabled"] !== undefined) {
+        setBrightnessOverlayEnabled(settings["islet-brightness-overlay-enabled"] === "true");
       }
-      if (settings && settings["nectar-volume-overlay-enabled"] !== undefined) {
-        setVolumeOverlayEnabled(settings["nectar-volume-overlay-enabled"] === "true");
+      if (settings && settings["islet-volume-overlay-enabled"] !== undefined) {
+        setVolumeOverlayEnabled(settings["islet-volume-overlay-enabled"] === "true");
       }
     }).catch(console.error);
   }, []);
@@ -627,13 +627,13 @@ function OverlayApp() {
     setTimeout(() => onSplashCompleteRef.current(), 5500);
 
     showSplash();
-    getVersion().then((v) => localStorage.setItem("nectar-app-version", v)).catch(() => {});
+    getVersion().then((v) => localStorage.setItem("islet-app-version", v)).catch(() => {});
   }, []);
 
   const onSplashComplete = useCallback(() => {
     if (splashDoneRef.current) return;
     splashDoneRef.current = true;
-    localStorage.setItem("nectar-first-run", "done");
+    localStorage.setItem("islet-first-run", "done");
     setTimeout(() => {
       splashActiveRef.current = false;
       splashPlayingRef.current = false;
@@ -740,11 +740,11 @@ function OverlayApp() {
 
   useSettingsSync(
     {
-      "nectar-volume-overlay-enabled": setVolumeOverlayEnabled,
-      "nectar-volume-edge-enabled": setVolumeEdgeEnabled,
-      "nectar-brightness-overlay-enabled": setBrightnessOverlayEnabled,
-      "nectar-brightness-edge-enabled": setBrightnessEdgeEnabled,
-      "nectar-scale": setScale,
+      "islet-volume-overlay-enabled": setVolumeOverlayEnabled,
+      "islet-volume-edge-enabled": setVolumeEdgeEnabled,
+      "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+      "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
+      "islet-scale": setScale,
     }
   );
 
@@ -858,7 +858,7 @@ function OverlayApp() {
             transition={{ duration: 0.3 }}
           >
             <motion.img
-              src="/nectar.png"
+              src="/islet.png"
               className="splash-logo"
               draggable={false}
               initial={{ scale: 0, opacity: 0, rotate: 0 }}
@@ -889,7 +889,7 @@ function OverlayApp() {
             transition={{ duration: 0.3 }}
           >
             <div className="update-splash-card">
-              <img src="/nectar.png" className="update-splash-logo" alt="Nectar" />
+              <img src="/islet.png" className="update-splash-logo" alt="Islet" />
               <p className="update-splash-text">
                 {updateStatus === 'checking' && "Checking for updates..."}
                 {updateStatus === 'downloading' && `Downloading update... ${updateProgress}%`}

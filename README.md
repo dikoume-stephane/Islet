@@ -1,34 +1,34 @@
 <div align="center">
 
-<img src="docs/logo.png" width="160" alt="Nectar logo" />
+<img src="docs/logo.png" width="160" alt="Islet logo" />
 
 <br />
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.png" />
-  <img src="docs/wordmark-light.png" height="48" alt="Nectar" />
+  <source media="(prefers-color-scheme: dark)" srcset="docs/islet-wordmark-light.png" />
+  <img src="docs/islet-wordmark-dark.png" height="48" alt="Islet" />
 </picture>
 
 **A notch and a dock for Windows: physics-animated, reactive, and built to replace your taskbar.**
 
 <br />
 
-[![Latest release](https://shieldcn.dev/github/release/kua8/Nectar.svg?logo=lu:Tag)](https://github.com/kua8/Nectar/releases/latest)
-[![Downloads](https://shieldcn.dev/github/downloads/kua8/Nectar.svg?logo=lu:Download)](https://github.com/kua8/Nectar/releases)
-[![License](https://shieldcn.dev/github/license/kua8/Nectar.svg?logo=lu:Scale)](LICENSE)
+[![Latest release](https://shieldcn.dev/github/release/dikoume-stephane/Islet.svg?logo=lu:Tag)](https://github.com/dikoume-stephane/Islet/releases/latest)
+[![Downloads](https://shieldcn.dev/github/downloads/dikoume-stephane/Islet.svg?logo=lu:Download)](https://github.com/dikoume-stephane/Islet/releases)
+[![License](https://shieldcn.dev/github/license/dikoume-stephane/Islet.svg?logo=lu:Scale)](LICENSE)
 ![Platform](https://shieldcn.dev/badge/platform-Windows.svg?logo=ri:FaWindows)
 
-[**Download**](https://github.com/kua8/Nectar/releases/latest) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Multiple monitors](#multiple-monitors) &nbsp;·&nbsp; [Settings](SETTINGS.md) &nbsp;·&nbsp; [Build from source](#build-from-source)
+[**Download**](https://github.com/dikoume-stephane/Islet/releases/latest) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Multiple monitors](#multiple-monitors) &nbsp;·&nbsp; [Settings](SETTINGS.md) &nbsp;·&nbsp; [Build from source](#build-from-source)
 
 <br />
 
-<img src="docs/screenshots/desktop.webp" width="820" alt="Nectar's notch and dock on a Windows desktop" />
+<img src="docs/screenshots/desktop.webp" width="820" alt="Islet's notch and dock on a Windows desktop" />
 
 </div>
 
 <br />
 
-Nectar is a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the concept and the codebase it grew from are theirs. It is rebranded end to end and maintained independently, with its own fixes and direction.
+Islet is a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the concept and the codebase it grew from are theirs. It is rebranded end to end and maintained independently, with its own fixes and direction.
 
 ## Features
 
@@ -43,7 +43,7 @@ Nectar is a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Seha
 A notch at the top of your screen that adapts to what you're doing. Scroll or swipe to change modes, or pin it in place like a hardware notch.
 
 <div align="center">
-<img src="docs/screenshots/island.png" width="420" alt="The Nectar notch showing the time and now-playing artwork" />
+<img src="docs/screenshots/island.png" width="420" alt="The Islet notch showing the time and now-playing artwork" />
 </div>
 
 <br />
@@ -72,12 +72,12 @@ In Smart and Peek the notch stays fully clickable when it's revealed. Only a thi
 A taskbar that moves. Drag icons to reorder, hover for window previews, and right-click for a context menu that always opens above the dock.
 
 <div align="center">
-<img src="docs/screenshots/dock.png" width="520" alt="The Nectar dock with pinned apps" />
+<img src="docs/screenshots/dock.png" width="520" alt="The Islet dock with pinned apps" />
 </div>
 
 <br />
 
-- **Your taskbar, mirrored.** On first launch Nectar imports the apps pinned to your Windows taskbar, in the same order, including File Explorer, Discord, and Microsoft Store apps.
+- **Your taskbar, mirrored.** On first launch Islet imports the apps pinned to your Windows taskbar, in the same order, including File Explorer, Discord, and Microsoft Store apps.
 - **Real icons and names.** Windows Settings shows its gear and Task Manager is called "Task Manager", not `taskmgr`.
 - **Pinned and running, separated.** A divider marks the split by default. Turn on **Mix Pinned & Running** to drag any icon anywhere.
 - **Quit means quit.** Right-click › Quit ends the app like End task in Task Manager.
@@ -99,7 +99,7 @@ The dock and the notch each have a **Show On** setting, chosen separately in Set
 Because the two are independent, the same app can look very different from one machine to the next:
 
 - **Dock and notch on every monitor.** Each screen looks the same, and each dock reserves its own space at the bottom.
-- **Dock on the primary only.** The other screens have no taskbar at all, since the Windows taskbar is hidden on every monitor while Nectar's dock is on. Maximized windows there use the full screen.
+- **Dock on the primary only.** The other screens have no taskbar at all, since the Windows taskbar is hidden on every monitor while Islet's dock is on. Maximized windows there use the full screen.
 - **Notch on one screen, dock on another.** Works fine, and each one follows its own visibility mode.
 - **Dock turned off.** The native Windows taskbar comes back on every monitor.
 
@@ -109,27 +109,27 @@ Extra monitors get their own windows, so **All Monitors** uses somewhat more CPU
 
 The backend is Rust and talks straight to the Windows shell: global input hooks, WASAPI for real-time system audio, COM for media session control, and WMI for hardware monitoring. The interface is React, animated with springs.
 
-Every setting lives in one plain `settings.json` that Nectar watches and applies as you save, so you can script it or keep it in your dotfiles. [SETTINGS.md](SETTINGS.md) has the full reference. **Settings › About › Reset to Defaults** resets everything.
+Every setting lives in one plain `settings.json` that Islet watches and applies as you save, so you can script it or keep it in your dotfiles. [SETTINGS.md](SETTINGS.md) has the full reference. **Settings › About › Reset to Defaults** resets everything.
 
 ## Install
 
-1. Download the installer from the [latest release](https://github.com/kua8/Nectar/releases/latest).
+1. Download the installer from the [latest release](https://github.com/dikoume-stephane/Islet/releases/latest).
 2. Choose **Just me** or **All users**. An all-users install asks for administrator permission once.
-3. Nectar starts with a short splash animation, then the notch and dock appear together.
+3. Islet starts with a short splash animation, then the notch and dock appear together.
 
-Nectar updates itself: a green dot on the notch means an update is ready, and you can turn on **Auto Update** in **Settings › About**. **Launch at Login** is in **Settings › General**.
+Islet updates itself: a green dot on the notch means an update is ready, and you can turn on **Auto Update** in **Settings › About**. **Launch at Login** is in **Settings › General**.
 
-**Uninstall** from Windows Settings › Apps, or from **Settings › About** inside Nectar. Both remove the app and put your native taskbar back.
+**Uninstall** from Windows Settings › Apps, or from **Settings › About** inside Islet. Both remove the app and put your native taskbar back.
 
-If Nectar is ever force-closed, it restores the Windows taskbar the next time it starts.
+If Islet is ever force-closed, it restores the Windows taskbar the next time it starts.
 
 ## Build from source
 
 You'll need [Rust](https://rustup.rs/) and [Bun](https://bun.sh/).
 
 ```bash
-git clone https://github.com/kua8/Nectar.git
-cd Nectar
+git clone https://github.com/dikoume-stephane/Islet.git
+cd Islet
 bun install
 bun run tauri dev
 ```
@@ -138,8 +138,14 @@ To produce a release build, run `bun run tauri build`.
 
 ## Contributing
 
-Found a bug or have an idea? [Open an issue](https://github.com/kua8/Nectar/issues) or send a pull request. Say which Windows version and monitor setup you're on if it's a display bug, since that is often what decides it.
+Found a bug or have an idea? [Open an issue](https://github.com/dikoume-stephane/Islet/issues) or send a pull request. Say which Windows version and monitor setup you're on if it's a display bug, since that is often what decides it.
 
 ## License
 
-Nectar is open source under the [GPLv3](LICENSE).
+Islet is open source under the [GPLv3](LICENSE).
+
+## Credits / Legal
+
+**Islet** is a fork of the open-source project [Nectar](https://github.com/kua8/Nectar), modified under the terms of its original license ([GPL-3.0-only](LICENSE)).
+Original work © kua8 — the upstream copyright and license notices are preserved.
+Islet is maintained by **dikoume-stephane (2DS)**.

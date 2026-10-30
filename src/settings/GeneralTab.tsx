@@ -10,8 +10,8 @@ interface GeneralTabProps {
   toggleUpdateIndicator: () => void;
   lowBatteryThreshold: number;
   handleThresholdChange: (val: number) => void;
-  restartNectar: () => void;
-  quitNectar: () => void;
+  restartIslet: () => void;
+  quitIslet: () => void;
 }
 
 export function GeneralTab({
@@ -23,14 +23,14 @@ export function GeneralTab({
   toggleUpdateIndicator,
   lowBatteryThreshold,
   handleThresholdChange,
-  restartNectar,
-  quitNectar,
+  restartIslet,
+  quitIslet,
 }: GeneralTabProps) {
   return (
     <>
       <div className="setting-group-label">System</div>
       <div className="setting-group">
-        <SettingRow icon={Power} label="Launch at Login" desc="Open Nectar automatically">
+        <SettingRow icon={Power} label="Launch at Login" desc="Open Islet automatically">
           <label className="toggle-switch">
             <input type="checkbox" checked={autostart} onChange={toggleAutostart} />
             <span className="slider"></span>
@@ -71,8 +71,8 @@ export function GeneralTab({
 
       <div className="setting-group-label">App</div>
       <div className="setting-group">
-        <SettingRow icon={RefreshCw} label="Restart Nectar" desc="Reinitialize all components" action onClick={restartNectar} />
-        <SettingRow icon={LogOut} label="Quit Nectar" desc="Exit application completely" action danger onClick={quitNectar} divider={false} />
+        <SettingRow icon={RefreshCw} label="Restart Islet" desc="Reinitialize all components" action onClick={restartIslet} />
+        <SettingRow icon={LogOut} label="Quit Islet" desc="Exit application completely" action danger onClick={quitIslet} divider={false} />
       </div>
     </>
   );

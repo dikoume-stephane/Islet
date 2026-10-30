@@ -102,8 +102,8 @@ function SettingsApp() {
               toggleUpdateIndicator={settings.toggleUpdateIndicator}
               lowBatteryThreshold={settings.lowBatteryThreshold}
               handleThresholdChange={settings.handleThresholdChange}
-              restartNectar={settings.restartNectar}
-              quitNectar={settings.quitNectar}
+              restartIslet={settings.restartIslet}
+              quitIslet={settings.quitIslet}
             />
           )}
           {activeTab === "appearance" && (
@@ -233,7 +233,7 @@ function SettingsApp() {
               handleResetSettings={settings.handleResetSettings}
               uninstallStatus={settings.uninstallStatus}
               uninstallError={settings.uninstallError}
-              handleUninstallNectar={settings.handleUninstallNectar}
+              handleUninstallIslet={settings.handleUninstallIslet}
             />
           )}
         </div>

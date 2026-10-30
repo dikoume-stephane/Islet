@@ -19,7 +19,7 @@ interface AboutTabProps {
   handleResetSettings: () => void;
   uninstallStatus: string;
   uninstallError?: string;
-  handleUninstallNectar: () => void;
+  handleUninstallIslet: () => void;
 }
 
 export function AboutTab({
@@ -38,7 +38,7 @@ export function AboutTab({
   handleResetSettings,
   uninstallStatus,
   uninstallError,
-  handleUninstallNectar,
+  handleUninstallIslet,
 }: AboutTabProps) {
   const [diagStatus, setDiagStatus] = useState<"idle" | "working" | "copied" | "error">("idle");
   const [hitboxLogging, setHitboxLogging] = useState(false);
@@ -98,7 +98,7 @@ export function AboutTab({
       case "available":
         return `Update Available (v${updateVersion})`;
       case "uptodate":
-        return "Nectar is up to date";
+        return "Islet is up to date";
       case "downloading":
         return "Downloading Update...";
       case "installing":
@@ -159,11 +159,11 @@ export function AboutTab({
     if (uninstallStatus === "uninstalling") return "Uninstalling...";
     if (uninstallStatus === "confirm") return "Click Again to Confirm";
     if (uninstallStatus === "error") return "Couldn't Start Uninstaller";
-    return "Uninstall Nectar";
+    return "Uninstall Islet";
   };
 
   const getUninstallDesc = () => {
-    if (uninstallStatus === "confirm") return "This will remove Nectar from your computer";
+    if (uninstallStatus === "confirm") return "This will remove Islet from your computer";
     if (uninstallStatus === "error") return uninstallError || "Try again, or use Windows Settings > Apps";
     return "Doesn't require Windows Settings to be open";
   };
@@ -172,8 +172,8 @@ export function AboutTab({
   return (
     <div className="about-tab-container">
       <div className="about-header">
-        <img src="/nectar.png" className="about-logo" alt="Nectar Logo" />
-        <h1 className="about-title">Nectar</h1>
+        <img src="/islet.png" className="about-logo" alt="Islet Logo" />
+        <h1 className="about-title">Islet</h1>
         <p className="about-version">Version {appVersion || "—"}</p>
         <button
           className={`update-pill update-pill--${updateStatus || "idle"}`}
@@ -238,7 +238,7 @@ export function AboutTab({
           action
           onClick={copyDiagnostics}
         />
-        <SettingRow icon={FolderOpen} label="Open Log Folder" desc="nectar.log and diagnostics.txt" action onClick={() => invoke("open_log_folder").catch(() => {})} />
+        <SettingRow icon={FolderOpen} label="Open Log Folder" desc="islet.log and diagnostics.txt" action onClick={() => invoke("open_log_folder").catch(() => {})} />
         <SettingRow
           icon={Crosshair}
           label="Log Dock and Notch Clicks"
@@ -263,12 +263,13 @@ export function AboutTab({
           action
           divider={false}
           danger={uninstallStatus === "confirm" || uninstallStatus === "error"}
-          onClick={handleUninstallNectar}
+          onClick={handleUninstallIslet}
         />
       </div>
 
       <div className="about-footer">
         <p>Made with ❤️ by kua8</p>
+        <p>Fork maintained by dikoume-stephane (2DS)</p>
       </div>
     </div>
   );

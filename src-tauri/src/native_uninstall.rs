@@ -19,7 +19,7 @@ use crate::uninstall_registry::{
 };
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-const TITLE: &str = "Nectar";
+const TITLE: &str = "Islet";
 
 pub fn requested() -> bool {
     let by_arg = std::env::args().skip(1).any(|a| a == "--uninstall");
@@ -76,12 +76,12 @@ fn run_hidden(program: &str, args: &[&str]) -> Option<String> {
         .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
 }
 
-fn stop_running_nectar() {
+fn stop_running_islet() {
     let not_self = format!("PID ne {}", std::process::id());
-    let filters = ["/FI", "IMAGENAME eq nectar.exe", "/FI", not_self.as_str()];
+    let filters = ["/FI", "IMAGENAME eq islet.exe", "/FI", not_self.as_str()];
 
     let still_running = || {
-        run_hidden("tasklist", &filters).is_some_and(|out| out.to_lowercase().contains("nectar.exe"))
+        run_hidden("tasklist", &filters).is_some_and(|out| out.to_lowercase().contains("islet.exe"))
     };
 
     let _ = run_hidden("taskkill", &filters);
@@ -101,7 +101,7 @@ fn stop_running_nectar() {
 
 fn restore_taskbar_if_left_hidden() {
     let Ok(appdata) = std::env::var("APPDATA") else { return };
-    let flag: PathBuf = Path::new(&appdata).join("com.kua8.nectar").join("taskbar_hidden.flag");
+    let flag: PathBuf = Path::new(&appdata).join("com.2DS.islet").join("taskbar_hidden.flag");
     if flag.exists() {
         crate::utils::set_taskbar_visibility(true, true);
         let _ = std::fs::remove_file(&flag);
@@ -110,9 +110,9 @@ fn restore_taskbar_if_left_hidden() {
 
 fn remove_shortcuts(all_users: bool) {
     let mut lnks = Vec::new();
-    if let Some(d) = start_menu_programs_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
-    if let Some(d) = legacy_start_menu_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
-    if let Some(d) = desktop_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
+    if let Some(d) = start_menu_programs_dir(all_users) { lnks.push(d.join("Islet.lnk")); }
+    if let Some(d) = legacy_start_menu_dir(all_users) { lnks.push(d.join("Islet.lnk")); }
+    if let Some(d) = desktop_dir(all_users) { lnks.push(d.join("Islet.lnk")); }
     for lnk in lnks {
         let _ = std::fs::remove_file(lnk);
     }
@@ -123,12 +123,12 @@ fn remove_registry(all_users: bool) {
         let root = if all_users { HKEY_LOCAL_MACHINE } else { HKEY_CURRENT_USER };
         let subkey_w = wide(UNINSTALL_SUBKEY);
         let _ = RegDeleteTreeW(root, PCWSTR(subkey_w.as_ptr()));
-        let install_key = wide(r"Software\kua8\nectar");
+        let install_key = wide(r"Software\2DS\islet");
         let _ = RegDeleteTreeW(root, PCWSTR(install_key.as_ptr()));
 
         let run_key = wide(r"Software\Microsoft\Windows\CurrentVersion\Run");
         let approved_key = wide(r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run");
-        let value = wide("nectar");
+        let value = wide("islet");
         let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, PCWSTR(run_key.as_ptr()), PCWSTR(value.as_ptr()));
         let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, PCWSTR(approved_key.as_ptr()), PCWSTR(value.as_ptr()));
     }
@@ -142,20 +142,20 @@ pub fn run() {
 
     if all_users && !is_elevated() {
         if !relaunch_elevated(&exe) {
-            message("Nectar was installed for all users, so uninstalling it needs administrator permission.", MB_OK | MB_ICONINFORMATION);
+            message("Islet was installed for all users, so uninstalling it needs administrator permission.", MB_OK | MB_ICONINFORMATION);
         }
         return;
     }
 
     if message(
-        "Uninstall Nectar?\n\nThis removes the app and its shortcuts. Your settings are kept in case you reinstall.",
+        "Uninstall Islet?\n\nThis removes the app and its shortcuts. Your settings are kept in case you reinstall.",
         MB_YESNO | MB_ICONQUESTION,
     ) != IDYES
     {
         return;
     }
 
-    stop_running_nectar();
+    stop_running_islet();
     restore_taskbar_if_left_hidden();
     remove_shortcuts(all_users);
     remove_registry(all_users);
@@ -168,8 +168,8 @@ pub fn run() {
            if (Test-Path -LiteralPath '{dir}') {{ Start-Sleep -Milliseconds 500 }} \
          }}; \
          if (Test-Path -LiteralPath '{dir}') {{ \
-           Add-Content (Join-Path $env:TEMP 'nectar-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
-           New-ItemProperty -Path '{run_once}' -Name 'NectarCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
+           Add-Content (Join-Path $env:TEMP 'islet-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
+           New-ItemProperty -Path '{run_once}' -Name 'IsletCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
          }}",
         pid = std::process::id(),
         dir = dir_str,
@@ -190,10 +190,10 @@ pub fn run() {
 
     if spawned.is_err() {
         message(
-            &format!("Nectar was unregistered, but its folder couldn't be removed automatically. You can delete it yourself:\n\n{}", install_dir.display()),
+            &format!("Islet was unregistered, but its folder couldn't be removed automatically. You can delete it yourself:\n\n{}", install_dir.display()),
             MB_OK | MB_ICONINFORMATION,
         );
         return;
     }
-    message("Nectar has been uninstalled.", MB_OK | MB_ICONINFORMATION);
+    message("Islet has been uninstalled.", MB_OK | MB_ICONINFORMATION);
 }
