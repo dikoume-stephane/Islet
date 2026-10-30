@@ -53,7 +53,7 @@ fn win_number_index(vk: u16) -> Option<u8> {
 /// Win+Number can be turned off in Settings > Dock.
 fn dock_win_number_enabled() -> bool {
     let Some(app) = KEYBOARD_HOOK_APP_HANDLE.get() else { return true };
-    crate::utils::get_setting_str(app, "nectar-dock-win-number-enabled")
+    crate::utils::get_setting_str(app, "islet-dock-win-number-enabled")
         .map(|v| v != "false")
         .unwrap_or(true)
 }
@@ -138,13 +138,13 @@ unsafe extern "system" fn keyboard_hook_proc(code: i32, wparam: windows::Win32::
         }
 
         if (vk_code == VK_VOLUME_MUTE || vk_code == VK_VOLUME_UP || vk_code == VK_VOLUME_DOWN)
-            && hook_overlay_enabled("nectar-volume-overlay-enabled")
+            && hook_overlay_enabled("islet-volume-overlay-enabled")
         {
             if is_down { handle_volume_key_event(vk_code); }
             return windows::Win32::Foundation::LRESULT(1);
         }
         if (vk_code.0 == 0x216 || vk_code.0 == 0x217)
-            && hook_overlay_enabled("nectar-brightness-overlay-enabled")
+            && hook_overlay_enabled("islet-brightness-overlay-enabled")
         {
             if is_down { handle_brightness_key_event(vk_code); }
             return windows::Win32::Foundation::LRESULT(1);
@@ -760,22 +760,22 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                     // Only the volume commands need the audio endpoint, the rest must work with no output device.
                     {
                         match cmd {
-                            SystemCommand::VolumeMute => { if let Some(aev) = audio_endpoint_volume.as_ref() { if let Ok(muted) = aev.GetMute() { let _ = aev.SetMute(!muted.as_bool(), std::ptr::null()); hide_osd("nectar-volume-overlay-enabled"); } } }
+                            SystemCommand::VolumeMute => { if let Some(aev) = audio_endpoint_volume.as_ref() { if let Ok(muted) = aev.GetMute() { let _ = aev.SetMute(!muted.as_bool(), std::ptr::null()); hide_osd("islet-volume-overlay-enabled"); } } }
                             SystemCommand::VolumeUp => {
                                 if let Some(aev) = audio_endpoint_volume.as_ref() {
                                     if let (Ok(vol), Ok(muted)) = (aev.GetMasterVolumeLevelScalar(), aev.GetMute()) {
                                         let _ = aev.SetMasterVolumeLevelScalar((vol + 0.05).min(1.0), std::ptr::null());
                                         if muted.as_bool() { let _ = aev.SetMute(false, std::ptr::null()); }
-                                        hide_osd("nectar-volume-overlay-enabled");
+                                        hide_osd("islet-volume-overlay-enabled");
                                     }
                                 }
                             }
-                            SystemCommand::VolumeDown => { if let Some(aev) = audio_endpoint_volume.as_ref() { if let Ok(vol) = aev.GetMasterVolumeLevelScalar() { let _ = aev.SetMasterVolumeLevelScalar((vol - 0.05).max(0.0), std::ptr::null()); hide_osd("nectar-volume-overlay-enabled"); } } }
+                            SystemCommand::VolumeDown => { if let Some(aev) = audio_endpoint_volume.as_ref() { if let Ok(vol) = aev.GetMasterVolumeLevelScalar() { let _ = aev.SetMasterVolumeLevelScalar((vol - 0.05).max(0.0), std::ptr::null()); hide_osd("islet-volume-overlay-enabled"); } } }
                             SystemCommand::SetVolume(volume) => {
                                 if let Some(aev) = audio_endpoint_volume.as_ref() {
                                     let _ = aev.SetMasterVolumeLevelScalar(volume.clamp(0.0, 1.0), std::ptr::null());
                                     if volume > 0.0 { let _ = aev.SetMute(false, std::ptr::null()); }
-                                    hide_osd("nectar-volume-overlay-enabled");
+                                    hide_osd("islet-volume-overlay-enabled");
                                 }
                             }
                             SystemCommand::MediaPlayPause => { if let Some(ref mgr) = manager { if let Ok(session) = mgr.GetCurrentSession() { let _ = session.TryTogglePlayPauseAsync(); } } }
@@ -799,7 +799,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                                 LAST_BRIGHTNESS_CHANGE.store(get_now_ms(), Ordering::Relaxed);
                                 let _ = handle_system.emit("brightness-change", BrightnessChangeEvent { brightness: new_val });
                                 if let Some(tx) = BRIGHTNESS_SENDER.get() { let _ = tx.send(new_val); }
-                                hide_osd("nectar-brightness-overlay-enabled");
+                                hide_osd("islet-brightness-overlay-enabled");
                             }
                             SystemCommand::BrightnessDown => {
                                 let current = CURRENT_BRIGHTNESS.load(Ordering::Relaxed);
@@ -808,7 +808,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                                 LAST_BRIGHTNESS_CHANGE.store(get_now_ms(), Ordering::Relaxed);
                                 let _ = handle_system.emit("brightness-change", BrightnessChangeEvent { brightness: new_val });
                                 if let Some(tx) = BRIGHTNESS_SENDER.get() { let _ = tx.send(new_val); }
-                                hide_osd("nectar-brightness-overlay-enabled");
+                                hide_osd("islet-brightness-overlay-enabled");
                             }
                         }
                     }
@@ -820,7 +820,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                             last_volume = vol; last_muted = is_muted;
                             crate::state::CURRENT_VOLUME.store((vol * 100.0) as u32, Ordering::Relaxed);
                             let _ = handle_system.emit("volume-change", VolumeChangeEvent { volume: vol, is_muted });
-                            hide_osd("nectar-volume-overlay-enabled");
+                            hide_osd("islet-volume-overlay-enabled");
                         }
                     }
                 }
@@ -978,7 +978,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                     let len = windows::Win32::UI::WindowsAndMessaging::GetClassNameA(hwnd, &mut class_name);
                     let class_str = std::str::from_utf8(&class_name[..len as usize]).unwrap_or("");
                     
-                    let is_nectar = process_id == my_process_id || class_str.contains("Nectar");
+                    let is_islet = process_id == my_process_id || class_str.contains("Islet");
                     let is_visible = IsWindowVisible(hwnd).as_bool();
                     let is_iconic = IsIconic(hwnd).as_bool();
                     
@@ -988,7 +988,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                     let mut rect = RECT::default();
                     let has_valid_rect = GetWindowRect(hwnd, &mut rect).is_ok() && (rect.right - rect.left) > 0 && (rect.bottom - rect.top) > 0;
                     
-                    if is_nectar || !is_visible || is_iconic || is_cloaked || !has_valid_rect {
+                    if is_islet || !is_visible || is_iconic || is_cloaked || !has_valid_rect {
                         hwnd = windows::Win32::UI::WindowsAndMessaging::GetWindow(hwnd, windows::Win32::UI::WindowsAndMessaging::GW_HWNDNEXT).unwrap_or_default();
                         check_count += 1;
                     } else {
@@ -1552,7 +1552,7 @@ static MOUSE_DIRTY: AtomicBool = AtomicBool::new(false);
 static MOUSE_WORKER: OnceLock<std::thread::Thread> = OnceLock::new();
 
 /// Hover intent for the top edge: touching the band starts a dwell clock, and the edge only arms
-/// (peek, claim input) after resting there for nectar-notch-edge-delay ms (0 = instant).
+/// (peek, claim input) after resting there for islet-notch-edge-delay ms (0 = instant).
 /// Stops a pass-through to a maximized window's title bar from triggering it.
 const TOP_EDGE_DWELL_MS: i64 = 200;
 const TOP_EDGE_POLL_MS: u64 = 40;
@@ -1571,7 +1571,7 @@ fn top_edge_armed(app_handle: &AppHandle, label: &str, in_band: bool, now: i64) 
     if crate::state::get_flag(armed, label) {
         return true;
     }
-    let dwell_ms = crate::utils::get_setting_str(app_handle, "nectar-notch-edge-delay")
+    let dwell_ms = crate::utils::get_setting_str(app_handle, "islet-notch-edge-delay")
         .and_then(|v| v.parse::<i64>().ok())
         .unwrap_or(TOP_EDGE_DWELL_MS)
         .clamp(0, 2000);
@@ -1997,8 +1997,8 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                 cursor.x >= rx && cursor.x <= rx + rw && cursor.y >= ry && cursor.y <= ry + rh
             });
 
-            // The overlay zooms by nectar-scale, so the cards are bigger than 42x196 off the default scale.
-            let overlay_nectar_scale = crate::utils::get_nectar_scale(app_handle);
+            // The overlay zooms by islet-scale, so the cards are bigger than 42x196 off the default scale.
+            let overlay_islet_scale = crate::utils::get_islet_scale(app_handle);
 
             // --- Left Edge (Volume) ---
             if !fg_fs {
@@ -2014,7 +2014,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                     && app_handle.primary_monitor().ok().flatten().is_some_and(|m| {
                         let ms = m.size();
                         let mp = m.position();
-                        let sc = m.scale_factor() * overlay_nectar_scale;
+                        let sc = m.scale_factor() * overlay_islet_scale;
                         let nw = (42.0 * sc) as i32;
                         let nh = (196.0 * sc) as i32;
                         let nx = mp.x;
@@ -2079,7 +2079,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                     let over_left = in_mixer || if let Ok(Some(m)) = ov_win.primary_monitor() {
                         let ms = m.size();
                         let mp = m.position();
-                        let sc = m.scale_factor() * overlay_nectar_scale;
+                        let sc = m.scale_factor() * overlay_islet_scale;
                         let nw = (42.0 * sc) as i32;
                         let nh = (196.0 * sc) as i32;
                         let nx = mp.x;
@@ -2090,7 +2090,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                     let over_right = if let Ok(Some(m)) = ov_win.primary_monitor() {
                         let ms = m.size();
                         let mp = m.position();
-                        let sc = m.scale_factor() * overlay_nectar_scale;
+                        let sc = m.scale_factor() * overlay_islet_scale;
                         let nw = (42.0 * sc) as i32;
                         let nh = (196.0 * sc) as i32;
                         let nx = mp.x + ms.width as i32 - nw;
@@ -2503,8 +2503,8 @@ pub fn register_appbar(window: tauri::WebviewWindow) {
         let m_pos = monitor.position();
         let hwnd = window.hwnd().unwrap();
         let scale = monitor.scale_factor();
-        let nectar_scale = crate::utils::get_nectar_scale(window.app_handle());
-        let ph = ((420.0 * nectar_scale) * scale) as i32;
+        let islet_scale = crate::utils::get_islet_scale(window.app_handle());
+        let ph = ((420.0 * islet_scale) * scale) as i32;
 
         unsafe {
             use windows::Win32::UI::WindowsAndMessaging::{SetWindowPos, GetWindowRect, SWP_NOZORDER, SWP_NOACTIVATE, GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW, WS_EX_NOACTIVATE as WS_EX_NA, SWP_FRAMECHANGED};
@@ -2573,7 +2573,7 @@ fn register_dock_appbar_inner(window: tauri::WebviewWindow, attempt: i32) {
         let m_pos = monitor.position();
         let hwnd = window.hwnd().unwrap();
         let scale = monitor.scale_factor();
-        let nectar_scale = crate::utils::get_nectar_scale(window.app_handle());
+        let islet_scale = crate::utils::get_islet_scale(window.app_handle());
         
         // ph = full physical window height. outer_size() can return 0 before the
         // window has rendered. Never guess a value — bail and let the retry wrapper handle it.
@@ -2589,7 +2589,7 @@ fn register_dock_appbar_inner(window: tauri::WebviewWindow, attempt: i32) {
             return;
         }
 
-        let pr = ((56.0 * nectar_scale) * scale) as i32;
+        let pr = ((56.0 * islet_scale) * scale) as i32;
 
         
         unsafe {
@@ -2724,7 +2724,7 @@ pub unsafe extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> B
             }
 
             // Filter out system containers and background stuff
-            if title == "Program Manager" || title == "nectar" || title == "Nectar Dock" {
+            if title == "Program Manager" || title == "islet" || title == "Islet Dock" {
                 return true.into();
             }
 
@@ -2748,7 +2748,7 @@ pub unsafe extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> B
                         || window_class == "ExploreWClass"
                         || (window_class == "#32770" && dialog_has_tab_control(hwnd));
 
-                    if (lowercase_path.contains("nectar.exe") && title != "Settings") ||
+                    if (lowercase_path.contains("islet.exe") && title != "Settings") ||
                        lowercase_path.contains("conhost.exe") ||
                        (lowercase_path.contains("explorer.exe") && !is_explorer_window) ||
                        lowercase_path.contains("shellexperiencehost.exe") ||
@@ -2962,11 +2962,11 @@ pub fn create_monitor_window(app: &AppHandle, kind: crate::types::WindowKind, la
 
         match kind {
             crate::types::WindowKind::Dock => {
-                let mode = crate::utils::get_setting_str(&app, "nectar-dock-mode").unwrap_or_else(|| "smart".to_string());
+                let mode = crate::utils::get_setting_str(&app, "islet-dock-mode").unwrap_or_else(|| "smart".to_string());
                 crate::commands::init_dock_window(&app, window, &mode).await;
             }
             crate::types::WindowKind::Notch => {
-                let mode = crate::utils::get_setting_str(&app, "nectar-notch-mode").unwrap_or_else(|| "fixed".to_string());
+                let mode = crate::utils::get_setting_str(&app, "islet-notch-mode").unwrap_or_else(|| "fixed".to_string());
                 crate::commands::init_notch_window(&app, window, &mode).await;
             }
         }
@@ -2988,7 +2988,7 @@ fn reposition_all_windows(app_handle: &AppHandle) {
             // Only reposition the dock if it's enabled in settings.
             // Without this guard, power events (plug/unplug, wake) would re-show
             // a dock that the user had previously disabled.
-            let dock_enabled = get_setting_str(app_handle, "nectar-dock-enabled")
+            let dock_enabled = get_setting_str(app_handle, "islet-dock-enabled")
                 .unwrap_or_else(|| "true".to_string());
             if dock_enabled == "true" {
                 if crate::state::get_flag(crate::state::dock_appbar_registered(), &label) {
@@ -3064,7 +3064,7 @@ pub fn setup_display_change_monitor(app_handle: AppHandle) {
             use windows::Win32::UI::WindowsAndMessaging::*;
             use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 
-            let class_name = windows::core::PCSTR(c"NectarDisplayMonitor".as_ptr() as *const u8);
+            let class_name = windows::core::PCSTR(c"IsletDisplayMonitor".as_ptr() as *const u8);
             let h_inst = GetModuleHandleW(None).unwrap_or_default().into();
 
             let wnd_class = WNDCLASSEXA {
@@ -3295,7 +3295,7 @@ fn recover_from_webview_failure(handle: &AppHandle) {
             // straight away left the new webviews without their images.
             SHUTTING_DOWN.store(true, Ordering::Relaxed);
             tokio::time::sleep(Duration::from_millis(1500)).await;
-            crate::commands::relaunch_nectar(&handle);
+            crate::commands::relaunch_islet(&handle);
         }
     });
 }

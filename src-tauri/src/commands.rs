@@ -80,7 +80,7 @@ pub async fn init_dock(app: AppHandle, mode: String) {
     // The frontend already checks this, but settings.json may have a stale
     // value if the write didn't complete before restart. Reading here too
     // makes the dock reliably stay hidden regardless of frontend timing.
-    let enabled = get_setting_str(&app, "nectar-dock-enabled")
+    let enabled = get_setting_str(&app, "islet-dock-enabled")
         .unwrap_or_else(|| "true".to_string());
     if enabled != "true" {
         if let Some(dock_win) = app.get_webview_window("dock") {
@@ -179,7 +179,7 @@ pub async fn toggle_dock(app: AppHandle, enable: bool) {
     if let Some(dock_win) = app.get_webview_window("dock") {
         if enable {
             // Saved dock mode, smart on a fresh install.
-            let saved_mode = crate::utils::get_setting_str(&app, "nectar-dock-mode")
+            let saved_mode = crate::utils::get_setting_str(&app, "islet-dock-mode")
                 .unwrap_or_else(|| "smart".to_string());
             init_dock(app.clone(), saved_mode).await;
         } else {
@@ -206,7 +206,7 @@ pub async fn toggle_dock(app: AppHandle, enable: bool) {
 
 #[tauri::command]
 pub async fn sync_appbar(app: AppHandle) {
-    let dock_enabled = get_setting_str(&app, "nectar-dock-enabled")
+    let dock_enabled = get_setting_str(&app, "islet-dock-enabled")
         .unwrap_or_else(|| "true".to_string());
     for (label, win) in app.webview_windows() {
         if crate::state::is_notch_label(&label) {
@@ -230,7 +230,7 @@ pub async fn sync_appbar(app: AppHandle) {
 pub async fn change_dock_mode(app: AppHandle, mode: String) {
     // A disabled dock keeps the mode in settings (init_dock applies it on re-enable),
     // just don't show it now.
-    let enabled = get_setting_str(&app, "nectar-dock-enabled").unwrap_or_else(|| "true".to_string());
+    let enabled = get_setting_str(&app, "islet-dock-enabled").unwrap_or_else(|| "true".to_string());
     if enabled != "true" {
         return;
     }
@@ -362,8 +362,8 @@ pub async fn init_notch_window(app: &AppHandle, main_win: tauri::WebviewWindow, 
         let m_pos = monitor.position();
         let m_size = monitor.size();
         let scale = monitor.scale_factor();
-        let nectar_scale = crate::utils::get_nectar_scale(app);
-        let target_height = (420.0 * nectar_scale * scale) as u32;
+        let islet_scale = crate::utils::get_islet_scale(app);
+        let target_height = (420.0 * islet_scale * scale) as u32;
         let _ = main_win.set_position(tauri::PhysicalPosition::new(m_pos.x, m_pos.y));
         let _ = main_win.set_size(tauri::PhysicalSize::new(m_size.width, target_height));
     }
@@ -512,7 +512,7 @@ pub async fn open_app(app: AppHandle, app_name: String, args: Option<String>) {
         return;
     }
 
-    if app_name == "nectar-settings" {
+    if app_name == "islet-settings" {
         open_settings_window(app);
         return;
     }
@@ -1369,7 +1369,7 @@ pub async fn get_app_icon(app: AppHandle, path: String, name: Option<String>, hw
     let cache_path = cache_dir.join("icons_cache.json");
     let cache_key = get_cache_key(&path, name.as_deref());
 
-    if path == "nectar-settings" {
+    if path == "islet-settings" {
         if let Some(icon) = app.default_window_icon() {
             if let Some(rgba) = image::RgbaImage::from_raw(icon.width(), icon.height(), icon.rgba().to_vec()) {
                 let mut out = Vec::new();
@@ -1701,7 +1701,7 @@ pub async fn load_pinned_apps(app: AppHandle) -> Vec<AppInfo> {
         AppInfo { name: "File Explorer".into(), path: "C:\\Windows\\explorer.exe".into(), icon: None, is_running: false, hwnd: None, executable: Some("explorer.exe".into()), all_hwnds: None, args: None },
         AppInfo { name: "Microsoft Edge".into(), path: "msedge".into(), icon: None, is_running: false, hwnd: None, executable: Some("msedge.exe".into()), all_hwnds: None, args: None },
         AppInfo { name: "Notepad".into(), path: "notepad.exe".into(), icon: None, is_running: false, hwnd: None, executable: Some("notepad.exe".into()), all_hwnds: None, args: None },
-        AppInfo { name: "Settings".into(), path: "nectar-settings".into(), icon: None, is_running: false, hwnd: None, executable: None, all_hwnds: None, args: None },
+        AppInfo { name: "Settings".into(), path: "islet-settings".into(), icon: None, is_running: false, hwnd: None, executable: None, all_hwnds: None, args: None },
     ]
 }
 
@@ -2407,14 +2407,14 @@ pub fn restore_taskbar_and_exit(handle: &AppHandle) {
 }
 
 #[tauri::command]
-pub async fn quit_nectar(handle: AppHandle) {
+pub async fn quit_islet(handle: AppHandle) {
     restore_taskbar_and_exit(&handle);
 }
 
 fn registered_uninstaller() -> Option<std::path::PathBuf> {
     use std::os::windows::process::CommandExt;
     for root in ["HKCU", "HKLM"] {
-        let key = format!(r"{}\Software\Microsoft\Windows\CurrentVersion\Uninstall\Nectar", root);
+        let key = format!(r"{}\Software\Microsoft\Windows\CurrentVersion\Uninstall\Islet", root);
         let Ok(out) = std::process::Command::new("reg")
             .args(["query", &key, "/v", "UninstallString"])
             .creation_flags(0x0800_0000)
@@ -2434,7 +2434,7 @@ fn registered_uninstaller() -> Option<std::path::PathBuf> {
 }
 
 #[tauri::command]
-pub async fn uninstall_nectar(handle: AppHandle) -> Result<(), String> {
+pub async fn uninstall_islet(handle: AppHandle) -> Result<(), String> {
     crate::uninstall_registry::heal_uninstall_registration();
 
     let mut uninstaller = std::env::current_exe()
@@ -2445,7 +2445,7 @@ pub async fn uninstall_nectar(handle: AppHandle) -> Result<(), String> {
 
     if !uninstaller.exists() {
         uninstaller = registered_uninstaller().ok_or_else(|| {
-            "This copy of Nectar isn't an installed one (it's a portable or development build), so there's nothing to uninstall. Run it from its install folder, or use Windows Settings > Apps.".to_string()
+            "This copy of Islet isn't an installed one (it's a portable or development build), so there's nothing to uninstall. Run it from its install folder, or use Windows Settings > Apps.".to_string()
         })?;
     }
 
@@ -2487,7 +2487,7 @@ pub fn get_hitbox_logging() -> bool {
 }
 
 #[tauri::command]
-pub async fn restart_nectar(handle: AppHandle) {
+pub async fn restart_islet(handle: AppHandle) {
     #[cfg(debug_assertions)]
     {
         // Dev just reloads the pages. Leave SHUTTING_DOWN alone here or the hooks stay off.
@@ -2498,17 +2498,17 @@ pub async fn restart_nectar(handle: AppHandle) {
     }
     #[cfg(not(debug_assertions))]
     {
-        relaunch_nectar(&handle);
+        relaunch_islet(&handle);
     }
 }
 
 /// Relaunches the process. Also used for webview crashes, reloading pages can't fix those.
-pub fn relaunch_nectar(handle: &AppHandle) {
+pub fn relaunch_islet(handle: &AppHandle) {
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     if let Some(w) = handle.get_webview_window("main") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("dock") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("settings") { let _ = w.destroy(); }
-    std::env::set_var("NECTAR_RESTARTING", "1");
+    std::env::set_var("ISLET_RESTARTING", "1");
     close_single_instance_handles();
     handle.restart();
 }
@@ -2641,8 +2641,8 @@ pub async fn close_window(hwnd: isize) {
 }
 
 fn re_register_appbars(app: &AppHandle, settings: &HashMap<String, serde_json::Value>) {
-    let notch_fixed = settings.get("nectar-notch-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(true);
-    let dock_fixed = settings.get("nectar-dock-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(false);
+    let notch_fixed = settings.get("islet-notch-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(true);
+    let dock_fixed = settings.get("islet-dock-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(false);
     for (label, win) in app.webview_windows() {
         if crate::state::is_notch_label(&label) && notch_fixed {
             crate::services::register_appbar(win);
@@ -2653,11 +2653,11 @@ fn re_register_appbars(app: &AppHandle, settings: &HashMap<String, serde_json::V
 }
 
 const MONITOR_TARGETING_KEYS: [&str; 5] = [
-    "nectar-dock-monitor-mode",
-    "nectar-dock-monitor-id",
-    "nectar-notch-monitor-mode",
-    "nectar-notch-monitor-id",
-    "nectar-dock-enabled",
+    "islet-dock-monitor-mode",
+    "islet-dock-monitor-id",
+    "islet-notch-monitor-mode",
+    "islet-notch-monitor-id",
+    "islet-dock-enabled",
 ];
 
 #[tauri::command]
@@ -2674,7 +2674,7 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
 
     let _ = app.emit("settings-changed", serde_json::json!({ "key": &key, "value": &settings[&key] }));
 
-    if key == "nectar-scale" {
+    if key == "islet-scale" {
         re_register_appbars(&app, &settings);
     }
 
@@ -2682,14 +2682,14 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
         let app_clone = app.clone();
         tauri::async_runtime::spawn(async move {
             crate::monitors::sync_monitor_windows(&app_clone);
-            let dock_enabled = crate::utils::get_setting_str(&app_clone, "nectar-dock-enabled")
+            let dock_enabled = crate::utils::get_setting_str(&app_clone, "islet-dock-enabled")
                 .map(|v| v == "true").unwrap_or(true);
             if dock_enabled {
-                let dock_mode = crate::utils::get_setting_str(&app_clone, "nectar-dock-mode")
+                let dock_mode = crate::utils::get_setting_str(&app_clone, "islet-dock-mode")
                     .unwrap_or_else(|| "smart".to_string());
                 change_dock_mode(app_clone.clone(), dock_mode).await;
             }
-            let notch_mode = crate::utils::get_setting_str(&app_clone, "nectar-notch-mode")
+            let notch_mode = crate::utils::get_setting_str(&app_clone, "islet-notch-mode")
                 .unwrap_or_else(|| "fixed".to_string());
             change_notch_mode(app_clone.clone(), notch_mode).await;
         });
@@ -3134,7 +3134,7 @@ const PROTECTED_PROCESS_NAMES: &[&str] = &[
     "smss.exe",
     "explorer.exe",
     "dwm.exe",
-    "nectar.exe",
+    "islet.exe",
 ];
 
 #[tauri::command]
@@ -3381,7 +3381,7 @@ pub fn import_settings(app: AppHandle, settings: String) -> Result<(), String> {
         let _ = app.emit("settings-changed", serde_json::json!({ "key": key, "value": value }));
     }
 
-    if imported.get("nectar-scale").is_some() {
+    if imported.get("islet-scale").is_some() {
         re_register_appbars(&app, &imported);
     }
 

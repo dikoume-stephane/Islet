@@ -70,8 +70,8 @@ body,
     flex-direction: column;
     align-items: center;
     padding: 28px 36px;
-    background: var(--nectar-bg, rgba(0, 0, 0, 0.8));
-    border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.1));
+    background: var(--islet-bg, rgba(0, 0, 0, 0.8));
+    border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
     border-radius: 20px;
 }
 
@@ -83,7 +83,7 @@ body,
 }
 
 .update-splash-text {
-    color: var(--nectar-text, rgba(255, 255, 255, 0.9));
+    color: var(--islet-text, rgba(255, 255, 255, 0.9));
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 14px;
     font-weight: 500;
@@ -94,14 +94,14 @@ body,
 .update-progress-bar {
     width: 200px;
     height: 4px;
-    background: var(--nectar-border, rgba(255, 255, 255, 0.1));
+    background: var(--islet-border, rgba(255, 255, 255, 0.1));
     border-radius: 2px;
     overflow: hidden;
 }
 
 .update-progress-fill {
     height: 100%;
-    background: var(--nectar-text, rgba(255, 255, 255, 0.9));
+    background: var(--islet-text, rgba(255, 255, 255, 0.9));
     border-radius: 2px;
     transition: width 0.3s ease;
 }
@@ -123,9 +123,9 @@ body,
   align-items: center;
   justify-content: space-between;
   padding: 16px 0 14px;
-  background: var(--nectar-bg, rgba(0, 0, 0, 0.8));
+  background: var(--islet-bg, rgba(0, 0, 0, 0.8));
   border-radius: 0 18px 18px 0;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
   border-left: none;
   width: 42px;
   height: 196px;
@@ -152,7 +152,7 @@ body,
   left: 0;
   width: 13px;
   height: 13px;
-  background: var(--nectar-bg, rgba(0, 0, 0, 0.8));
+  background: var(--islet-bg, rgba(0, 0, 0, 0.8));
   pointer-events: none;
 }
 
@@ -164,11 +164,11 @@ body,
     radial-gradient(
       circle at 13px 0px,
       transparent 12px,
-      var(--nectar-border, rgba(255, 255, 255, 0.1)) 12.7px,
-      var(--nectar-border, rgba(255, 255, 255, 0.1)) 13.3px,
+      var(--islet-border, rgba(255, 255, 255, 0.1)) 12.7px,
+      var(--islet-border, rgba(255, 255, 255, 0.1)) 13.3px,
       transparent 14px
     ),
-    var(--nectar-bg, rgba(0, 0, 0, 0.8));
+    var(--islet-bg, rgba(0, 0, 0, 0.8));
 }
 
 .volume-notch-flares::after {
@@ -179,11 +179,11 @@ body,
     radial-gradient(
       circle at 13px 13px,
       transparent 12px,
-      var(--nectar-border, rgba(255, 255, 255, 0.1)) 12.7px,
-      var(--nectar-border, rgba(255, 255, 255, 0.1)) 13.3px,
+      var(--islet-border, rgba(255, 255, 255, 0.1)) 12.7px,
+      var(--islet-border, rgba(255, 255, 255, 0.1)) 13.3px,
       transparent 14px
     ),
-    var(--nectar-bg, rgba(0, 0, 0, 0.8));
+    var(--islet-bg, rgba(0, 0, 0, 0.8));
 }
 
 .volume-notch-content-group {
@@ -212,7 +212,7 @@ body,
   bottom: 0;
   left: 0;
   width: 100%;
-  background: var(--nectar-text, white);
+  background: var(--islet-text, white);
   border-radius: 20px;
 }
 
@@ -227,7 +227,7 @@ body,
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--nectar-text, white);
+  color: var(--islet-text, white);
   cursor: pointer;
 }
 
@@ -320,11 +320,11 @@ body,
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: var(--nectar-border, rgba(255, 255, 255, 0.2)) transparent;
+  scrollbar-color: var(--islet-border, rgba(255, 255, 255, 0.2)) transparent;
 }
 
 .volume-mixer-empty {
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+  color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
   font-size: 11px;
   font-weight: 500;
   font-family:
@@ -366,7 +366,7 @@ body,
   bottom: 0;
   left: 0;
   width: 100%;
-  background: var(--nectar-text, white);
+  background: var(--islet-text, white);
   border-radius: 20px;
   pointer-events: none;
 }
@@ -385,7 +385,7 @@ body,
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--nectar-text, white);
+  color: var(--islet-text, white);
   cursor: pointer;
 }
 
@@ -403,8 +403,8 @@ body,
   align-items: center;
   justify-content: center;
   border-radius: 5px;
-  background: var(--nectar-border, rgba(255, 255, 255, 0.15));
-  color: var(--nectar-text, white);
+  background: var(--islet-border, rgba(255, 255, 255, 0.15));
+  color: var(--islet-text, white);
   font-size: 9px;
   font-weight: 700;
   font-family:
@@ -470,9 +470,9 @@ body,
     align-items: center;
     justify-content: space-between;
     padding: 16px 0;
-    background: var(--nectar-bg, rgba(0, 0, 0, 0.8));
+    background: var(--islet-bg, rgba(0, 0, 0, 0.8));
     border-radius: 18px 0 0 18px;
-    border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
     border-right: none;
     width: 42px;
     height: 196px;
@@ -487,7 +487,7 @@ body,
     right: 0;
     width: 13px;
     height: 13px;
-    background: var(--nectar-bg, rgba(0, 0, 0, 0.8));
+    background: var(--islet-bg, rgba(0, 0, 0, 0.8));
     pointer-events: none;
 }
 
@@ -496,8 +496,8 @@ body,
     -webkit-mask-image: radial-gradient(circle at 0px 0px, transparent 12px, black 13px);
     mask-image: radial-gradient(circle at 0px 0px, transparent 12px, black 13px);
     background:
-        radial-gradient(circle at 0px 0px, transparent 12px, var(--nectar-border, rgba(255, 255, 255, 0.1)) 12.7px, var(--nectar-border, rgba(255, 255, 255, 0.1)) 13.3px, transparent 14px),
-        var(--nectar-bg, rgba(0, 0, 0, 0.8));
+        radial-gradient(circle at 0px 0px, transparent 12px, var(--islet-border, rgba(255, 255, 255, 0.1)) 12.7px, var(--islet-border, rgba(255, 255, 255, 0.1)) 13.3px, transparent 14px),
+        var(--islet-bg, rgba(0, 0, 0, 0.8));
 }
 
 .brightness-notch::after {
@@ -505,8 +505,8 @@ body,
     -webkit-mask-image: radial-gradient(circle at 0px 13px, transparent 12px, black 13px);
     mask-image: radial-gradient(circle at 0px 13px, transparent 12px, black 13px);
     background:
-        radial-gradient(circle at 0px 13px, transparent 12px, var(--nectar-border, rgba(255, 255, 255, 0.1)) 12.7px, var(--nectar-border, rgba(255, 255, 255, 0.1)) 13.3px, transparent 14px),
-        var(--nectar-bg, rgba(0, 0, 0, 0.8));
+        radial-gradient(circle at 0px 13px, transparent 12px, var(--islet-border, rgba(255, 255, 255, 0.1)) 12.7px, var(--islet-border, rgba(255, 255, 255, 0.1)) 13.3px, transparent 14px),
+        var(--islet-bg, rgba(0, 0, 0, 0.8));
 }
 
 .brightness-notch-content-group {
@@ -533,7 +533,7 @@ body,
     bottom: 0;
     left: 0;
     width: 100%;
-    background: var(--nectar-text, white);
+    background: var(--islet-text, white);
     border-radius: 20px;
 }
 
@@ -543,7 +543,7 @@ body,
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--nectar-text, rgba(255, 255, 255, 0.95));
+    color: var(--islet-text, rgba(255, 255, 255, 0.95));
     margin-top: 10px;
 }
 

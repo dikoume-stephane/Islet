@@ -139,11 +139,11 @@ async function resolveLocation(): Promise<ResolvedLocation> {
       any
     >;
     const savedLat =
-      settings["nectar-weather-lat"] || localStorage.getItem("nectar-weather-lat");
+      settings["islet-weather-lat"] || localStorage.getItem("islet-weather-lat");
     const savedLon =
-      settings["nectar-weather-lon"] || localStorage.getItem("nectar-weather-lon");
+      settings["islet-weather-lon"] || localStorage.getItem("islet-weather-lon");
     const savedCity =
-      settings["nectar-weather-city"] || localStorage.getItem("nectar-weather-city");
+      settings["islet-weather-city"] || localStorage.getItem("islet-weather-city");
 
     if (savedLat && savedLon) {
       return {
@@ -196,13 +196,13 @@ async function persistWeather(
 ): Promise<void> {
   if (temp !== null) {
     invoke("save_setting", {
-      key: "nectar-weather-cached-temp",
+      key: "islet-weather-cached-temp",
       value: temp,
     }).catch(() => {});
   }
   if (condition) {
     invoke("save_setting", {
-      key: "nectar-weather-cached-condition",
+      key: "islet-weather-cached-condition",
       value: condition,
     }).catch(() => {});
   }
@@ -210,20 +210,20 @@ async function persistWeather(
 
 export function useWeather(enabled: boolean) {
   const [temperature, setTemperature] = useState<number | null>(() => {
-    const cached = localStorage.getItem("nectar-weather-cached-temp");
+    const cached = localStorage.getItem("islet-weather-cached-temp");
     return cached !== null ? Number(cached) : null;
   });
   const [weatherCondition, setWeatherCondition] = useState<string>(
-    () => localStorage.getItem("nectar-weather-cached-condition") || "",
+    () => localStorage.getItem("islet-weather-cached-condition") || "",
   );
   const [weatherIcon, setWeatherIcon] = useState<ComponentType<LucideProps>>(
     () => Thermometer,
   );
   const [cityName, setCityName] = useState<string>(
-    () => localStorage.getItem("nectar-weather-city") || "",
+    () => localStorage.getItem("islet-weather-city") || "",
   );
   const [tempUnit, setTempUnit] = useState<string>(
-    () => localStorage.getItem("nectar-temp-unit") || "celsius",
+    () => localStorage.getItem("islet-temp-unit") || "celsius",
   );
 
   const tempUnitRef = useRef(tempUnit);
@@ -255,7 +255,7 @@ export function useWeather(enabled: boolean) {
         // Update city name if resolved from IP geolocation
         if (location.city) {
           setCityName(location.city);
-          localStorage.setItem("nectar-weather-city", location.city);
+          localStorage.setItem("islet-weather-city", location.city);
         }
       } catch (e) {
         console.warn("Weather fetch failed:", e);
@@ -275,26 +275,26 @@ export function useWeather(enabled: boolean) {
     invoke("load_settings")
       .then((settings: any) => {
         const cachedTemp =
-          settings["nectar-weather-cached-temp"] ??
-          localStorage.getItem("nectar-weather-cached-temp");
+          settings["islet-weather-cached-temp"] ??
+          localStorage.getItem("islet-weather-cached-temp");
         if (cachedTemp !== undefined && cachedTemp !== null) {
           setTemperature(Number(cachedTemp));
         }
         const cachedCond =
-          settings["nectar-weather-cached-condition"] ??
-          localStorage.getItem("nectar-weather-cached-condition");
+          settings["islet-weather-cached-condition"] ??
+          localStorage.getItem("islet-weather-cached-condition");
         if (cachedCond) {
           setWeatherCondition(String(cachedCond));
           setWeatherIcon(() => getWeatherIcon(String(cachedCond)));
         }
         const savedUnit =
-          settings["nectar-temp-unit"] ?? localStorage.getItem("nectar-temp-unit");
+          settings["islet-temp-unit"] ?? localStorage.getItem("islet-temp-unit");
         if (savedUnit) {
           setTempUnit(String(savedUnit));
         }
         const savedCity =
-          settings["nectar-weather-city"] ??
-          localStorage.getItem("nectar-weather-city");
+          settings["islet-weather-city"] ??
+          localStorage.getItem("islet-weather-city");
         if (savedCity) {
           setCityName(String(savedCity));
         }
@@ -317,7 +317,7 @@ export function useWeather(enabled: boolean) {
       "settings-external-changed",
       (event) => {
         const { key, value } = event.payload;
-        if (key === "nectar-temp-unit") {
+        if (key === "islet-temp-unit") {
           setTempUnit(String(value));
         }
       },

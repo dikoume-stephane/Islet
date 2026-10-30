@@ -1,8 +1,8 @@
 [package]
-name = "nectar-installer"
+name = "islet-installer"
 version = "1.4.1"
-description = "Nectar installer"
-authors = ["kua8"]
+description = "Islet installer (fork of the Nectar installer)"
+authors = ["kua8", "dikoume-stephane (2DS)"]
 edition = "2021"
 license = "GPL-3.0-only"
 
