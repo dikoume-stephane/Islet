@@ -5,6 +5,19 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-10-30 — Prérequis de build documentés (blocage environnemental Windows)
+
+**Fait**
+- Retour utilisateur : `bun` et `cargo` « non reconnus » en PowerShell sur la machine Windows — **aucun des deux n'est installé**. Aucun code concerné : c'est l'environnement, pas le rebranding.
+- `ELEMENTS_MANQUANTS.md` #4 enrichi d'une section **« 0️⃣ Prérequis »** : diagnostic (`bun -v; cargo -V; rustc -V`), installation Bun / rustup / Build Tools MSVC via `winget`, vérification après redémarrage du terminal, alternatives sans `winget`, statut WebView2/NSIS.
+- Avertissement ajouté sur le **chemin du clone** : `D:\2DS\projet\gaming & git\Islet` contient une espace et un `&` — `&` = opérateur PowerShell et source connue d'échecs MSVC/NSIS → recommander `D:\2DS\Islet`.
+- Section #4 réécrite en deux temps (prérequis → validation) avec `git fetch origin && git switch arena/7705c682-islet`.
+
+**À faire ensuite**
+- L'utilisateur installe la chaîne d'outils, relance la validation G3/G4, me renvoie le résultat → merge de la PR #1.
+
+---
+
 ## 2026-10-29 (nuit) — Assets officiels reçus + réintégration sur nouveau `main` + PR
 
 **Fait**
