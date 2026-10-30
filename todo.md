@@ -62,4 +62,4 @@
 - [⏳] G3 — `cargo check` → **Windows** (`ELEMENTS_MANQUANTS.md` #4)
 - [⏳] G4 — `bun tauri build` + test installateur/désinstallateur NSIS → **Windows** (même fichier)
 - [⏳] G5 — Clés updater Islet → avant 1re release (DÉC-5)
-- [ ] G6 — PR finale depuis `arena/7705c682-islet` (après retour G3/G4)
+- [x] G6 — **PR #1 ouverte** : https://github.com/dikoume-stephane/Islet/pull/1 (merge après retour G3/G4)
