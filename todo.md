@@ -59,7 +59,7 @@
 ## Bloc G — Validation 🟡
 - [x] G1 — Audit `grep -ri nectar` : **3 occurrences restantes, toutes intentionnelles** (légal)
 - [x] G2 — `npm install` + `npm run build` ✅ app principale **et** installer-app (tsc + vite verts)
-- [⏳] G3 — `cargo check` → **Windows** (`ELEMENTS_MANQUANTS.md` #4)
-- [⏳] G4 — `bun tauri build` + test installateur/désinstallateur NSIS → **Windows** (même fichier)
+- [x] G3 — `cargo check` sur Windows : ✅ `Finished dev profile in 5m 10s`, aucune erreur (30/10)
+- [⏳] G4 — `islet.exe` release ✅ produit (12m 29s) ; **bundling restant** : `bun run tauri build --bundles nsis --no-sign` (MSI/WiX + clé updater écartés) puis test installateur/désinstallateur NSIS
 - [⏳] G5 — Clés updater Islet → avant 1re release (DÉC-5)
 - [x] G6 — **PR #1 ouverte** : https://github.com/dikoume-stephane/Islet/pull/1 (merge après retour G3/G4)

@@ -134,7 +134,17 @@ bun install
 bun run tauri dev
 ```
 
-To produce a release build, run `bun run tauri build`.
+To produce a release build, run `bun run tauri build`. The default bundle set is defined in `src-tauri/tauri.conf.json`; Islet ships the **NSIS** installer (`.exe`), which is what the release script builds:
+
+```bash
+bun run tauri build --bundles nsis
+```
+
+Bundling the updater archive requires the maintainer's signing key (`TAURI_SIGNING_PRIVATE_KEY`). To build and test locally without it, add `--no-sign`:
+
+```bash
+bun run tauri build --bundles nsis --no-sign
+```
 
 ## Contributing
 

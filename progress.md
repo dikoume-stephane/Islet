@@ -15,7 +15,7 @@
 | D | Backend Rust | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | E | Installateur NSIS | 2 | 2 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | F | Documentation | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
-| G | Validation | 6 | 2 | 🟡 G1/G2 ✅ · G3/G4 ⏳ Windows · G5 ⏳ DÉC-5 · G6 ⏳ | ▓▓▓░░░░░░░ 33 % |
+| G | Validation | 6 | 3 | 🟡 G1/G2/G3 ✅ · G4 partiel (exe ✅, NSIS ⏳) · G5 ⏳ DÉC-5 · G6 ✅ PR #1 | ▓▓▓▓▓░░░░░ 50 % |
 | **Total** | | **44** | **38** | | **≈ 90 %** |
 
 ## Métriques clés
@@ -39,7 +39,7 @@
 ¹ hors A8 (screenshots) volontairement reporté en Phase 2 — nécessite un build Windows fonctionnel.
 
 ## Prochaines actions
-1. **Utilisateur (Windows)** : exécuter la validation G3/G4 — commandes dans `ELEMENTS_MANQUANTS.md` → puis **merge de la PR**.
+1. **Utilisateur (Windows)** : G3 ✅ · terminer G4 → `bun run tauri build --bundles nsis --no-sign` + test installateur (`ELEMENTS_MANQUANTS.md`) → puis **merge de la PR**.
 2. **Utilisateur (avant 1re release)** : générer la paire de clés updater (DÉC-5).
 3. **Agent** : corriger les éventuelles erreurs remontées par le build Windows → **Phase 2**.
 

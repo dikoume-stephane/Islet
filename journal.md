@@ -5,6 +5,27 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-10-30 (3) — G3 ✅ sur Windows · échec de bundling diagnostiqué
+
+**Fait**
+- **G3 validé par l'utilisateur** : `cargo check` → `Finished dev profile in 5m 10s`, **0 erreur**, crate `islet v1.4.1` compilé. Le rebranding Rust est donc syntaxiquement et structurellement sain (aucun identifiant cassé dans les commandes Tauri, le registre, le mutex, etc.).
+- `bun run tauri build` a compilé `islet.exe` en release (`Finished release profile in 12m 29s`).
+- Échec suivant : `failed to bundle project: io: Hôte inconnu. (os error 11001)` en téléchargeant **WiX** (`wix314-binaries.zip`).
+
+**Constats — deux causes cumulées, aucune dans le code**
+1. `bundle.targets: "all"` → Tauri tente **aussi le MSI**, qui exige de télécharger WiX depuis GitHub. `11001` = DNS ne résout pas l'hôte (réseau, pas le projet). Or `scripts/release.ps1` ne construit **que du NSIS** (`--bundles nsis`) : le MSI n'est jamais livré.
+2. Juste après, le prochain blocage aurait été la **signature updater** : `createUpdaterArtifacts: true` + pubkey → `A public key has been found, but no private key. Make sure to set TAURI_SIGNING_PRIVATE_KEY` (comportement documenté de tauri-cli). `release.ps1` refuse d'ailleurs de démarrer sans cette variable ; `--no-sign` existe depuis le CLI 2.11 (vérifié : `tauri-cli 2.11.5`, `--no-sign` présent).
+
+**Décisions**
+- Commande de validation = **`bun run tauri build --bundles nsis --no-sign`** : ni WiX, ni clé privée. Pas de modification de `tauri.conf.json` (targets/updater inchangés → aucune régression fonctionnelle, la clé reste DÉC-5).
+- `README.md` (section *Build from source*) documente désormais `--bundles nsis` et `--no-sign`.
+- `ELEMENTS_MANQUANTS.md` : tableau de dépannage bundling (WiX/DNS, clé updater) + solutions de secours (DNS, pré-remplissage de `%LOCALAPPDATA%\tauri\NSIS`, WixTools314) + rappel que **`islet.exe` seul suffit** à valider le rebranding visuel.
+
+**À faire ensuite**
+- Utilisateur : lancer `islet.exe` (validation visuelle immédiate) puis `bun run tauri build --bundles nsis --no-sign` → test installateur → merge PR #1.
+
+---
+
 ## 2026-10-30 (2) — Dépannage `link: extra operand`
 
 **Fait**

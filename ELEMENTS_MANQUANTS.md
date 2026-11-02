@@ -96,23 +96,51 @@ Puis relancer `cargo check`. Équivalent : ouvrir **« x64 Native Tools Command 
 
 ```powershell
 git fetch origin && git switch arena/7705c682-islet
-bun install                    # régénère aussi bun.lock proprement
-bun run build                  # frontend (déjà validé ici, contrôle rapide)
-cargo check --manifest-path src-tauri/Cargo.toml   # G3 : compile-check Rust (~5 min au 1er run)
-bun run tauri build            # G4 : build complet + installateur NSIS (~5-10 min)
+git pull                         # récupérer cette doc + les derniers commits
+bun install                      # régénère aussi bun.lock proprement
+bun run build                    # frontend
+cargo check --manifest-path src-tauri/Cargo.toml   # G3 : compile-check Rust
+bun run tauri build --bundles nsis --no-sign       # G4 : build + installateur NSIS
 ```
+
+> ✅ **G3 est passé** le 30/10 : `cargo check` → `Finished dev profile in 5m 10s`, aucune erreur. `bun run tauri build` a aussi produit `src-tauri/target/release/islet.exe` (`Finished release profile in 12m 29s`).
 
 Puis tester : installer **Islet** (idéalement par-dessus Nectar 1.4.1 pour observer la cohabitation), lancer, ouvrir Settings › About (logo/attributions), désinstaller via l'app **et** via Windows Settings. Me retourner **toute erreur** (ou le succès) → je corrige et on merge la PR #1.
 
-## 🟡 Avant la première release (#5 / DÉC-5, différé)
+### 🔧 Dépannage — échec au *bundling* (après un build Rust réussi)
 
-La clé publique updater actuelle appartient à l'upstream (kua8) ; l'endpoint pointe déjà vers `dikoume-stephane/Islet` (404 tant qu'il n'y a pas de release → aucun risque de mise à jour parasite). Avant de publier une release Islet :
+Symptômes rencontrés et leur cause réelle :
+
+| Message | Cause | Solution |
+|---|---|---|
+| `Downloading …/wix3/…` puis `failed to bundle project: io: Hôte inconnu. (os error 11001)` | `bundle.targets` vaut **`"all"`** → Tauri tente aussi le **MSI**, qui doit télécharger **WiX** depuis GitHub. `11001` = DNS qui ne résout pas l'hôte. | **Islet ne livre que du NSIS** : ajouter `--bundles nsis` → WiX n'est plus téléchargé du tout. |
+| `A public key has been found, but no private key. Make sure to set TAURI_SIGNING_PRIVATE_KEY` | `bundle.createUpdaterArtifacts: true` + pubkey présent → chaque bundle exige la clé privée de signature. | **`--no-sign`** (CLI ≥ 2.11) : `Updater signing is skipped due to --no-sign flag.` L'archive updater est produite mais non signée. |
 
 ```powershell
-bunx tauri signer generate -w ~/.tauri/islet.key    # garde la clé PRIVÉE hors du dépôt
+bun run tauri build --bundles nsis --no-sign
+```
+
+Si le téléchargement de **NSIS** échoue aussi (même erreur DNS), au choix :
+
+1. **Vérifier/réparer le DNS** : `Resolve-DnsName github.com` ; en cas d'échec, changer de DNS (1.1.1.1 / 8.8.8.8) ou couper VPN/proxy, puis `ipconfig /flushdns`.
+2. **Pré-remplir le cache manuellement** (Tauri ne re-télécharge pas si le dossier existe) :
+   - `https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip` → extraire dans `%LOCALAPPDATA%\tauri\NSIS`
+   - `nsis_tauri_utils.dll` → `%LOCALAPPDATA%\tauri\NSIS\Plugins\x86-unicode\additional\`
+   - (WiX, seulement si le MSI est vraiment voulu : `https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip` → `%LOCALAPPDATA%\tauri\WixTools314`)
+
+> 💡 **L'exécutable seul suffit pour valider le rebranding** : `src-tauri\target\release\islet.exe` s'exécute directement, sans installateur — icône, About, Settings, notch, tout est testable. Le NSIS ne valide que l'installation/désinstallation.
+
+## 🟡 Avant la première release (#5 / DÉC-5, différé)
+
+La clé publique updater actuelle appartient à l'upstream (kua8) ; l'endpoint pointe déjà vers `dikoume-stephane/Islet` (404 tant qu'il n'y a pas de release → aucun risque de mise à jour parasite). Avant de publier une release Islet (et **obligatoire** pour `scripts/release.ps1`, qui refuse de démarrer sans elle) :
+
+```powershell
+bunx tauri signer generate -w $env:USERPROFILE\.tauri\islet.key    # garde la clé PRIVÉE hors du dépôt
 ```
 
 → m'envoyer uniquement la **clé publique** ; je l'intègre dans `src-tauri/tauri.conf.json`. (`.gitignore` couvre déjà `*.key`.)
+
+> En attendant, les builds locaux se font avec `--no-sign` : aucun impact sur le test de l'app.
 
 ## 🟢 Clarification demandée (sans urgence)
 
