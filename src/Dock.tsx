@@ -81,14 +81,14 @@ const fileOf = (p: string) =>
 // AUMIDs identify one app. Two PWAs in the same browser must never match on the shared exe name.
 const isIdentifier = (p: string) => !p.includes('/') && !p.includes('\\');
 
-const isNectarWindow = (app: { name: string; path: string }) =>
-  app.path.toLowerCase().includes('nectar.exe') || app.name.toLowerCase() === 'nectar';
+const isIsletWindow = (app: { name: string; path: string }) =>
+  app.path.toLowerCase().includes('islet.exe') || app.name.toLowerCase() === 'islet';
 
 // Start button icon: a public asset, or the data URI of an uploaded icon ("custom:" prefix).
 function resolveStartIcon(startIcon: string): string {
   if (startIcon === "windows") return "/windows.png";
   if (startIcon.startsWith("custom:")) return startIcon.slice("custom:".length);
-  return "/nectar.png";
+  return "/islet.png";
 }
 
 // Stable module-level constants so object references never change between renders,
@@ -142,18 +142,18 @@ const Dock = memo(function Dock() {
   const iconsRef = useRef<Record<string, string>>({});
   const [, setIconsTick] = useState(0); 
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("islet-dock-mode") || "smart";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
-  const [dockPreviewEnabled, setDockPreviewEnabled] = useState(() => localStorage.getItem("nectar-dock-preview-enabled") !== "false");
-  const [dockSearchEnabled, setDockSearchEnabled] = useState(() => localStorage.getItem("nectar-dock-search-enabled") !== "false");
-  const [dockCalendarEnabled, setDockCalendarEnabled] = useState(() => localStorage.getItem("nectar-dock-calendar-enabled") !== "false");
-  const [dockIconOnly, setDockIconOnly] = useState(() => localStorage.getItem("nectar-dock-icon-only") === "true");
-  const [dockAdaptive, setDockAdaptive] = useState(() => localStorage.getItem("nectar-dock-adaptive") === "true");
-  const [startIcon, setStartIcon] = useState(() => localStorage.getItem("nectar-start-icon") || "default");
+  const [dockPreviewEnabled, setDockPreviewEnabled] = useState(() => localStorage.getItem("islet-dock-preview-enabled") !== "false");
+  const [dockSearchEnabled, setDockSearchEnabled] = useState(() => localStorage.getItem("islet-dock-search-enabled") !== "false");
+  const [dockCalendarEnabled, setDockCalendarEnabled] = useState(() => localStorage.getItem("islet-dock-calendar-enabled") !== "false");
+  const [dockIconOnly, setDockIconOnly] = useState(() => localStorage.getItem("islet-dock-icon-only") === "true");
+  const [dockAdaptive, setDockAdaptive] = useState(() => localStorage.getItem("islet-dock-adaptive") === "true");
+  const [startIcon, setStartIcon] = useState(() => localStorage.getItem("islet-start-icon") || "default");
   const [isMaximized, setIsMaximized] = useState(false);
-  const [dockMixedReorder, setDockMixedReorder] = useState(() => localStorage.getItem("nectar-dock-mixed-reorder") === "true");
+  const [dockMixedReorder, setDockMixedReorder] = useState(() => localStorage.getItem("islet-dock-mixed-reorder") === "true");
   const [mixedOrder, setMixedOrder] = useState<string[]>([]);
   const [previewData, setPreviewData] = useState<{ id: string, previews: { hwnd: number, title: string, image: string }[] } | null>(null);
   const [isDockHovered, setIsDockHovered] = useState(false);
@@ -178,7 +178,7 @@ const Dock = memo(function Dock() {
   const toastTimerRef = useRef<any>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const [popupBottom, setPopupBottom] = useState(56);
-  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("nectar-scale") || "1.0"));
+  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("islet-scale") || "1.0"));
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const pinnedItemsRef = useRef<AppInfo[]>([]);
   const handleAppClickRef = useRef<(app: AppInfo) => void>(() => {});
@@ -324,28 +324,28 @@ const Dock = memo(function Dock() {
 
       refreshDockMode();
 
-      const preview = getVal("nectar-dock-preview-enabled", "true");
+      const preview = getVal("islet-dock-preview-enabled", "true");
       setDockPreviewEnabled(preview === "true");
 
-      const searchEnabled = getVal("nectar-dock-search-enabled", "true");
+      const searchEnabled = getVal("islet-dock-search-enabled", "true");
       setDockSearchEnabled(searchEnabled === "true");
 
-      const calendarEnabled = getVal("nectar-dock-calendar-enabled", "true");
+      const calendarEnabled = getVal("islet-dock-calendar-enabled", "true");
       setDockCalendarEnabled(calendarEnabled === "true");
 
-      const iconOnly = getVal("nectar-dock-icon-only", "false");
+      const iconOnly = getVal("islet-dock-icon-only", "false");
       setDockIconOnly(iconOnly === "true");
 
-      const adaptive = getVal("nectar-dock-adaptive", "false");
+      const adaptive = getVal("islet-dock-adaptive", "false");
       setDockAdaptive(adaptive === "true");
 
-      const startIconVal = getVal("nectar-start-icon", "default") || "default";
+      const startIconVal = getVal("islet-start-icon", "default") || "default";
       setStartIcon(startIconVal);
 
-      const mixedReorder = getVal("nectar-dock-mixed-reorder", "false");
+      const mixedReorder = getVal("islet-dock-mixed-reorder", "false");
       setDockMixedReorder(mixedReorder === "true");
 
-      const scaleVal = getVal("nectar-scale");
+      const scaleVal = getVal("islet-scale");
       if (scaleVal !== null) setScale(parseFloat(scaleVal));
 
       const pinned = await invoke<AppInfo[]>('load_pinned_apps');
@@ -390,18 +390,18 @@ const Dock = memo(function Dock() {
 
   useSettingsSync(
     {
-      "nectar-dock-mode": refreshDockMode,
-      "nectar-dock-mode-by-monitor": refreshDockMode,
-      "nectar-dock-monitor-mode": refreshDockMode,
-      "nectar-dock-monitor-id": refreshDockMode,
-      "nectar-dock-preview-enabled": setDockPreviewEnabled,
-      "nectar-dock-search-enabled": setDockSearchEnabled,
-      "nectar-dock-calendar-enabled": setDockCalendarEnabled,
-      "nectar-dock-icon-only": setDockIconOnly,
-      "nectar-dock-adaptive": setDockAdaptive,
-      "nectar-start-icon": setStartIcon,
-      "nectar-dock-mixed-reorder": setDockMixedReorder,
-      "nectar-scale": setScale,
+      "islet-dock-mode": refreshDockMode,
+      "islet-dock-mode-by-monitor": refreshDockMode,
+      "islet-dock-monitor-mode": refreshDockMode,
+      "islet-dock-monitor-id": refreshDockMode,
+      "islet-dock-preview-enabled": setDockPreviewEnabled,
+      "islet-dock-search-enabled": setDockSearchEnabled,
+      "islet-dock-calendar-enabled": setDockCalendarEnabled,
+      "islet-dock-icon-only": setDockIconOnly,
+      "islet-dock-adaptive": setDockAdaptive,
+      "islet-start-icon": setStartIcon,
+      "islet-dock-mixed-reorder": setDockMixedReorder,
+      "islet-scale": setScale,
     }
   );
 
@@ -970,7 +970,7 @@ const Dock = memo(function Dock() {
                       handleAppClick(startItem);
                     }}
                   >
-                    <img src={resolveStartIcon(startIcon)} alt="Start" className="nectar-icon-img" style={startIcon.startsWith("custom:") ? { borderRadius: "8px" } : undefined} draggable={false} />
+                    <img src={resolveStartIcon(startIcon)} alt="Start" className="islet-icon-img" style={startIcon.startsWith("custom:") ? { borderRadius: "8px" } : undefined} draggable={false} />
                   </motion.div>
                 </motion.div>
               )}
@@ -1120,13 +1120,13 @@ const Dock = memo(function Dock() {
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
                     
-                    const isNectarOrSettings = isNectarWindow(app);
+                    const isIsletOrSettings = isIsletWindow(app);
                     
-                    return (icon || isNectarOrSettings) ? (
+                    return (icon || isIsletOrSettings) ? (
                       <img 
-                        src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} 
+                        src={isIsletOrSettings ? "/islet.png" : (icon ?? undefined)} 
                         alt={app.name} 
-                        className={isNectarOrSettings ? "nectar-icon-img" : ""} 
+                        className={isIsletOrSettings ? "islet-icon-img" : ""} 
                         draggable={false} 
                       />
                     ) : (
@@ -1226,9 +1226,9 @@ const Dock = memo(function Dock() {
                         // Running host items skip the shared path fallback, or the browser's icon leaks onto its PWAs.
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
-                          const isNectarOrSettings = isNectarWindow(app);
-                          return (icon || isNectarOrSettings) ? (
-                            <img src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} className={isNectarOrSettings ? "nectar-icon-img" : ""} draggable={false} />
+                          const isIsletOrSettings = isIsletWindow(app);
+                          return (icon || isIsletOrSettings) ? (
+                            <img src={isIsletOrSettings ? "/islet.png" : (icon ?? undefined)} alt={app.name} className={isIsletOrSettings ? "islet-icon-img" : ""} draggable={false} />
                           ) : (
                             <div className="fallback-icon">{app.name[0]}</div>
                           );
@@ -1324,9 +1324,9 @@ const Dock = memo(function Dock() {
                           // Running host items skip the shared path fallback, or the browser's icon leaks onto its PWAs.
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
-                          const isNectarOrSettings = isNectarWindow(app);
-                          return (icon || isNectarOrSettings) ? (
-                            <img src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} className={isNectarOrSettings ? "nectar-icon-img" : ""} draggable={false} />
+                          const isIsletOrSettings = isIsletWindow(app);
+                          return (icon || isIsletOrSettings) ? (
+                            <img src={isIsletOrSettings ? "/islet.png" : (icon ?? undefined)} alt={app.name} className={isIsletOrSettings ? "islet-icon-img" : ""} draggable={false} />
                           ) : (
                             <div className="fallback-icon">{app.name[0]}</div>
                           );
@@ -1412,18 +1412,18 @@ const Dock = memo(function Dock() {
               </div>
               <div 
                 className="menu-item has-submenu"
-                onMouseEnter={() => setActiveSubmenu('nectar')}
+                onMouseEnter={() => setActiveSubmenu('islet')}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
-                Nectar Options
+                Islet Options
                 <span className="submenu-arrow">▶</span>
                 <div className="submenu">
                   <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>Open Calendar</div>
                   <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>Open Settings</div>
-                  <div className="menu-item" onClick={() => invoke('restart_nectar')}>Restart Nectar</div>
+                  <div className="menu-item" onClick={() => invoke('restart_islet')}>Restart Islet</div>
                   <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>Clear Icon Cache</div>
                   <div className="menu-divider" />
-                  <div className="menu-item quit" onClick={() => invoke('quit_nectar')}>Quit Nectar</div>
+                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>Quit Islet</div>
                 </div>
               </div>
               {contextMenu.app.is_running && (
@@ -1450,18 +1450,18 @@ const Dock = memo(function Dock() {
               </div>
               <div 
                 className="menu-item has-submenu"
-                onMouseEnter={() => setActiveSubmenu('nectar')}
+                onMouseEnter={() => setActiveSubmenu('islet')}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
-                Nectar Options
+                Islet Options
                 <span className="submenu-arrow">▶</span>
                 <div className="submenu">
                   <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>Open Calendar</div>
                   <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>Open Settings</div>
-                  <div className="menu-item" onClick={() => invoke('restart_nectar')}>Restart Nectar</div>
+                  <div className="menu-item" onClick={() => invoke('restart_islet')}>Restart Islet</div>
                   <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>Clear Icon Cache</div>
                   <div className="menu-divider" />
-                  <div className="menu-item quit" onClick={() => invoke('quit_nectar')}>Quit Nectar</div>
+                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>Quit Islet</div>
                 </div>
               </div>
             </>

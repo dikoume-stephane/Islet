@@ -131,13 +131,13 @@ pub async fn start_install(
     let uninstall_exe = install_path.join("uninstall.exe");
 
     if let Some(dir) = crate::known_folders::start_menu_programs_dir(all_users) {
-        let lnk = dir.join("Nectar.lnk");
-        let _ = crate::shortcuts::create_shortcut(&lnk, &exe_path, "", &exe_path, "Nectar");
+        let lnk = dir.join("Islet.lnk");
+        let _ = crate::shortcuts::create_shortcut(&lnk, &exe_path, "", &exe_path, "Islet");
     }
     if desktop_shortcut {
         if let Some(dir) = crate::known_folders::desktop_dir(all_users) {
-            let lnk = dir.join("Nectar.lnk");
-            let _ = crate::shortcuts::create_shortcut(&lnk, &exe_path, "", &exe_path, "Nectar");
+            let lnk = dir.join("Islet.lnk");
+            let _ = crate::shortcuts::create_shortcut(&lnk, &exe_path, "", &exe_path, "Islet");
         }
     }
 
@@ -159,10 +159,10 @@ pub async fn start_install(
     let install_location = install_path.to_string_lossy().to_string();
     let icon_str = format!("{},0", exe_path.to_string_lossy());
     let info = crate::registry::UninstallInfo {
-        display_name: "Nectar",
+        display_name: "Islet",
         display_icon: &icon_str,
         display_version: env!("CARGO_PKG_VERSION"),
-        publisher: "kua8",
+        publisher: "2DS",
         install_location: &install_location,
         uninstall_string: &uninstall_string,
         estimated_size_kb: size_kb,
@@ -250,13 +250,13 @@ pub async fn start_uninstall(app: tauri::AppHandle) -> Result<(), String> {
     let mut shortcuts = Vec::new();
     for all_users in [false, true] {
         if let Some(dir) = crate::known_folders::start_menu_programs_dir(all_users) {
-            shortcuts.push(dir.join("Nectar.lnk"));
+            shortcuts.push(dir.join("Islet.lnk"));
         }
         if let Some(dir) = crate::known_folders::legacy_start_menu_dir(all_users) {
-            shortcuts.push(dir.join("Nectar.lnk"));
+            shortcuts.push(dir.join("Islet.lnk"));
         }
         if let Some(dir) = crate::known_folders::desktop_dir(all_users) {
-            shortcuts.push(dir.join("Nectar.lnk"));
+            shortcuts.push(dir.join("Islet.lnk"));
         }
     }
 

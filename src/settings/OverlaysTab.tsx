@@ -26,7 +26,7 @@ export function OverlaysTab({
     <>
       <div className="setting-group-label">Overlays</div>
       <div className="setting-group">
-        <SettingRow icon={Volume2} label="Volume HUD" desc="Nectar volume overlay">
+        <SettingRow icon={Volume2} label="Volume HUD" desc="Islet volume overlay">
           <label className="toggle-switch">
             <input type="checkbox" checked={volumeOverlayEnabled} onChange={toggleVolumeOverlay} />
             <span className="slider"></span>
@@ -42,7 +42,7 @@ export function OverlaysTab({
           </SettingRow>
         )}
 
-        <SettingRow icon={Sun} label="Brightness HUD" desc="Nectar brightness overlay">
+        <SettingRow icon={Sun} label="Brightness HUD" desc="Islet brightness overlay">
           <label className="toggle-switch">
             <input type="checkbox" checked={brightnessOverlayEnabled} onChange={toggleBrightnessOverlay} />
             <span className="slider"></span>

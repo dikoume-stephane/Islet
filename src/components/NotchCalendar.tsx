@@ -11,7 +11,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "agenda", label: "Agenda" },
 ];
 
-const VIEW_KEY = "nectar-calendar-view";
+const VIEW_KEY = "islet-calendar-view";
 const AGENDA_DAYS = 14;
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -46,7 +46,7 @@ function readView(): View {
 }
 
 function colorVar(e: CalEvent): React.CSSProperties {
-  return { ["--c" as string]: e.color ?? "var(--nectar-text, #fff)" };
+  return { ["--c" as string]: e.color ?? "var(--islet-text, #fff)" };
 }
 
 interface Props {

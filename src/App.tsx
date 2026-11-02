@@ -307,8 +307,8 @@ function App() {
   const [time, setTime] = useState("");
   const [isHovered, setIsHovered] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("nectar-scale") || "1.0"));
-  const [timeFormat24h, setTimeFormat24h] = useState(() => localStorage.getItem("nectar-time-format-24h") === "true");
+  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("islet-scale") || "1.0"));
+  const [timeFormat24h, setTimeFormat24h] = useState(() => localStorage.getItem("islet-time-format-24h") === "true");
 
 
   const [batteryLevel, setBatteryLevel] = useState(100);
@@ -316,7 +316,7 @@ function App() {
   const [hasBattery, setHasBattery] = useState(true);
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
-  const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("nectar-low-battery-threshold") || "20"));
+  const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("islet-low-battery-threshold") || "20"));
   const prevChargingRef = useRef<boolean | null>(null);
   const powerPulseTimeoutRef = useRef<any>(null);
   const lowBatteryPulseShownRef = useRef<boolean>(false);
@@ -331,7 +331,7 @@ function App() {
   }, []);
 
   const [notchMode, setNotchMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-notch-mode") || "fixed";
+    const raw = localStorage.getItem("islet-notch-mode") || "fixed";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
@@ -404,7 +404,7 @@ function App() {
 
   // Update state
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [showUpdateIndicator, setShowUpdateIndicator] = useState(() => localStorage.getItem("nectar-show-update-indicator") !== "false");
+  const [showUpdateIndicator, setShowUpdateIndicator] = useState(() => localStorage.getItem("islet-show-update-indicator") !== "false");
   const [showUpdatePulse, setShowUpdatePulse] = useState(false);
 
   useEffect(() => {
@@ -448,18 +448,18 @@ function App() {
   const [startupAnimating, setStartupAnimating] = useState(false);
 
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("islet-dock-mode") || "smart";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
   const [dndActive, setDndActive] = useState(false);
-  const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("nectar-dock-enabled") !== "false");
+  const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("islet-dock-enabled") !== "false");
   const [isNotchHovered, setIsNotchHovered] = useState(false);
 
   const [isEdgeHovered, setIsEdgeHovered] = useState(false);
   const [isOverlapped, setIsOverlapped] = useState(false);
   const [interactionState, setInteractionState] = useState<'active' | 'grace' | 'none'>('none');
-  const nectarRef = useRef<HTMLDivElement>(null);
+  const isletRef = useRef<HTMLDivElement>(null);
   const dockEnabledInitial = useRef(true);
   const dockModeInitial = useRef(true);
   const notchModeInitial = useRef(true);
@@ -496,8 +496,8 @@ function App() {
   useEffect(() => {
     let lastSent = "";
     const updateRect = () => {
-      if (nectarRef.current && isNotchWindow) {
-        const rect = nectarRef.current.getBoundingClientRect();
+      if (isletRef.current && isNotchWindow) {
+        const rect = isletRef.current.getBoundingClientRect();
         const next = {
           x: Math.round(rect.x),
           y: Math.round(rect.y),
@@ -514,7 +514,7 @@ function App() {
     updateRect();
     window.addEventListener('resize', updateRect);
     const observer = new ResizeObserver(updateRect);
-    if (nectarRef.current) observer.observe(nectarRef.current);
+    if (isletRef.current) observer.observe(isletRef.current);
 
     let rafId: number;
     const chaseStart = performance.now();
@@ -604,27 +604,27 @@ function App() {
   }, [windowLabel]);
 
   // Settings state
-  const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("nectar-weather-enabled") !== "false");
-  const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("nectar-calendar-enabled") !== "false");
+  const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("islet-weather-enabled") !== "false");
+  const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("islet-calendar-enabled") !== "false");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
-    () => (localStorage.getItem("nectar-timer-enabled") ?? localStorage.getItem("nectar-calendar-enabled")) !== "false",
+    () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
   const [settingsTimerSoundEnabled, setSettingsTimerSoundEnabled] = useState(
-    () => localStorage.getItem("nectar-timer-sound-enabled") !== "false",
+    () => localStorage.getItem("islet-timer-sound-enabled") !== "false",
   );
   const [settingsStopwatchEnabled, setSettingsStopwatchEnabled] = useState(
-    () => (localStorage.getItem("nectar-stopwatch-enabled") ?? localStorage.getItem("nectar-calendar-enabled")) !== "false",
+    () => (localStorage.getItem("islet-stopwatch-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
   const showClockColumn = settingsTimerEnabled || settingsStopwatchEnabled;
   const productivityEnabled = settingsCalendarEnabled || showClockColumn;
-  const [settingsMusicModeEnabled, setSettingsMusicModeEnabled] = useState(() => localStorage.getItem("nectar-music-mode-enabled") !== "false");
-  const [settingsMusicCompactNotch, setSettingsMusicCompactNotch] = useState(() => localStorage.getItem("nectar-music-compact-notch") !== "false");
-  const [settingsVisualizerEnabled, setSettingsVisualizerEnabled] = useState(() => localStorage.getItem("nectar-visualizer-enabled") !== "false");
-  const [settingsAlbumArtEnabled, setSettingsAlbumArtEnabled] = useState(() => localStorage.getItem("nectar-media-album-art-enabled") !== "false");
-  const [settingsAmbienceEnabled, setSettingsAmbienceEnabled] = useState(() => localStorage.getItem("nectar-media-ambience-enabled") !== "false");
-  const [settingsCompactGlowEnabled, setSettingsCompactGlowEnabled] = useState(() => localStorage.getItem("nectar-media-compact-glow-enabled") !== "false");
-  const [settingsCornersEnabled, setSettingsCornersEnabled] = useState(() => localStorage.getItem("nectar-corners-enabled") === "true");
-  const [mediaLayout, setMediaLayout] = useState<'classic' | 'compact'>(() => (localStorage.getItem("nectar-media-layout") as 'classic' | 'compact') || 'classic');
+  const [settingsMusicModeEnabled, setSettingsMusicModeEnabled] = useState(() => localStorage.getItem("islet-music-mode-enabled") !== "false");
+  const [settingsMusicCompactNotch, setSettingsMusicCompactNotch] = useState(() => localStorage.getItem("islet-music-compact-notch") !== "false");
+  const [settingsVisualizerEnabled, setSettingsVisualizerEnabled] = useState(() => localStorage.getItem("islet-visualizer-enabled") !== "false");
+  const [settingsAlbumArtEnabled, setSettingsAlbumArtEnabled] = useState(() => localStorage.getItem("islet-media-album-art-enabled") !== "false");
+  const [settingsAmbienceEnabled, setSettingsAmbienceEnabled] = useState(() => localStorage.getItem("islet-media-ambience-enabled") !== "false");
+  const [settingsCompactGlowEnabled, setSettingsCompactGlowEnabled] = useState(() => localStorage.getItem("islet-media-compact-glow-enabled") !== "false");
+  const [settingsCornersEnabled, setSettingsCornersEnabled] = useState(() => localStorage.getItem("islet-corners-enabled") === "true");
+  const [mediaLayout, setMediaLayout] = useState<'classic' | 'compact'>(() => (localStorage.getItem("islet-media-layout") as 'classic' | 'compact') || 'classic');
   const [compactVolumeExpanded, setCompactVolumeExpanded] = useState(false);
 
   // Weather hook
@@ -651,40 +651,40 @@ function App() {
         return fallback;
       };
 
-      setSettingsWeatherEnabled(getVal("nectar-weather-enabled", "true") !== "false");
-      setSettingsCalendarEnabled(getVal("nectar-calendar-enabled", "true") !== "false");
-      setSettingsTimerEnabled((getVal("nectar-timer-enabled") ?? getVal("nectar-calendar-enabled", "true")) !== "false");
-      setSettingsTimerSoundEnabled(getVal("nectar-timer-sound-enabled", "true") !== "false");
-      setSettingsStopwatchEnabled((getVal("nectar-stopwatch-enabled") ?? getVal("nectar-calendar-enabled", "true")) !== "false");
-      setSettingsMusicModeEnabled(getVal("nectar-music-mode-enabled", "true") !== "false");
-      setSettingsMusicCompactNotch(getVal("nectar-music-compact-notch", "true") !== "false");
-      const viz = getVal("nectar-media-visualizer-enabled") ?? getVal("nectar-visualizer-enabled", "true");
+      setSettingsWeatherEnabled(getVal("islet-weather-enabled", "true") !== "false");
+      setSettingsCalendarEnabled(getVal("islet-calendar-enabled", "true") !== "false");
+      setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
+      setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
+      setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
+      setSettingsMusicModeEnabled(getVal("islet-music-mode-enabled", "true") !== "false");
+      setSettingsMusicCompactNotch(getVal("islet-music-compact-notch", "true") !== "false");
+      const viz = getVal("islet-media-visualizer-enabled") ?? getVal("islet-visualizer-enabled", "true");
       setSettingsVisualizerEnabled(viz !== "false");
-      setSettingsAlbumArtEnabled(getVal("nectar-media-album-art-enabled", "true") !== "false");
-      setSettingsAmbienceEnabled(getVal("nectar-media-ambience-enabled", "true") !== "false");
-      setSettingsCompactGlowEnabled(getVal("nectar-media-compact-glow-enabled", "true") !== "false");
-      setSettingsCornersEnabled(getVal("nectar-corners-enabled", "false") === "true");
-      setTimeFormat24h(getVal("nectar-time-format-24h") === "true");
+      setSettingsAlbumArtEnabled(getVal("islet-media-album-art-enabled", "true") !== "false");
+      setSettingsAmbienceEnabled(getVal("islet-media-ambience-enabled", "true") !== "false");
+      setSettingsCompactGlowEnabled(getVal("islet-media-compact-glow-enabled", "true") !== "false");
+      setSettingsCornersEnabled(getVal("islet-corners-enabled", "false") === "true");
+      setTimeFormat24h(getVal("islet-time-format-24h") === "true");
 
-      const thresholdStr = getVal("nectar-low-battery-threshold", "20");
+      const thresholdStr = getVal("islet-low-battery-threshold", "20");
       if (thresholdStr) setLowBatteryThreshold(parseInt(thresholdStr as string));
 
       refreshNotchMode();
 
       if (windowLabel === 'main') {
-        const firstRun = localStorage.getItem("nectar-first-run") === null;
+        const firstRun = localStorage.getItem("islet-first-run") === null;
         if (firstRun) {
           import("@tauri-apps/plugin-autostart").then(({ enable, isEnabled }) => {
             isEnabled().then(enabled => {
               if (!enabled) enable().catch(() => { });
             });
           });
-          localStorage.setItem("nectar-first-run", "done");
+          localStorage.setItem("islet-first-run", "done");
         }
-        const rawDockMode = getVal("nectar-dock-mode", "smart") as string;
+        const rawDockMode = getVal("islet-dock-mode", "smart") as string;
         const dockMode = rawDockMode === "auto-hide" ? "smart" : rawDockMode;
         const syncWindows = async () => {
-          const dockEnabled = getVal("nectar-dock-enabled", "true") === "true";
+          const dockEnabled = getVal("islet-dock-enabled", "true") === "true";
           const resolvedNotchMode = await invoke<string>('get_notch_mode_for_window').catch(() => "fixed");
           await Promise.all([
             dockEnabled ? invoke("init_dock", { mode: dockMode }) : Promise.resolve(),
@@ -693,7 +693,7 @@ function App() {
           await invoke("sync_appbar");
         };
 
-        const dockEnabled = getVal("nectar-dock-enabled", "true") === "true";
+        const dockEnabled = getVal("islet-dock-enabled", "true") === "true";
         const runDockInit = () => {
           // 1. Snappy initial sync
           setTimeout(syncWindows, 400);
@@ -726,10 +726,10 @@ function App() {
         runDockInitAfterSplash();
       }
 
-      const scaleVal = getVal("nectar-scale");
+      const scaleVal = getVal("islet-scale");
       if (scaleVal !== null) setScale(parseFloat(scaleVal));
 
-      const widgetsVal = getVal("nectar-status-widgets");
+      const widgetsVal = getVal("islet-status-widgets");
       if (widgetsVal) {
         try {
           const parsed = JSON.parse(widgetsVal);
@@ -778,29 +778,29 @@ function App() {
   // Settings sync — consolidated dispatch for all settings events
   useSettingsSync(
     {
-      "nectar-weather-enabled": setSettingsWeatherEnabled,
-      "nectar-calendar-enabled": setSettingsCalendarEnabled,
-      "nectar-timer-enabled": setSettingsTimerEnabled,
-      "nectar-timer-sound-enabled": setSettingsTimerSoundEnabled,
-      "nectar-stopwatch-enabled": setSettingsStopwatchEnabled,
-      "nectar-music-mode-enabled": setSettingsMusicModeEnabled,
-      "nectar-music-compact-notch": setSettingsMusicCompactNotch,
-      "nectar-media-visualizer-enabled": setSettingsVisualizerEnabled,
-      "nectar-visualizer-enabled": setSettingsVisualizerEnabled,
-      "nectar-media-album-art-enabled": setSettingsAlbumArtEnabled,
-      "nectar-media-ambience-enabled": setSettingsAmbienceEnabled,
-      "nectar-media-compact-glow-enabled": setSettingsCompactGlowEnabled,
-      "nectar-media-layout": setMediaLayout,
-      "nectar-corners-enabled": setSettingsCornersEnabled,
-      "nectar-scale": setScale,
-      "nectar-low-battery-threshold": setLowBatteryThreshold,
-      "nectar-dock-enabled": setDockEnabled,
-      "nectar-dock-mode": setDockMode,
-      "nectar-notch-mode": refreshNotchMode,
-      "nectar-notch-mode-by-monitor": refreshNotchMode,
-      "nectar-notch-monitor-mode": refreshNotchMode,
-      "nectar-notch-monitor-id": refreshNotchMode,
-      "nectar-status-widgets": (value) => {
+      "islet-weather-enabled": setSettingsWeatherEnabled,
+      "islet-calendar-enabled": setSettingsCalendarEnabled,
+      "islet-timer-enabled": setSettingsTimerEnabled,
+      "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
+      "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
+      "islet-music-mode-enabled": setSettingsMusicModeEnabled,
+      "islet-music-compact-notch": setSettingsMusicCompactNotch,
+      "islet-media-visualizer-enabled": setSettingsVisualizerEnabled,
+      "islet-visualizer-enabled": setSettingsVisualizerEnabled,
+      "islet-media-album-art-enabled": setSettingsAlbumArtEnabled,
+      "islet-media-ambience-enabled": setSettingsAmbienceEnabled,
+      "islet-media-compact-glow-enabled": setSettingsCompactGlowEnabled,
+      "islet-media-layout": setMediaLayout,
+      "islet-corners-enabled": setSettingsCornersEnabled,
+      "islet-scale": setScale,
+      "islet-low-battery-threshold": setLowBatteryThreshold,
+      "islet-dock-enabled": setDockEnabled,
+      "islet-dock-mode": setDockMode,
+      "islet-notch-mode": refreshNotchMode,
+      "islet-notch-mode-by-monitor": refreshNotchMode,
+      "islet-notch-monitor-mode": refreshNotchMode,
+      "islet-notch-monitor-id": refreshNotchMode,
+      "islet-status-widgets": (value) => {
         try {
           const parsed = JSON.parse(value);
           if (parsed && Array.isArray(parsed.left) && Array.isArray(parsed.right)) {
@@ -808,8 +808,8 @@ function App() {
           }
         } catch {}
       },
-      "nectar-show-update-indicator": (value) => setShowUpdateIndicator(String(value) === "true"),
-      "nectar-time-format-24h": setTimeFormat24h,
+      "islet-show-update-indicator": (value) => setShowUpdateIndicator(String(value) === "true"),
+      "islet-time-format-24h": setTimeFormat24h,
     },
     [windowLabel]
   );
@@ -819,7 +819,7 @@ function App() {
     if (windowLabel !== 'main') return;
     if (dockEnabledInitial.current) { dockEnabledInitial.current = false; return; }
     if (dockEnabled) {
-      invoke("init_dock", { mode: localStorage.getItem("nectar-dock-mode") || "smart" });
+      invoke("init_dock", { mode: localStorage.getItem("islet-dock-mode") || "smart" });
     } else {
       invoke("toggle_dock", { enable: false });
     }
@@ -841,7 +841,7 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [nectarMode, setNectarMode] = useState<'music' | 'calendar' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'command-center' | 'status'>('status');
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -884,13 +884,13 @@ function App() {
       return true;
     });
 
-    const currentIndex = availableModes.indexOf(nectarMode);
+    const currentIndex = availableModes.indexOf(isletMode);
     if (currentIndex === -1) return;
 
     const nextIndex = (currentIndex + direction + availableModes.length) % availableModes.length;
     const nextMode = availableModes[nextIndex];
     manualMusicRef.current = nextMode === 'music';
-    setNectarMode(nextMode);
+    setIsletMode(nextMode);
   };
 
 
@@ -976,53 +976,53 @@ function App() {
     }
 
     // Only auto-switch if music mode is enabled
-    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && nectarMode !== 'calendar' && (isNewTrackWhilePlaying || justStartedPlaying)) {
+    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && isletMode !== 'calendar' && (isNewTrackWhilePlaying || justStartedPlaying)) {
       // Switch if compact notch display is enabled OR we are hovered
       if (settingsMusicCompactNotch || isHovered) {
         manualMusicRef.current = false;
-        setNectarMode('music');
+        setIsletMode('music');
       }
     }
 
     lastTrackRef.current = mediaInfo.title;
     lastPlayingRef.current = isPlaying;
-  }, [mediaInfo.has_media, isPlaying, mediaInfo.title, settingsMusicModeEnabled, settingsMusicCompactNotch, isHovered, nectarMode, notchMode, triggerEventPeek]);
+  }, [mediaInfo.has_media, isPlaying, mediaInfo.title, settingsMusicModeEnabled, settingsMusicCompactNotch, isHovered, isletMode, notchMode, triggerEventPeek]);
 
   // Auto-switch back from music if music stops for 5 seconds
   // Skip if user manually scrolled to music mode
   useEffect(() => {
     let timer: any;
-    if (!isPlaying && nectarMode === 'music' && !manualMusicRef.current) {
+    if (!isPlaying && isletMode === 'music' && !manualMusicRef.current) {
       timer = setTimeout(() => {
-        setNectarMode('status');
+        setIsletMode('status');
       }, 5000);
     }
     return () => clearTimeout(timer);
-  }, [isPlaying, nectarMode]);
+  }, [isPlaying, isletMode]);
 
   useEffect(() => {
-    if (!productivityEnabled && nectarMode === 'calendar') {
-      setNectarMode('status');
+    if (!productivityEnabled && isletMode === 'calendar') {
+      setIsletMode('status');
     }
-  }, [productivityEnabled, nectarMode]);
+  }, [productivityEnabled, isletMode]);
 
   useEffect(() => {
-    if (!settingsMusicModeEnabled && nectarMode === 'music') {
-      setNectarMode('status');
+    if (!settingsMusicModeEnabled && isletMode === 'music') {
+      setIsletMode('status');
     }
-  }, [settingsMusicModeEnabled, nectarMode]);
+  }, [settingsMusicModeEnabled, isletMode]);
 
   useEffect(() => {
-    if (!settingsMusicCompactNotch && nectarMode === 'music' && !isHovered) {
-      setNectarMode('status');
+    if (!settingsMusicCompactNotch && isletMode === 'music' && !isHovered) {
+      setIsletMode('status');
     }
-  }, [settingsMusicCompactNotch, nectarMode, isHovered]);
+  }, [settingsMusicCompactNotch, isletMode, isHovered]);
 
   useEffect(() => {
-    if (settingsMusicModeEnabled && settingsMusicCompactNotch && mediaInfo.has_media && isPlaying && nectarMode === 'status' && !isHovered) {
-      setNectarMode('music');
+    if (settingsMusicModeEnabled && settingsMusicCompactNotch && mediaInfo.has_media && isPlaying && isletMode === 'status' && !isHovered) {
+      setIsletMode('music');
     }
-  }, [settingsMusicModeEnabled, settingsMusicCompactNotch, mediaInfo.has_media, isPlaying, nectarMode, isHovered]);
+  }, [settingsMusicModeEnabled, settingsMusicCompactNotch, mediaInfo.has_media, isPlaying, isletMode, isHovered]);
 
   // Update time
   useEffect(() => {
@@ -1042,7 +1042,7 @@ function App() {
 
     // Toggle compact timer view every 5 seconds if running
     let timerToggleInterval: any;
-    if ((isTimerRunning || stopwatch.running) && nectarMode !== 'calendar') {
+    if ((isTimerRunning || stopwatch.running) && isletMode !== 'calendar') {
       timerToggleInterval = setInterval(() => {
         setIsCompactTimerVisible(prev => !prev);
       }, 5000);
@@ -1054,7 +1054,7 @@ function App() {
       clearInterval(interval);
       if (timerToggleInterval) clearInterval(timerToggleInterval);
     };
-  }, [isTimerRunning, stopwatch.running, nectarMode, timeFormat24h]);
+  }, [isTimerRunning, stopwatch.running, isletMode, timeFormat24h]);
 
   // Battery API
   useEffect(() => {
@@ -1125,11 +1125,11 @@ function App() {
 
   // Keep Wi-Fi fresh while the command center is open (keyboard toggle, Windows quick settings).
   useEffect(() => {
-    if (nectarMode !== 'command-center') return;
+    if (isletMode !== 'command-center') return;
     void refreshWifiStatus();
     const interval = setInterval(() => void refreshWifiStatus(), 5000);
     return () => clearInterval(interval);
-  }, [nectarMode, refreshWifiStatus]);
+  }, [isletMode, refreshWifiStatus]);
 
   // Load bluetooth/volume/brightness state on mount
   useEffect(() => {
@@ -1355,8 +1355,8 @@ function App() {
     e.stopPropagation();
     const nextMode = dockMode === "fixed" ? "smart" : dockMode === "smart" ? "peek" : "fixed";
     setDockMode(nextMode);
-    localStorage.setItem("nectar-dock-mode", nextMode);
-    invoke("save_setting", { key: "nectar-dock-mode", value: nextMode }).catch(console.error);
+    localStorage.setItem("islet-dock-mode", nextMode);
+    invoke("save_setting", { key: "islet-dock-mode", value: nextMode }).catch(console.error);
     try {
       await invoke("change_dock_mode", { mode: nextMode });
     } catch (err) {
@@ -1392,7 +1392,7 @@ function App() {
     }
     if (!productivityEnabled) return;
 
-    setNectarMode(prev => {
+    setIsletMode(prev => {
       if (prev === 'calendar') {
         // Return to music mode if media is present and playing and music mode is enabled, otherwise status
         return (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying) ? 'music' : 'status';
@@ -1460,16 +1460,16 @@ function App() {
   };
 
   // Music mode shows any time we have media info (playing or paused) and music mode setting is enabled
-  const isMusicMode = mediaInfo.has_media && nectarMode === 'music' && settingsMusicModeEnabled;
+  const isMusicMode = mediaInfo.has_media && isletMode === 'music' && settingsMusicModeEnabled;
 
   // Calculate width dynamically based on enabled features
   const getDynamicWidth = () => {
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
-    if (nectarMode === 'command-center' && isHovered) {
+    if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
       return Math.max(350, Math.min(200 + totalWidgets * 65, 460));
     }
-    if (nectarMode === 'status' && isHovered) {
+    if (isletMode === 'status' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
       return Math.min(200 + totalWidgets * 65, 460);
     }
@@ -1494,9 +1494,9 @@ function App() {
     if (!isExpanded || isHidden) {
       return isImpacted ? 28.9 : 44.2;
     }
-    if (nectarMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
-    if (nectarMode === 'command-center') return isHovered ? 230 : 36;
-    if (nectarMode === 'status') return 36;
+    if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
+    if (isletMode === 'command-center') return isHovered ? 230 : 36;
+    if (isletMode === 'status') return 36;
     if (isMusicMode && isHovered) {
       const hasProgressBar = (mediaInfo.duration_ms ?? 0) > 0;
       let h = mediaLayout === 'compact' ? (hasProgressBar ? 132 : 116) : 120;
@@ -1508,14 +1508,14 @@ function App() {
     return 36;
   };
 
-  const isCalendarMode = nectarMode === 'calendar';
+  const isCalendarMode = isletMode === 'calendar';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
     if (mediaLayout === 'compact') {
       setCompactVolumeExpanded(false);
     }
-  }, [isHovered, mediaLayout, nectarMode]);
+  }, [isHovered, mediaLayout, isletMode]);
 
 
 
@@ -1544,8 +1544,8 @@ function App() {
 
       <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center' }}>
         <motion.div
-          ref={nectarRef}
-          className={`nectar ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''}`}
+          ref={isletRef}
+          className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''}`}
           onMouseEnter={() => setIsNotchHovered(true)}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
@@ -1569,15 +1569,15 @@ function App() {
         }}
         onHoverStart={() => {
           setIsHovered(true);
-          setNectarMode(mediaInfo.has_media && isPlaying ? 'music' : 'status');
+          setIsletMode(mediaInfo.has_media && isPlaying ? 'music' : 'status');
         }}
         onHoverEnd={() => {
           setIsHovered(false);
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
-          if (nectarMode === 'music') {
-            setNectarMode(targetMode);
-          } else if (nectarMode === 'command-center' || nectarMode === 'calendar' || nectarMode === 'status') {
-            setNectarMode(targetMode);
+          if (isletMode === 'music') {
+            setIsletMode(targetMode);
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'status') {
+            setIsletMode(targetMode);
           }
         }}
         style={{ originY: 0 }}
@@ -1621,7 +1621,7 @@ function App() {
         <AnimatePresence mode="wait">
           {isExpanded && (
             <motion.div
-              key="nectar-content"
+              key="islet-content"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -1658,7 +1658,7 @@ function App() {
                         onAnimateNext={animateNext}
                         onLayoutChange={(layout) => {
                           setMediaLayout(layout);
-                          localStorage.setItem("nectar-media-layout", layout);
+                          localStorage.setItem("islet-media-layout", layout);
                           window.dispatchEvent(new CustomEvent("settings-changed", { detail: { key: "media-layout", value: layout } }));
                         }}
                       />
@@ -1672,7 +1672,7 @@ function App() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setMediaLayout('compact');
-                            localStorage.setItem("nectar-media-layout", "compact");
+                            localStorage.setItem("islet-media-layout", "compact");
                             window.dispatchEvent(new CustomEvent("settings-changed", { detail: { key: "media-layout", value: "compact" } }));
                           }}
                           style={{ cursor: 'pointer' }}
@@ -2022,7 +2022,7 @@ function App() {
 
               {/* Command Center Panel */}
               <AnimatePresence>
-                {nectarMode === 'command-center' && (
+                {isletMode === 'command-center' && (
                   <motion.div
                     className="command-center-content-minimal"
                     onClick={e => e.stopPropagation()}
@@ -2126,7 +2126,7 @@ function App() {
                       </button>
                       <button
                         className="cc-circular-btn"
-                        onClick={(e) => { e.stopPropagation(); invoke("restart_nectar"); }}
+                        onClick={(e) => { e.stopPropagation(); invoke("restart_islet"); }}
                       >
                         <ReloadIcon />
                       </button>

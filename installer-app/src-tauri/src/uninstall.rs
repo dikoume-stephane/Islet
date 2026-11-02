@@ -4,33 +4,33 @@ use std::path::{Path, PathBuf};
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const CREATE_BREAKAWAY_FROM_JOB: u32 = 0x0100_0000;
 
-fn nectar_running() -> bool {
+fn islet_running() -> bool {
     std::process::Command::new("tasklist")
-        .args(["/FI", "IMAGENAME eq nectar.exe"])
+        .args(["/FI", "IMAGENAME eq islet.exe"])
         .creation_flags(CREATE_NO_WINDOW)
         .output()
-        .is_ok_and(|o| String::from_utf8_lossy(&o.stdout).contains("nectar.exe"))
+        .is_ok_and(|o| String::from_utf8_lossy(&o.stdout).contains("islet.exe"))
 }
 
-fn stop_running_nectar() {
+fn stop_running_islet() {
     let _ = std::process::Command::new("taskkill")
-        .args(["/IM", "nectar.exe"])
+        .args(["/IM", "islet.exe"])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
 
     for _ in 0..12 {
-        if !nectar_running() {
+        if !islet_running() {
             return;
         }
         std::thread::sleep(std::time::Duration::from_millis(250));
     }
 
     let _ = std::process::Command::new("taskkill")
-        .args(["/F", "/T", "/IM", "nectar.exe"])
+        .args(["/F", "/T", "/IM", "islet.exe"])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
     for _ in 0..12 {
-        if !nectar_running() {
+        if !islet_running() {
             return;
         }
         std::thread::sleep(std::time::Duration::from_millis(250));
@@ -46,7 +46,7 @@ fn run_once_key(all_users: bool) -> &'static str {
 }
 
 pub fn uninstall(install_dir: &Path, all_users: bool, shortcuts: &[PathBuf]) -> Result<(), String> {
-    stop_running_nectar();
+    stop_running_islet();
 
     for s in shortcuts {
         let _ = std::fs::remove_file(s);
@@ -63,8 +63,8 @@ pub fn uninstall(install_dir: &Path, all_users: bool, shortcuts: &[PathBuf]) -> 
            if (Test-Path -LiteralPath '{dir}') {{ Start-Sleep -Milliseconds 500 }} \
          }}; \
          if (Test-Path -LiteralPath '{dir}') {{ \
-           Add-Content (Join-Path $env:TEMP 'nectar-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
-           New-ItemProperty -Path '{run_once}' -Name 'NectarCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
+           Add-Content (Join-Path $env:TEMP 'islet-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
+           New-ItemProperty -Path '{run_once}' -Name 'IsletCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
          }}",
         pid = pid,
         dir = dir_str,

@@ -6,7 +6,7 @@ import type { MonitorInfo, MonitorMode } from "./types";
 import { usePerMonitor } from "./usePerMonitor";
 
 const START_ICON_PRESETS = [
-  { key: "default", src: "/nectar.png", label: "Nectar" },
+  { key: "default", src: "/islet.png", label: "Islet" },
   { key: "windows", src: "/windows.png", label: "Windows" },
 ];
 
@@ -14,7 +14,7 @@ const startIconTileStyle = (active: boolean): CSSProperties => ({
   width: "48px",
   height: "48px",
   borderRadius: "12px",
-  border: active ? "2px solid var(--nectar-accent, #007aff)" : "2px solid rgba(255,255,255,0.1)",
+  border: active ? "2px solid var(--islet-accent, #007aff)" : "2px solid rgba(255,255,255,0.1)",
   background: active ? "rgba(0,122,255,0.15)" : "rgba(255,255,255,0.05)",
   display: "flex",
   alignItems: "center",
@@ -105,7 +105,7 @@ export function DockTab({
     <>
       <div className="setting-group-label">Dock</div>
       <div className="setting-group">
-        <SettingRow icon={Monitor} label="Nectar Dock" desc="Replace Windows taskbar">
+        <SettingRow icon={Monitor} label="Islet Dock" desc="Replace Windows taskbar">
           <label className="toggle-switch">
             <input type="checkbox" checked={dockEnabled} onChange={toggleDock} />
             <span className="slider"></span>

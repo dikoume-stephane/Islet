@@ -1,8 +1,8 @@
-; Custom NSIS behavior for the Nectar installer, wired in via Tauri's own
+; Custom NSIS behavior for the Islet installer, wired in via Tauri's own
 ; `bundle.windows.nsis.installerHooks` config (tauri.conf.json) — NOT
 ; electron-builder, which turned out to be architecturally unable to wrap a
 ; native (non-Electron) executable correctly. Tauri's bundler builds the
-; real installer around the actual compiled nectar.exe; this file only adds
+; real installer around the actual compiled islet.exe; this file only adds
 ; extra window styling on top of that, it doesn't replace any of Tauri's own
 ; install/uninstall logic.
 ;
@@ -22,7 +22,7 @@
 ; WS_CHILD definitions, confirmed by fetching Tauri's real template from
 ; github.com/tauri-apps/tauri and testing against it directly, not guessed.
 ; What is NOT verified: an actual `tauri build` run producing a real
-; installer with the real nectar.exe (no cargo/rustc in this environment),
+; installer with the real islet.exe (no cargo/rustc in this environment),
 ; or how the buttons actually look/behave on screen — expect to check sizes/
 ; positions once you can run a real build.
 
@@ -39,32 +39,32 @@
 !define SW_MINIMIZE_VAL 6
 !define SWP_FLAGS       0x0027 ; SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
 
-!define NECTAR_BG       "0B0D13" ; matches the app/website dark background
-!define NECTAR_TEXT     "FFFFFF"
-!define NECTAR_CLOSE    "FF5F57"
-!define NECTAR_MINIMIZE "FEBC2E"
-!define NECTAR_DECOR    "28C840"
+!define ISLET_BG       "0B0D13" ; matches the app/website dark background
+!define ISLET_TEXT     "FFFFFF"
+!define ISLET_CLOSE    "FF5F57"
+!define ISLET_MINIMIZE "FEBC2E"
+!define ISLET_DECOR    "28C840"
 
-!define MUI_BGCOLOR   ${NECTAR_BG}
-!define MUI_TEXTCOLOR ${NECTAR_TEXT}
+!define MUI_BGCOLOR   ${ISLET_BG}
+!define MUI_TEXTCOLOR ${ISLET_TEXT}
 
 ; MUI2's mechanism for wiring a callback into the real .onGUIInit — this
 ; needs to be set before `!insertmacro MUI_LANGUAGE` runs (near the end of
 ; Tauri's template), which it is, since installerHooks is !include'd very
 ; early (before any MUI_PAGE_* macro is inserted).
-!define MUI_CUSTOMFUNCTION_GUIINIT NectarGuiInit
+!define MUI_CUSTOMFUNCTION_GUIINIT IsletGuiInit
 
 ; Runs once, when the main installer window is first created — before any
 ; wizard page is shown. Controls created here as children of $HWNDPARENT (the
 ; persistent outer frame) stay visible across every page, since MUI2 swaps
 ; only the inner page content, not the outer window itself.
-Function NectarGuiInit
+Function IsletGuiInit
   System::Call 'user32::GetWindowLongW(i $HWNDPARENT, i ${GWL_STYLE_VAL}) i .r0'
   IntOp $0 $0 & ~${WS_SYSMENU_VAL}
   System::Call 'user32::SetWindowLongW(i $HWNDPARENT, i ${GWL_STYLE_VAL}, i r0)'
   System::Call 'user32::SetWindowPos(i $HWNDPARENT, i 0, i 0, i 0, i 0, i 0, i ${SWP_FLAGS})'
 
-  SetCtlColors $HWNDPARENT "${NECTAR_TEXT}" "${NECTAR_BG}"
+  SetCtlColors $HWNDPARENT "${ISLET_TEXT}" "${ISLET_BG}"
 
   ; Three 14x14 squares in the mac position (top-left), 8px apart, 12px
   ; inset from the corner. Square rather than round — clipping a native
@@ -73,43 +73,43 @@ Function NectarGuiInit
   ; position/colors get most of the way there without adding that risk.
   nsDialogs::CreateControl "BUTTON" ${WS_CHILD_VAL}|${WS_VISIBLE_VAL}|${BS_FLAT_VAL} 0 12 12 14 14 ""
   Pop $R0
-  SetCtlColors $R0 "${NECTAR_CLOSE}" "${NECTAR_CLOSE}"
-  GetFunctionAddress $R1 NectarCloseClick
+  SetCtlColors $R0 "${ISLET_CLOSE}" "${ISLET_CLOSE}"
+  GetFunctionAddress $R1 IsletCloseClick
   nsDialogs::OnClick $R0 $R1
 
   nsDialogs::CreateControl "BUTTON" ${WS_CHILD_VAL}|${WS_VISIBLE_VAL}|${BS_FLAT_VAL} 0 34 12 14 14 ""
   Pop $R2
-  SetCtlColors $R2 "${NECTAR_MINIMIZE}" "${NECTAR_MINIMIZE}"
-  GetFunctionAddress $R3 NectarMinimizeClick
+  SetCtlColors $R2 "${ISLET_MINIMIZE}" "${ISLET_MINIMIZE}"
+  GetFunctionAddress $R3 IsletMinimizeClick
   nsDialogs::OnClick $R2 $R3
 
   ; Decorative third dot only — a fixed-size wizard has no real
   ; restore/maximize state to wire this up to.
   nsDialogs::CreateControl "BUTTON" ${WS_CHILD_VAL}|${WS_VISIBLE_VAL}|${BS_FLAT_VAL} 0 56 12 14 14 ""
   Pop $R4
-  SetCtlColors $R4 "${NECTAR_DECOR}" "${NECTAR_DECOR}"
+  SetCtlColors $R4 "${ISLET_DECOR}" "${ISLET_DECOR}"
   EnableWindow $R4 0
 FunctionEnd
 
-Function NectarCloseClick
+Function IsletCloseClick
   Quit
 FunctionEnd
 
-Function NectarMinimizeClick
+Function IsletMinimizeClick
   System::Call 'user32::ShowWindow(i $HWNDPARENT, i ${SW_MINIMIZE_VAL})'
 FunctionEnd
 
 !macro NSIS_HOOK_PREINSTALL
   ${GetSize} "$INSTDIR" "/M=uninstall.exe /S=0K /G=0" $0 $1 $2
   ${If} $0 > 1024
-    CopyFiles /SILENT "$INSTDIR\uninstall.exe" "$TEMP\nectar-uninstall.keep"
+    CopyFiles /SILENT "$INSTDIR\uninstall.exe" "$TEMP\islet-uninstall.keep"
   ${EndIf}
 !macroend
 
 !macro NSIS_HOOK_POSTINSTALL
-  ${If} ${FileExists} "$TEMP\nectar-uninstall.keep"
-    CopyFiles /SILENT "$TEMP\nectar-uninstall.keep" "$INSTDIR\uninstall.exe"
-    Delete "$TEMP\nectar-uninstall.keep"
+  ${If} ${FileExists} "$TEMP\islet-uninstall.keep"
+    CopyFiles /SILENT "$TEMP\islet-uninstall.keep" "$INSTDIR\uninstall.exe"
+    Delete "$TEMP\islet-uninstall.keep"
     WriteRegStr SHCTX "${UNINSTKEY}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\" --uninstall"
   ${Else}
     Delete "$INSTDIR\uninstall.exe"

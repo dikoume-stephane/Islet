@@ -28,27 +28,27 @@ export function useSettings() {
   const [musicCompactNotch, setMusicCompactNotch] = useState(true);
   const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(true);
   const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(
-    () => localStorage.getItem("nectar-volume-edge-enabled") !== "false"
+    () => localStorage.getItem("islet-volume-edge-enabled") !== "false"
   );
   const [brightnessOverlayEnabled, setBrightnessOverlayEnabled] = useState(
-    () => localStorage.getItem("nectar-brightness-overlay-enabled") !== "false"
+    () => localStorage.getItem("islet-brightness-overlay-enabled") !== "false"
   );
   const [brightnessEdgeEnabled, setBrightnessEdgeEnabled] = useState(
-    () => localStorage.getItem("nectar-brightness-edge-enabled") !== "false"
+    () => localStorage.getItem("islet-brightness-edge-enabled") !== "false"
   );
   const [mediaAmbienceEnabled, setMediaAmbienceEnabled] = useState(true);
   const [mediaCompactGlowEnabled, setMediaCompactGlowEnabled] = useState(true);
   const [mediaLayout, setMediaLayout] = useState<"classic" | "compact">(
-    () => (localStorage.getItem("nectar-media-layout") as "classic" | "compact") || "classic"
+    () => (localStorage.getItem("islet-media-layout") as "classic" | "compact") || "classic"
   );
   const [cornersEnabled, setCornersEnabled] = useState(
-    () => localStorage.getItem("nectar-corners-enabled") === "true"
+    () => localStorage.getItem("islet-corners-enabled") === "true"
   );
   const [showUpdateIndicator, setShowUpdateIndicator] = useState(
-    () => localStorage.getItem("nectar-show-update-indicator") !== "false"
+    () => localStorage.getItem("islet-show-update-indicator") !== "false"
   );
   const [timeFormat24h, setTimeFormat24h] = useState(
-    () => localStorage.getItem("nectar-time-format-24h") === "true"
+    () => localStorage.getItem("islet-time-format-24h") === "true"
   );
   const [tempUnitFahrenheit, setTempUnitFahrenheit] = useState(false);
   const [cityName, setCityName] = useState("");
@@ -65,36 +65,36 @@ export function useSettings() {
   const [dockSearchEnabled, setDockSearchEnabled] = useState(true);
   const [dockCalendarEnabled, setDockCalendarEnabled] = useState(true);
   const [dockIconOnly, setDockIconOnly] = useState(
-    () => localStorage.getItem("nectar-dock-icon-only") === "true"
+    () => localStorage.getItem("islet-dock-icon-only") === "true"
   );
   const [startIcon, setStartIcon] = useState(
-    () => localStorage.getItem("nectar-start-icon") || "default"
+    () => localStorage.getItem("islet-start-icon") || "default"
   );
   const [dockAdaptive, setDockAdaptive] = useState(
-    () => localStorage.getItem("nectar-dock-adaptive") === "true"
+    () => localStorage.getItem("islet-dock-adaptive") === "true"
   );
   const [dockWinNumberEnabled, setDockWinNumberEnabled] = useState(
-    () => localStorage.getItem("nectar-dock-win-number-enabled") !== "false"
+    () => localStorage.getItem("islet-dock-win-number-enabled") !== "false"
   );
   const [dockMixedReorder, setDockMixedReorder] = useState(
-    () => localStorage.getItem("nectar-dock-mixed-reorder") === "true"
+    () => localStorage.getItem("islet-dock-mixed-reorder") === "true"
   );
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("islet-dock-mode") || "smart";
     return raw === "auto-hide" ? "smart" : raw;
   });
   const [notchMode, setNotchMode] = useState("fixed");
   const [dockMonitorMode, setDockMonitorMode] = useState<MonitorMode>(
-    () => (localStorage.getItem("nectar-dock-monitor-mode") as MonitorMode) || "primary"
+    () => (localStorage.getItem("islet-dock-monitor-mode") as MonitorMode) || "primary"
   );
   const [dockMonitorId, setDockMonitorId] = useState(
-    () => localStorage.getItem("nectar-dock-monitor-id") || ""
+    () => localStorage.getItem("islet-dock-monitor-id") || ""
   );
   const [notchMonitorMode, setNotchMonitorMode] = useState<MonitorMode>(
-    () => (localStorage.getItem("nectar-notch-monitor-mode") as MonitorMode) || "primary"
+    () => (localStorage.getItem("islet-notch-monitor-mode") as MonitorMode) || "primary"
   );
   const [notchMonitorId, setNotchMonitorId] = useState(
-    () => localStorage.getItem("nectar-notch-monitor-id") || ""
+    () => localStorage.getItem("islet-notch-monitor-id") || ""
   );
   const [dockModeByMonitor, setDockModeByMonitor] = useState<Record<string, string>>({});
   const [notchModeByMonitor, setNotchModeByMonitor] = useState<Record<string, string>>({});
@@ -107,27 +107,27 @@ export function useSettings() {
   const [updateVersion, setUpdateVersion] = useState("");
   const [appVersion, setAppVersion] = useState("");
   const [autoUpdate, setAutoUpdate] = useState(
-    () => localStorage.getItem("nectar-auto-update") === "true"
+    () => localStorage.getItem("islet-auto-update") === "true"
   );
   const [scale, setScale] = useState(
-    () => parseFloat(localStorage.getItem("nectar-scale") || "1.0")
+    () => parseFloat(localStorage.getItem("islet-scale") || "1.0")
   );
   const [themeMode, setThemeMode] = useState(
-    () => localStorage.getItem("nectar-theme-mode") || "dark"
+    () => localStorage.getItem("islet-theme-mode") || "dark"
   );
   const [themeColor, setThemeColor] = useState(
-    () => localStorage.getItem("nectar-theme-color") || "#007aff"
+    () => localStorage.getItem("islet-theme-color") || "#007aff"
   );
   const [themeOpacity, setThemeOpacity] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-opacity");
+    const val = localStorage.getItem("islet-theme-opacity");
     return val !== null ? parseFloat(val) : 0.8;
   });
   const [themeSaturation, setThemeSaturation] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-saturation");
+    const val = localStorage.getItem("islet-theme-saturation");
     return val !== null ? parseFloat(val) : 0.5;
   });
   const [themeBrightness, setThemeBrightness] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-brightness");
+    const val = localStorage.getItem("islet-theme-brightness");
     return val !== null ? parseFloat(val) : 0.15;
   });
   const [exportStatus, setExportStatus] = useState<"idle" | "exporting" | "success" | "error">("idle");
@@ -150,64 +150,64 @@ export function useSettings() {
         if (val !== null) setter(transform(val));
       };
 
-      apply(getVal("nectar-weather-enabled"), setWeatherEnabled, readBool);
-      apply(getVal("nectar-calendar-enabled"), setCalendarEnabled, readBool);
-      apply(getVal("nectar-timer-enabled") ?? getVal("nectar-calendar-enabled"), setTimerEnabled, readBool);
-      apply(getVal("nectar-timer-sound-enabled"), setTimerSoundEnabled, readBool);
-      apply(getVal("nectar-stopwatch-enabled") ?? getVal("nectar-calendar-enabled"), setStopwatchEnabled, readBool);
-      apply(getVal("nectar-music-mode-enabled"), setMusicModeEnabled, readBool);
-      apply(getVal("nectar-music-compact-notch"), setMusicCompactNotch, readBool);
-      apply(getVal("nectar-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
-      apply(getVal("nectar-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
-      apply(getVal("nectar-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
-      apply(getVal("nectar-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
-      apply(getVal("nectar-corners-enabled"), setCornersEnabled, readBool);
-      apply(getVal("nectar-time-format-24h"), setTimeFormat24h, readBool);
-      apply(getVal("nectar-show-update-indicator"), setShowUpdateIndicator, readBool);
-      apply(getVal("nectar-auto-update"), setAutoUpdate, readBool);
-      apply(getVal("nectar-volume-edge-enabled"), setVolumeEdgeEnabled, readBool);
-      apply(getVal("nectar-brightness-edge-enabled"), setBrightnessEdgeEnabled, readBool);
-      apply(getVal("nectar-dock-enabled"), setDockEnabled, readBool);
-      apply(getVal("nectar-dock-preview-enabled"), setDockPreviewEnabled, readBool);
-      apply(getVal("nectar-dock-search-enabled"), setDockSearchEnabled, readBool);
-      apply(getVal("nectar-dock-calendar-enabled"), setDockCalendarEnabled, readBool);
-      apply(getVal("nectar-dock-icon-only"), setDockIconOnly, readBool);
-      apply(getVal("nectar-start-icon"), setStartIcon, (v) => v);
-      apply(getVal("nectar-dock-adaptive"), setDockAdaptive, readBool);
-      apply(getVal("nectar-dock-win-number-enabled"), setDockWinNumberEnabled, readBool);
-      apply(getVal("nectar-dock-mixed-reorder"), setDockMixedReorder, readBool);
+      apply(getVal("islet-weather-enabled"), setWeatherEnabled, readBool);
+      apply(getVal("islet-calendar-enabled"), setCalendarEnabled, readBool);
+      apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
+      apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
+      apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
+      apply(getVal("islet-music-mode-enabled"), setMusicModeEnabled, readBool);
+      apply(getVal("islet-music-compact-notch"), setMusicCompactNotch, readBool);
+      apply(getVal("islet-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
+      apply(getVal("islet-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
+      apply(getVal("islet-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
+      apply(getVal("islet-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
+      apply(getVal("islet-corners-enabled"), setCornersEnabled, readBool);
+      apply(getVal("islet-time-format-24h"), setTimeFormat24h, readBool);
+      apply(getVal("islet-show-update-indicator"), setShowUpdateIndicator, readBool);
+      apply(getVal("islet-auto-update"), setAutoUpdate, readBool);
+      apply(getVal("islet-volume-edge-enabled"), setVolumeEdgeEnabled, readBool);
+      apply(getVal("islet-brightness-edge-enabled"), setBrightnessEdgeEnabled, readBool);
+      apply(getVal("islet-dock-enabled"), setDockEnabled, readBool);
+      apply(getVal("islet-dock-preview-enabled"), setDockPreviewEnabled, readBool);
+      apply(getVal("islet-dock-search-enabled"), setDockSearchEnabled, readBool);
+      apply(getVal("islet-dock-calendar-enabled"), setDockCalendarEnabled, readBool);
+      apply(getVal("islet-dock-icon-only"), setDockIconOnly, readBool);
+      apply(getVal("islet-start-icon"), setStartIcon, (v) => v);
+      apply(getVal("islet-dock-adaptive"), setDockAdaptive, readBool);
+      apply(getVal("islet-dock-win-number-enabled"), setDockWinNumberEnabled, readBool);
+      apply(getVal("islet-dock-mixed-reorder"), setDockMixedReorder, readBool);
 
-      apply(getVal("nectar-temp-unit"), setTempUnitFahrenheit, (v) => v === "fahrenheit");
-      apply(getVal("nectar-scale"), setScale, parseFloat);
-      apply(getVal("nectar-low-battery-threshold"), setLowBatteryThreshold, parseInt);
+      apply(getVal("islet-temp-unit"), setTempUnitFahrenheit, (v) => v === "fahrenheit");
+      apply(getVal("islet-scale"), setScale, parseFloat);
+      apply(getVal("islet-low-battery-threshold"), setLowBatteryThreshold, parseInt);
 
-      apply(getVal("nectar-notch-mode"), setNotchMode, (v) => (v === "auto-hide" ? "smart" : v));
-      apply(getVal("nectar-dock-mode"), setDockMode, (v) => (v === "auto-hide" ? "smart" : v));
+      apply(getVal("islet-notch-mode"), setNotchMode, (v) => (v === "auto-hide" ? "smart" : v));
+      apply(getVal("islet-dock-mode"), setDockMode, (v) => (v === "auto-hide" ? "smart" : v));
 
-      apply(getVal("nectar-dock-monitor-mode"), setDockMonitorMode, (v) => v as MonitorMode);
-      apply(getVal("nectar-dock-monitor-id"), setDockMonitorId, (v) => v);
-      apply(getVal("nectar-notch-monitor-mode"), setNotchMonitorMode, (v) => v as MonitorMode);
-      apply(getVal("nectar-notch-monitor-id"), setNotchMonitorId, (v) => v);
+      apply(getVal("islet-dock-monitor-mode"), setDockMonitorMode, (v) => v as MonitorMode);
+      apply(getVal("islet-dock-monitor-id"), setDockMonitorId, (v) => v);
+      apply(getVal("islet-notch-monitor-mode"), setNotchMonitorMode, (v) => v as MonitorMode);
+      apply(getVal("islet-notch-monitor-id"), setNotchMonitorId, (v) => v);
 
-      const dockByMonVal = getVal("nectar-dock-mode-by-monitor");
+      const dockByMonVal = getVal("islet-dock-mode-by-monitor");
       if (dockByMonVal) {
         try { setDockModeByMonitor(JSON.parse(dockByMonVal)); } catch {}
       }
-      const notchByMonVal = getVal("nectar-notch-mode-by-monitor");
+      const notchByMonVal = getVal("islet-notch-mode-by-monitor");
       if (notchByMonVal) {
         try { setNotchModeByMonitor(JSON.parse(notchByMonVal)); } catch {}
       }
 
-      const savedCity = getVal("nectar-weather-city");
+      const savedCity = getVal("islet-weather-city");
       if (savedCity) setCityName(savedCity);
 
-      apply(getVal("nectar-theme-mode"), setThemeMode, (v) => v);
-      apply(getVal("nectar-theme-color"), setThemeColor, (v) => v);
-      apply(getVal("nectar-theme-opacity"), setThemeOpacity, parseFloat);
-      apply(getVal("nectar-theme-saturation"), setThemeSaturation, parseFloat);
-      apply(getVal("nectar-theme-brightness"), setThemeBrightness, parseFloat);
+      apply(getVal("islet-theme-mode"), setThemeMode, (v) => v);
+      apply(getVal("islet-theme-color"), setThemeColor, (v) => v);
+      apply(getVal("islet-theme-opacity"), setThemeOpacity, parseFloat);
+      apply(getVal("islet-theme-saturation"), setThemeSaturation, parseFloat);
+      apply(getVal("islet-theme-brightness"), setThemeBrightness, parseFloat);
 
-      const widgetsVal = getVal("nectar-status-widgets");
+      const widgetsVal = getVal("islet-status-widgets");
       if (widgetsVal) {
         try {
           const parsed = JSON.parse(widgetsVal);
@@ -251,56 +251,56 @@ export function useSettings() {
 
   // ── Sync settings from other windows ──
   useSettingsSync({
-    "nectar-dock-mode": setDockMode,
-    "nectar-notch-mode": setNotchMode,
-    "nectar-dock-monitor-mode": (v) => setDockMonitorMode(v as MonitorMode),
-    "nectar-dock-monitor-id": setDockMonitorId,
-    "nectar-notch-monitor-mode": (v) => setNotchMonitorMode(v as MonitorMode),
-    "nectar-notch-monitor-id": setNotchMonitorId,
-    "nectar-dock-mode-by-monitor": (v) => { try { setDockModeByMonitor(JSON.parse(v)); } catch {} },
-    "nectar-notch-mode-by-monitor": (v) => { try { setNotchModeByMonitor(JSON.parse(v)); } catch {} },
-    "nectar-dock-enabled": setDockEnabled,
-    "nectar-dock-icon-only": setDockIconOnly,
-    "nectar-start-icon": setStartIcon,
-    "nectar-dock-adaptive": setDockAdaptive,
-    "nectar-dock-win-number-enabled": setDockWinNumberEnabled,
-    "nectar-dock-preview-enabled": setDockPreviewEnabled,
-    "nectar-dock-search-enabled": setDockSearchEnabled,
-    "nectar-dock-calendar-enabled": setDockCalendarEnabled,
-    "nectar-dock-mixed-reorder": setDockMixedReorder,
-    "nectar-weather-enabled": setWeatherEnabled,
-    "nectar-calendar-enabled": setCalendarEnabled,
-    "nectar-timer-enabled": setTimerEnabled,
-    "nectar-timer-sound-enabled": setTimerSoundEnabled,
-    "nectar-stopwatch-enabled": setStopwatchEnabled,
-    "nectar-music-mode-enabled": setMusicModeEnabled,
-    "nectar-music-compact-notch": setMusicCompactNotch,
-    "nectar-media-ambience-enabled": setMediaAmbienceEnabled,
-    "nectar-media-compact-glow-enabled": setMediaCompactGlowEnabled,
-    "nectar-media-layout": setMediaLayout,
-    "nectar-corners-enabled": setCornersEnabled,
-    "nectar-show-update-indicator": setShowUpdateIndicator,
-    "nectar-time-format-24h": setTimeFormat24h,
-    "nectar-low-battery-threshold": setLowBatteryThreshold,
-    "nectar-scale": setScale,
-    "nectar-temp-unit": (v) => setTempUnitFahrenheit(v === "fahrenheit"),
-    "nectar-auto-update": setAutoUpdate,
-    "nectar-volume-overlay-enabled": setVolumeOverlayEnabled,
-    "nectar-volume-edge-enabled": setVolumeEdgeEnabled,
-    "nectar-brightness-overlay-enabled": setBrightnessOverlayEnabled,
-    "nectar-brightness-edge-enabled": setBrightnessEdgeEnabled,
-    "nectar-theme-mode": setThemeMode,
-    "nectar-theme-color": setThemeColor,
-    "nectar-theme-opacity": setThemeOpacity,
-    "nectar-theme-saturation": setThemeSaturation,
-    "nectar-theme-brightness": setThemeBrightness,
-    "nectar-weather-city": (v) => setCityName(v || ""),
+    "islet-dock-mode": setDockMode,
+    "islet-notch-mode": setNotchMode,
+    "islet-dock-monitor-mode": (v) => setDockMonitorMode(v as MonitorMode),
+    "islet-dock-monitor-id": setDockMonitorId,
+    "islet-notch-monitor-mode": (v) => setNotchMonitorMode(v as MonitorMode),
+    "islet-notch-monitor-id": setNotchMonitorId,
+    "islet-dock-mode-by-monitor": (v) => { try { setDockModeByMonitor(JSON.parse(v)); } catch {} },
+    "islet-notch-mode-by-monitor": (v) => { try { setNotchModeByMonitor(JSON.parse(v)); } catch {} },
+    "islet-dock-enabled": setDockEnabled,
+    "islet-dock-icon-only": setDockIconOnly,
+    "islet-start-icon": setStartIcon,
+    "islet-dock-adaptive": setDockAdaptive,
+    "islet-dock-win-number-enabled": setDockWinNumberEnabled,
+    "islet-dock-preview-enabled": setDockPreviewEnabled,
+    "islet-dock-search-enabled": setDockSearchEnabled,
+    "islet-dock-calendar-enabled": setDockCalendarEnabled,
+    "islet-dock-mixed-reorder": setDockMixedReorder,
+    "islet-weather-enabled": setWeatherEnabled,
+    "islet-calendar-enabled": setCalendarEnabled,
+    "islet-timer-enabled": setTimerEnabled,
+    "islet-timer-sound-enabled": setTimerSoundEnabled,
+    "islet-stopwatch-enabled": setStopwatchEnabled,
+    "islet-music-mode-enabled": setMusicModeEnabled,
+    "islet-music-compact-notch": setMusicCompactNotch,
+    "islet-media-ambience-enabled": setMediaAmbienceEnabled,
+    "islet-media-compact-glow-enabled": setMediaCompactGlowEnabled,
+    "islet-media-layout": setMediaLayout,
+    "islet-corners-enabled": setCornersEnabled,
+    "islet-show-update-indicator": setShowUpdateIndicator,
+    "islet-time-format-24h": setTimeFormat24h,
+    "islet-low-battery-threshold": setLowBatteryThreshold,
+    "islet-scale": setScale,
+    "islet-temp-unit": (v) => setTempUnitFahrenheit(v === "fahrenheit"),
+    "islet-auto-update": setAutoUpdate,
+    "islet-volume-overlay-enabled": setVolumeOverlayEnabled,
+    "islet-volume-edge-enabled": setVolumeEdgeEnabled,
+    "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+    "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
+    "islet-theme-mode": setThemeMode,
+    "islet-theme-color": setThemeColor,
+    "islet-theme-opacity": setThemeOpacity,
+    "islet-theme-saturation": setThemeSaturation,
+    "islet-theme-brightness": setThemeBrightness,
+    "islet-weather-city": (v) => setCityName(v || ""),
   });
 
   // ── Listen for system accent changes (adaptive theme) ──
   useEffect(() => {
     const unlisten = listen<string>("system-accent-changed", (event) => {
-      const mode = localStorage.getItem("nectar-theme-mode") || "dark";
+      const mode = localStorage.getItem("islet-theme-mode") || "dark";
       if (mode === "adaptive") {
         try {
           const hsl = hexToHsl(event.payload);
@@ -417,256 +417,256 @@ export function useSettings() {
   const toggleWeather = () => {
     const next = !weatherEnabled;
     setWeatherEnabled(next);
-    saveSetting("nectar-weather-enabled", String(next));
+    saveSetting("islet-weather-enabled", String(next));
   };
 
   const toggleCalendar = () => {
     const next = !calendarEnabled;
     setCalendarEnabled(next);
-    saveSetting("nectar-calendar-enabled", String(next));
+    saveSetting("islet-calendar-enabled", String(next));
   };
 
   const toggleTimerEnabled = () => {
     const next = !timerEnabled;
     setTimerEnabled(next);
-    saveSetting("nectar-timer-enabled", String(next));
+    saveSetting("islet-timer-enabled", String(next));
   };
 
   const toggleTimerSound = () => {
     const next = !timerSoundEnabled;
     setTimerSoundEnabled(next);
-    saveSetting("nectar-timer-sound-enabled", String(next));
+    saveSetting("islet-timer-sound-enabled", String(next));
   };
 
   const toggleStopwatchEnabled = () => {
     const next = !stopwatchEnabled;
     setStopwatchEnabled(next);
-    saveSetting("nectar-stopwatch-enabled", String(next));
+    saveSetting("islet-stopwatch-enabled", String(next));
   };
 
   const toggleMusicMode = () => {
     const next = !musicModeEnabled;
     setMusicModeEnabled(next);
-    saveSetting("nectar-music-mode-enabled", String(next));
+    saveSetting("islet-music-mode-enabled", String(next));
   };
 
   const toggleMusicCompactNotch = () => {
     const next = !musicCompactNotch;
     setMusicCompactNotch(next);
-    saveSetting("nectar-music-compact-notch", String(next));
+    saveSetting("islet-music-compact-notch", String(next));
   };
 
   const toggleMediaLayout = (layout: "classic" | "compact") => {
     setMediaLayout(layout);
-    saveSetting("nectar-media-layout", layout);
+    saveSetting("islet-media-layout", layout);
   };
 
   const toggleVolumeOverlay = () => {
     const next = !volumeOverlayEnabled;
     setVolumeOverlayEnabled(next);
-    saveSetting("nectar-volume-overlay-enabled", String(next));
+    saveSetting("islet-volume-overlay-enabled", String(next));
   };
 
   const toggleVolumeEdge = () => {
     const next = !volumeEdgeEnabled;
     setVolumeEdgeEnabled(next);
-    saveSetting("nectar-volume-edge-enabled", String(next));
+    saveSetting("islet-volume-edge-enabled", String(next));
   };
 
   const toggleBrightnessOverlay = () => {
     const next = !brightnessOverlayEnabled;
     setBrightnessOverlayEnabled(next);
-    saveSetting("nectar-brightness-overlay-enabled", String(next));
+    saveSetting("islet-brightness-overlay-enabled", String(next));
   };
 
   const toggleBrightnessEdge = () => {
     const next = !brightnessEdgeEnabled;
     setBrightnessEdgeEnabled(next);
-    saveSetting("nectar-brightness-edge-enabled", String(next));
+    saveSetting("islet-brightness-edge-enabled", String(next));
   };
 
   const toggleAmbience = () => {
     const next = !mediaAmbienceEnabled;
     setMediaAmbienceEnabled(next);
-    saveSetting("nectar-media-ambience-enabled", String(next));
+    saveSetting("islet-media-ambience-enabled", String(next));
   };
 
   const toggleCompactGlow = () => {
     const next = !mediaCompactGlowEnabled;
     setMediaCompactGlowEnabled(next);
-    saveSetting("nectar-media-compact-glow-enabled", String(next));
+    saveSetting("islet-media-compact-glow-enabled", String(next));
   };
 
   const toggleCorners = () => {
     const next = !cornersEnabled;
     setCornersEnabled(next);
-    saveSetting("nectar-corners-enabled", String(next));
+    saveSetting("islet-corners-enabled", String(next));
   };
 
   const toggleUpdateIndicator = () => {
     const next = !showUpdateIndicator;
     setShowUpdateIndicator(next);
-    saveSetting("nectar-show-update-indicator", String(next));
+    saveSetting("islet-show-update-indicator", String(next));
   };
 
   const toggleTimeFormat24h = () => {
     const next = !timeFormat24h;
     setTimeFormat24h(next);
-    saveSetting("nectar-time-format-24h", String(next));
+    saveSetting("islet-time-format-24h", String(next));
   };
 
   const toggleTempUnit = () => {
     const next = !tempUnitFahrenheit;
     setTempUnitFahrenheit(next);
-    saveSetting("nectar-temp-unit", next ? "fahrenheit" : "celsius");
+    saveSetting("islet-temp-unit", next ? "fahrenheit" : "celsius");
   };
 
   const toggleDock = () => {
     const next = !dockEnabled;
     setDockEnabled(next);
-    saveSetting("nectar-dock-enabled", String(next));
+    saveSetting("islet-dock-enabled", String(next));
   };
 
   const toggleDockPreview = () => {
     const next = !dockPreviewEnabled;
     setDockPreviewEnabled(next);
-    saveSetting("nectar-dock-preview-enabled", String(next));
+    saveSetting("islet-dock-preview-enabled", String(next));
   };
 
   const toggleDockSearch = () => {
     const next = !dockSearchEnabled;
     setDockSearchEnabled(next);
-    saveSetting("nectar-dock-search-enabled", String(next));
+    saveSetting("islet-dock-search-enabled", String(next));
   };
 
   const toggleDockCalendar = () => {
     const next = !dockCalendarEnabled;
     setDockCalendarEnabled(next);
-    saveSetting("nectar-dock-calendar-enabled", String(next));
+    saveSetting("islet-dock-calendar-enabled", String(next));
   };
 
   const toggleDockMixedReorder = () => {
     const next = !dockMixedReorder;
     setDockMixedReorder(next);
-    saveSetting("nectar-dock-mixed-reorder", String(next));
+    saveSetting("islet-dock-mixed-reorder", String(next));
   };
 
   const toggleDockIconOnly = () => {
     const next = !dockIconOnly;
     setDockIconOnly(next);
-    saveSetting("nectar-dock-icon-only", String(next));
+    saveSetting("islet-dock-icon-only", String(next));
   };
 
   const handleStartIconChange = (icon: string) => {
     setStartIcon(icon);
-    saveSetting("nectar-start-icon", icon);
+    saveSetting("islet-start-icon", icon);
   };
 
   const toggleDockAdaptive = () => {
     const next = !dockAdaptive;
     setDockAdaptive(next);
-    saveSetting("nectar-dock-adaptive", String(next));
+    saveSetting("islet-dock-adaptive", String(next));
   };
 
   const toggleDockWinNumber = () => {
     const next = !dockWinNumberEnabled;
     setDockWinNumberEnabled(next);
-    saveSetting("nectar-dock-win-number-enabled", String(next));
+    saveSetting("islet-dock-win-number-enabled", String(next));
   };
 
   const toggleAutoUpdate = () => {
     const next = !autoUpdate;
     setAutoUpdate(next);
-    saveSetting("nectar-auto-update", String(next));
+    saveSetting("islet-auto-update", String(next));
   };
 
   // ── Value setters ──
   const setDockModeValue = (newMode: string) => {
     setDockMode(newMode);
-    saveSetting("nectar-dock-mode", newMode);
+    saveSetting("islet-dock-mode", newMode);
   };
 
   const setNotchModeValue = (newMode: string) => {
     setNotchMode(newMode);
-    saveSetting("nectar-notch-mode", newMode);
+    saveSetting("islet-notch-mode", newMode);
   };
 
   const setDockMonitorModeValue = (mode: MonitorMode) => {
     setDockMonitorMode(mode);
-    saveSetting("nectar-dock-monitor-mode", mode);
+    saveSetting("islet-dock-monitor-mode", mode);
   };
 
   const setDockMonitorIdValue = (id: string) => {
     setDockMonitorId(id);
-    saveSetting("nectar-dock-monitor-id", id);
+    saveSetting("islet-dock-monitor-id", id);
   };
 
   const setNotchMonitorModeValue = (mode: MonitorMode) => {
     setNotchMonitorMode(mode);
-    saveSetting("nectar-notch-monitor-mode", mode);
+    saveSetting("islet-notch-monitor-mode", mode);
   };
 
   const setNotchMonitorIdValue = (id: string) => {
     setNotchMonitorId(id);
-    saveSetting("nectar-notch-monitor-id", id);
+    saveSetting("islet-notch-monitor-id", id);
   };
 
   const setDockModeForMonitor = (monitorId: string, mode: string | null) => {
     setDockModeByMonitor((prev) => {
       const next = { ...prev };
       if (mode === null) delete next[monitorId]; else next[monitorId] = mode;
-      saveSetting("nectar-dock-mode-by-monitor", JSON.stringify(next));
+      saveSetting("islet-dock-mode-by-monitor", JSON.stringify(next));
       return next;
     });
   };
 
   const replaceDockModesByMonitor = (next: Record<string, string>) => {
     setDockModeByMonitor(next);
-    saveSetting("nectar-dock-mode-by-monitor", JSON.stringify(next));
+    saveSetting("islet-dock-mode-by-monitor", JSON.stringify(next));
   };
 
   const replaceNotchModesByMonitor = (next: Record<string, string>) => {
     setNotchModeByMonitor(next);
-    saveSetting("nectar-notch-mode-by-monitor", JSON.stringify(next));
+    saveSetting("islet-notch-mode-by-monitor", JSON.stringify(next));
   };
 
   const setNotchModeForMonitor = (monitorId: string, mode: string | null) => {
     setNotchModeByMonitor((prev) => {
       const next = { ...prev };
       if (mode === null) delete next[monitorId]; else next[monitorId] = mode;
-      saveSetting("nectar-notch-mode-by-monitor", JSON.stringify(next));
+      saveSetting("islet-notch-mode-by-monitor", JSON.stringify(next));
       return next;
     });
   };
 
   const handleThresholdChange = (val: number) => {
     setLowBatteryThreshold(val);
-    saveSetting("nectar-low-battery-threshold", val.toString());
+    saveSetting("islet-low-battery-threshold", val.toString());
   };
 
   const handleScaleChange = (val: number) => {
     setScale(val);
-    saveSetting("nectar-scale", val.toString());
+    saveSetting("islet-scale", val.toString());
   };
 
   const handleWidgetsChange = (config: WidgetConfig) => {
     setStatusWidgets(config);
-    saveSetting("nectar-status-widgets", JSON.stringify(config));
+    saveSetting("islet-status-widgets", JSON.stringify(config));
   };
 
   // ── Theme handlers ──
   const handleThemeModeChange = async (mode: string) => {
     setThemeMode(mode);
-    saveSetting("nectar-theme-mode", mode);
+    saveSetting("islet-theme-mode", mode);
 
     if (mode === "adaptive") {
       try {
         const accentHex = await invoke<string>("get_system_accent_color");
         const hsl = hexToHsl(accentHex);
         setThemeSaturation(hsl.s / 100);
-        saveSetting("nectar-theme-saturation", String(hsl.s / 100));
+        saveSetting("islet-theme-saturation", String(hsl.s / 100));
         setThemeBrightness(hsl.l / 100);
-        saveSetting("nectar-theme-brightness", String(hsl.l / 100));
+        saveSetting("islet-theme-brightness", String(hsl.l / 100));
       } catch (e) {
         console.error("Failed to parse adaptive accent HSL:", e);
       }
@@ -675,14 +675,14 @@ export function useSettings() {
 
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
-    saveSetting("nectar-theme-color", color);
+    saveSetting("islet-theme-color", color);
 
     try {
       const hsl = hexToHsl(color);
       setThemeSaturation(hsl.s / 100);
-      saveSetting("nectar-theme-saturation", String(hsl.s / 100));
+      saveSetting("islet-theme-saturation", String(hsl.s / 100));
       setThemeBrightness(hsl.l / 100);
-      saveSetting("nectar-theme-brightness", String(hsl.l / 100));
+      saveSetting("islet-theme-brightness", String(hsl.l / 100));
     } catch (e) {
       console.error("Failed to parse custom color HSL:", e);
     }
@@ -690,17 +690,17 @@ export function useSettings() {
 
   const handleOpacityChange = (value: number) => {
     setThemeOpacity(value);
-    saveSetting("nectar-theme-opacity", String(value));
+    saveSetting("islet-theme-opacity", String(value));
   };
 
   const handleSaturationChange = (value: number) => {
     setThemeSaturation(value);
-    saveSetting("nectar-theme-saturation", String(value));
+    saveSetting("islet-theme-saturation", String(value));
   };
 
   const handleBrightnessChange = (value: number) => {
     setThemeBrightness(value);
-    saveSetting("nectar-theme-brightness", String(value));
+    saveSetting("islet-theme-brightness", String(value));
   };
 
   // ── City search ──
@@ -713,12 +713,12 @@ export function useSettings() {
     setCityName(city.name);
     setShowCityDropdown(false);
     setCitySearchResults([]);
-    localStorage.setItem("nectar-weather-city", city.name);
-    localStorage.setItem("nectar-weather-lat", city.latitude.toString());
-    localStorage.setItem("nectar-weather-lon", city.longitude.toString());
-    await invoke("save_setting", { key: "nectar-weather-lat", value: city.latitude.toString() }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-lon", value: city.longitude.toString() }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-city", value: city.name }).catch(() => {});
+    localStorage.setItem("islet-weather-city", city.name);
+    localStorage.setItem("islet-weather-lat", city.latitude.toString());
+    localStorage.setItem("islet-weather-lon", city.longitude.toString());
+    await invoke("save_setting", { key: "islet-weather-lat", value: city.latitude.toString() }).catch(() => {});
+    await invoke("save_setting", { key: "islet-weather-lon", value: city.longitude.toString() }).catch(() => {});
+    await invoke("save_setting", { key: "islet-weather-city", value: city.name }).catch(() => {});
     emit("weather-refresh", { lat: city.latitude, lon: city.longitude });
   };
 
@@ -726,12 +726,12 @@ export function useSettings() {
     setCityName("");
     setShowCityDropdown(false);
     setCitySearchResults([]);
-    localStorage.removeItem("nectar-weather-city");
-    localStorage.removeItem("nectar-weather-lat");
-    localStorage.removeItem("nectar-weather-lon");
-    await invoke("save_setting", { key: "nectar-weather-lat", value: null }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-lon", value: null }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-city", value: null }).catch(() => {});
+    localStorage.removeItem("islet-weather-city");
+    localStorage.removeItem("islet-weather-lat");
+    localStorage.removeItem("islet-weather-lon");
+    await invoke("save_setting", { key: "islet-weather-lat", value: null }).catch(() => {});
+    await invoke("save_setting", { key: "islet-weather-lon", value: null }).catch(() => {});
+    await invoke("save_setting", { key: "islet-weather-city", value: null }).catch(() => {});
     emit("weather-refresh", true);
   };
 
@@ -742,8 +742,8 @@ export function useSettings() {
       const { save: saveDialog } = await import("@tauri-apps/plugin-dialog");
       const settingsJson = await invoke<string>("export_settings");
       const filePath = await saveDialog({
-        title: "Export Nectar Settings",
-        defaultPath: "nectar-settings.json",
+        title: "Export Islet Settings",
+        defaultPath: "islet-settings.json",
         filters: [{ name: "JSON", extensions: ["json"] }],
       });
       if (filePath) {
@@ -765,7 +765,7 @@ export function useSettings() {
     try {
       const { open: openDialog } = await import("@tauri-apps/plugin-dialog");
       const filePath = await openDialog({
-        title: "Import Nectar Settings",
+        title: "Import Islet Settings",
         filters: [{ name: "JSON", extensions: ["json"] }],
         multiple: false,
       });
@@ -797,14 +797,14 @@ export function useSettings() {
     try {
       await invoke("reset_settings");
       localStorage.clear();
-      await invoke("restart_nectar");
+      await invoke("restart_islet");
     } catch (e) {
       console.error("Reset failed:", e);
       setResetStatus("idle");
     }
   };
 
-  const handleUninstallNectar = async () => {
+  const handleUninstallIslet = async () => {
     if (uninstallStatus === "idle" || uninstallStatus === "error") {
       setUninstallStatus("confirm");
       setTimeout(() => setUninstallStatus((s) => (s === "confirm" ? "idle" : s)), 4000);
@@ -814,7 +814,7 @@ export function useSettings() {
 
     setUninstallStatus("uninstalling");
     try {
-      await invoke("uninstall_nectar");
+      await invoke("uninstall_islet");
     } catch (e) {
       console.error("Uninstall failed:", e);
       setUninstallError(typeof e === "string" ? e : String((e as Error)?.message ?? e));
@@ -955,10 +955,10 @@ export function useSettings() {
     handleResetSettings,
     uninstallStatus,
     uninstallError,
-    handleUninstallNectar,
+    handleUninstallIslet,
 
     // Utilities
-    restartNectar: () => invoke("restart_nectar"),
-    quitNectar: () => invoke("quit_nectar"),
+    restartIslet: () => invoke("restart_islet"),
+    quitIslet: () => invoke("quit_islet"),
   };
 }

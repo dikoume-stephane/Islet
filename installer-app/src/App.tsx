@@ -76,7 +76,7 @@ function Logo({ size = 64, idle = false }: { size?: number; idle?: boolean }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 220, damping: 18 }}
     >
-      <img src="/nectar.svg" alt="Nectar" width={size * 0.55} height={size * 0.55} />
+      <img src="/islet.svg" alt="Islet" width={size * 0.55} height={size * 0.55} />
     </motion.div>
   );
 }
@@ -162,7 +162,7 @@ function buildFeedbackUrl(reason: string, comment: string, appVersion: string): 
     comment: comment.trim(),
     version: appVersion || "unknown",
   });
-  return `https://github.com/kua8/Nectar/issues/new?${params.toString()}`;
+  return `https://github.com/dikoume-stephane/Islet/issues/new?${params.toString()}`;
 }
 
 export default function App() {
@@ -287,7 +287,7 @@ export default function App() {
   return (
     <div className="installer-window">
       <Background />
-      <TitleBar title={screen.startsWith("uninstall") ? "Uninstall Nectar" : "Nectar Setup"} />
+      <TitleBar title={screen.startsWith("uninstall") ? "Uninstall Islet" : "Islet Setup"} />
       <div className="content">
         <AnimatePresence mode="wait">
           {screen === "loading" && (
@@ -299,9 +299,9 @@ export default function App() {
           {screen === "welcome" && (
             <motion.div key="welcome" className="screen welcome-screen" {...screenVariants}>
               <Logo size={92} idle />
-              <h1>Welcome to Nectar</h1>
+              <h1>Welcome to Islet</h1>
               <p className="muted">
-                This will install Nectar {state?.appVersion ? `v${state.appVersion}` : ""} on your
+                This will install Islet {state?.appVersion ? `v${state.appVersion}` : ""} on your
                 computer.
               </p>
               <div className="spacer" />
@@ -378,16 +378,16 @@ export default function App() {
               >
                 <CheckCircle2 size={56} strokeWidth={1.5} />
               </motion.div>
-              <h1>Nectar is installed</h1>
+              <h1>Islet is installed</h1>
               <p className="muted">Setup finished successfully.</p>
-              <Toggle checked={launchNow} onChange={setLaunchNow} label="Launch Nectar now" />
+              <Toggle checked={launchNow} onChange={setLaunchNow} label="Launch Islet now" />
               <div className="spacer" />
               <div className="actions">
                 <SecondaryButton onClick={() => openInstallFolder(installDir)}>
                   Open folder
                 </SecondaryButton>
                 <PrimaryButton onClick={handleFinish}>
-                  {launchNow ? "Launch Nectar" : "Finish"}
+                  {launchNow ? "Launch Islet" : "Finish"}
                 </PrimaryButton>
               </div>
             </motion.div>
@@ -396,8 +396,8 @@ export default function App() {
           {screen === "uninstall-confirm" && (
             <motion.div key="uninstall-confirm" className="screen welcome-screen" {...screenVariants}>
               <Logo size={92} idle />
-              <h1>Uninstall Nectar</h1>
-              <p className="muted">This will remove Nectar and its shortcuts from this computer.</p>
+              <h1>Uninstall Islet</h1>
+              <p className="muted">This will remove Islet and its shortcuts from this computer.</p>
               <div className="spacer" />
               <div className="actions">
                 <SecondaryButton onClick={() => closeWindow()}>Cancel</SecondaryButton>
@@ -425,7 +425,7 @@ export default function App() {
               >
                 <CheckCircle2 size={48} strokeWidth={1.5} />
               </motion.div>
-              <h1>Nectar has been uninstalled</h1>
+              <h1>Islet has been uninstalled</h1>
 
               {!feedbackSent ? (
                 <>

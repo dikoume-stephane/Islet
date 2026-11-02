@@ -81,7 +81,7 @@ const GUIDES: Guide[] = [
     steps: [
       "Open the Calendar app in Nextcloud.",
       "Click the share icon next to a calendar, then the + next to Share link.",
-      "Copy the link and paste it here. Nectar converts it to the calendar feed for you.",
+      "Copy the link and paste it here. Islet converts it to the calendar feed for you.",
     ],
     note: "To read your own private calendars without a public link, use the CalDAV account option further down instead.",
   },
@@ -147,11 +147,11 @@ export function CalendarSyncPage({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     invoke<Record<string, string>>("load_settings")
       .then((s) => {
-        const savedUrl = s["nectar-caldav-url"] ?? "";
+        const savedUrl = s["islet-caldav-url"] ?? "";
         setUrl(savedUrl);
         if (savedUrl.includes("icloud.com")) setProvider("icloud");
-        setUsername(s["nectar-caldav-username"] ?? "");
-        setIntervalValue(s["nectar-caldav-interval"] ?? "15");
+        setUsername(s["islet-caldav-username"] ?? "");
+        setIntervalValue(s["islet-caldav-interval"] ?? "15");
       })
       .catch(() => {});
   }, []);
@@ -185,7 +185,7 @@ export function CalendarSyncPage({ onBack }: { onBack: () => void }) {
 
   const changeInterval = (minutes: string) => {
     setIntervalValue(minutes);
-    invoke("save_setting", { key: "nectar-caldav-interval", value: minutes }).catch(() => {});
+    invoke("save_setting", { key: "islet-caldav-interval", value: minutes }).catch(() => {});
   };
 
   const pickProvider = (next: Provider) => {

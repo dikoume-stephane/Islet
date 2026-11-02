@@ -472,8 +472,8 @@ pub fn replace_settings_cache(new_settings: std::collections::HashMap<String, se
     }
 }
 
-pub fn get_nectar_scale(_app: &tauri::AppHandle) -> f64 {
-    get_setting_str(_app, "nectar-scale")
+pub fn get_islet_scale(_app: &tauri::AppHandle) -> f64 {
+    get_setting_str(_app, "islet-scale")
         .and_then(|s| s.parse::<f64>().ok())
         .unwrap_or(1.0)
 }
@@ -889,7 +889,7 @@ mod tests {
         assert!(!out.contains('%'), "got {out}");
 
         // Unknown variables stay verbatim
-        assert_eq!(expand_env_vars("%NECTAR_NOT_A_REAL_VAR%\\x"), "%NECTAR_NOT_A_REAL_VAR%\\x");
+        assert_eq!(expand_env_vars("%ISLET_NOT_A_REAL_VAR%\\x"), "%ISLET_NOT_A_REAL_VAR%\\x");
 
         // Unclosed percent is left alone
         assert_eq!(expand_env_vars("50% done"), "50% done");
@@ -910,7 +910,7 @@ mod tests {
 
         // Already-qualified paths and nonsense are not resolved
         assert_eq!(resolve_executable_path("C:\\Windows\\notepad.exe"), None);
-        assert_eq!(resolve_executable_path("nectar-definitely-not-installed"), None);
+        assert_eq!(resolve_executable_path("islet-definitely-not-installed"), None);
         assert_eq!(resolve_executable_path(""), None);
     }
 }

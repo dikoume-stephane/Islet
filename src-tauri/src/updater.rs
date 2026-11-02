@@ -252,7 +252,7 @@ async fn install_inner(app: &AppHandle) -> Result<(), String> {
 /// Startup entry point: always checks so the UI can show an update badge, and
 /// auto-installs only when the user enabled it and the release has aged.
 pub async fn run_startup_check(app: AppHandle) {
-    let auto_update = crate::utils::get_setting_str(&app, "nectar-auto-update").as_deref() == Some("true");
+    let auto_update = crate::utils::get_setting_str(&app, "islet-auto-update").as_deref() == Some("true");
 
     if auto_update {
         let _ = app.emit("auto-update-status", serde_json::json!({ "status": "checking" }));
