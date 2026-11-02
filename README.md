@@ -46,7 +46,7 @@ Islet is a fork of [Nectar](https://github.com/kua8/Nectar) by kua8. The concept
 A notch at the top of your screen that adapts to what you're doing. Scroll or swipe to change modes, or pin it in place like a hardware notch.
 
 <div align="center">
-<img src="docs/screenshots/island.png" width="420" alt="The Islet notch showing the time and now-playing artwork" />
+<img src="docs/screenshots/island.png" width="320" alt="The Islet notch showing the time and now-playing artwork" />
 </div>
 
 <br />

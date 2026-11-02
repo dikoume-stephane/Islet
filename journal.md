@@ -5,6 +5,25 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-02 (3) — Screenshots intégrés
+
+**Fait**
+- L'utilisateur a poussé `docs/screenshots/desktop.png` (1920×1080, capture réelle de l'app sous Windows) sur `main` → `54fb1dd`, mergé dans la branche.
+- Le même commit régénère `src-tauri/Cargo.lock` par `cargo check` : le paquet passe de `nectar` à `islet` (29 lignes déplacées, 0 occurrence de « nectar » restante). D-DRV-4 est donc **soldée** côté Cargo.
+- Dérivés produits : `desktop.webp` (1400×788, 35,6 ko contre 65 ko pour l'ancien), `island.png` (recadrage du notch, 320×90), `dock.png` (recadrage du dock, 560×70). Les trois étaient les images obsolètes du README.
+- `docs/screenshots/README.md` : provenance, dimensions, état, commandes de régénération.
+- README : largeur de `island.png` ajustée à sa taille native (320).
+
+**Constat — à refaire**
+- La capture a été prise avec un build **antérieur à la PR #2** : l'icône Islet du dock montre encore la mascotte blanche nue (vérifié au zoom ×4 sur le premier emplacement du dock), pas la tuile sombre. Le reste (notch, dock, thème) est à jour.
+- Une nouvelle capture après rebuild est donc nécessaire ; le crop du dock sera alors automatiquement correct sans retoucher le code.
+
+**Validations**
+- `desktop.webp` 35,6 ko (le README reste léger), images recadrées contrôlées visuellement.
+
+**À faire ensuite**
+- Rebuild + nouvelle capture côté Windows, puis remplacer `desktop.png` (procédure dans `docs/screenshots/README.md`).
+
 ## 2026-11-02 (2) — Clé de signature updater intégrée (DÉC-5 résolue)
 
 **Fait**

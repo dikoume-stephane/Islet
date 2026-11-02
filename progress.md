@@ -36,7 +36,7 @@
 ## En cours
 - *(aucune tâche agent active — le rebranding sandbox est terminé)*
 
-¹ hors A8 (screenshots) volontairement reporté en Phase 2 — nécessite un build Windows fonctionnel.
+¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 
 ## Prochaines actions
 1. **Utilisateur (Windows)** : rebuild avec les nouvelles icônes (`bun run tauri build --bundles nsis --no-sign`) + captures d'écran à jour (P2-7).
