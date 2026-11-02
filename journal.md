@@ -5,6 +5,32 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-02 — Phase 2 : finitions visuelles (icône, favicons, attribution)
+
+**Fait**
+- **Défaut critique corrigé** : la mascotte officielle est **blanche sur transparent** → comme icône d'application elle était **invisible sur tout fond clair** (barre des tâches Windows en thème clair, Explorateur, Bureau, onglet navigateur, README GitHub en mode clair). Vérifié en compositant le master sur blanc : il ne restait qu'un contour fantôme.
+- Solution retenue (validée par l'utilisateur parmi 3 propositions) : **tuile `#111318`** à coins arrondis 22,37 %, mascotte blanche à 64,5 % du côté. Visible sur fond clair **et** sombre ; testé jusqu'à 32 px.
+- `docs/brand/` créé comme **source unique de vérité** : `islet-mascot-transparent.png` (master conservé), `islet-icon-tile.png` (icône officielle), `islet-icon-tile-light.png` (variante fond clair, mascotte `#111318` sur tuile `#EDEDED`), `README.md` (charte + procédures de régénération).
+- Jeux d'icônes **régénérés depuis la tuile** : `src-tauri/icons` (23 fichiers) et `installer-app/src-tauri/icons` (élagué aux 4 fichiers de `bundle.icon`).
+- `public/islet.svg`, `installer-app/public/islet.svg` (wrappers base64 de la tuile), `public/islet.png` (512²), `docs/logo.png` (1024²) alignés.
+- **Favicons** : `settings.html`, `calendar.html`, `overlay.html` pointaient encore sur `/vite.svg` → `/islet.svg`.
+- **Orphelins supprimés** : `public/tauri.svg`, `public/vite.svg`, `src/assets/react.svg` (0 référence).
+- **Attribution corrigée** : README ligne 31 créditait « Bloom by Sehajveer Singh » alors que la section Credits/Legal crédite « Nectar by kua8 ». Risque juridique en GPL (mauvais auteur crédité) → ligne réécrite sur Nectar/kua8 + mention du mainteneur 2DS.
+- README : `<picture>` pour servir la variante claire du logo selon `prefers-color-scheme`.
+
+**Constats**
+- `AboutTab` était déjà correct (`filter: invert(1)` sous `.light-mode`).
+- L'installateur et les BMP NSIS étaient déjà corrects (fond sombre) — contrôlés visuellement.
+- `docs/screenshots/*` restent obsolètes : il faut un build Windows pour les refaire (P2-7).
+- `docs/yesjj.png` = illustration pastel utilisée comme fond d'écran dans `docs/screenshots/desktop.webp` ; conservée comme ressource design.
+
+**Validations**
+- `npm run build` ✅ app principale et installer-app.
+- Rendu contrôlé : tuile sur blanc / sombre / 32 px ; BMP header+sidebar ; simulation d'écran d'installateur.
+
+**À faire ensuite**
+- P2-7 : captures d'écran à jour (Windows) · P2-8 : clés updater · puis nouvelles fonctionnalités.
+
 ## 2026-10-30 (3) — G3 ✅ sur Windows · échec de bundling diagnostiqué
 
 **Fait**

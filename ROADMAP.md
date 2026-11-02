@@ -168,3 +168,33 @@ ELEMENTS MANQUANTS (décisions humaines)
 - [ ] `LICENSE` inchangé + section Credits/Legal présente
 - [ ] Icônes/logos Islet partout (app, installateur, docs)
 - [ ] Journal + mémoire + progression à jour → feu vert pour la **Phase 2** (instructions à venir de l'utilisateur)
+
+---
+
+## 🌊 PHASE 2 — Finitions visuelles
+
+> Ouverte le 2026-11-02, après merge de la PR #1 (`0ccd91e`).
+> Objectif : cohérence et lisibilité de l'identité sur tous les supports.
+
+### Audit initial
+
+| Constat | Gravité | Statut |
+|---|---|---|
+| Mascotte blanche sur transparent → **icône invisible en thème clair** (barre des tâches, Explorateur, GitHub clair) | 🔴 Critique | ✅ Corrigé — tuile `#111318` |
+| README ligne 31 attribuait le fork à **Bloom/Sehajveer Singh** au lieu de **Nectar/kua8** | 🔴 Juridique | ✅ Corrigé |
+| `settings.html`, `calendar.html`, `overlay.html` affichaient le **favicon Vite** | 🟡 | ✅ Corrigé |
+| Orphelins : `public/tauri.svg`, `public/vite.svg`, `src/assets/react.svg` | 🟢 | ✅ Supprimés |
+| `AboutTab` (`invert(1)` en clair), installateur (fond sombre), BMP NSIS | ✅ RAS | — |
+
+### Tâches
+
+| ID | Tâche | Statut |
+|---|---|---|
+| P2-1 | Tuile d'icône + régénération des 2 jeux d'icônes Tauri | ✅ |
+| P2-2 | `public/islet.svg`/`islet.png` + `docs/logo.png` depuis la tuile | ✅ |
+| P2-3 | Favicons des 5 fenêtres HTML | ✅ |
+| P2-4 | Attribution README (Bloom → Nectar/kua8) | ✅ |
+| P2-5 | Variante claire `islet-icon-tile-light.png` + `<picture>` README | ✅ |
+| P2-6 | `docs/brand/README.md` (charte + procédures de régénération) | ✅ |
+| P2-7 | Remplacer `docs/screenshots/*` par des captures à jour | ⏳ Windows requis |
+| P2-8 | Générer la paire de clés updater (DÉC-5) | ⏳ Utilisateur |

@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="docs/logo.png" width="160" alt="Islet logo" />
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="docs/brand/islet-icon-tile-light.png" />
+  <img src="docs/logo.png" width="160" alt="Islet logo" />
+</picture>
 
 <br />
 
@@ -28,7 +31,7 @@
 
 <br />
 
-Islet is a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the concept and the codebase it grew from are theirs. It is rebranded end to end and maintained independently, with its own fixes and direction.
+Islet is a fork of [Nectar](https://github.com/kua8/Nectar) by kua8. The concept and the codebase it grew from are theirs. It is rebranded end to end and maintained independently by [dikoume-stephane (2DS)](https://github.com/dikoume-stephane), with its own fixes and direction.
 
 ## Features
 

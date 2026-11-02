@@ -1,7 +1,7 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
-**Dernière mise à jour :** 2026-10-29 (nuit, par l'agent)
-**État global :** ✅ **Rebranding exécuté sur les assets OFFICIELS, PR ouverte vers `main` — en attente de la validation Windows (G3/G4) avant merge**
+**Dernière mise à jour :** 2026-11-02 (par l'agent)
+**État global :** ✅ **Phase 1 mergée (PR #1). Phase 2 démarrée : finitions visuelles livrées (icône, favicons, attribution)**
 
 ## Tableau de bord
 
@@ -39,7 +39,7 @@
 ¹ hors A8 (screenshots) volontairement reporté en Phase 2 — nécessite un build Windows fonctionnel.
 
 ## Prochaines actions
-1. **Utilisateur (Windows)** : G3 ✅ · terminer G4 → `bun run tauri build --bundles nsis --no-sign` + test installateur (`ELEMENTS_MANQUANTS.md`) → puis **merge de la PR**.
+1. **Utilisateur (Windows)** : rebuild avec les nouvelles icônes (`bun run tauri build --bundles nsis --no-sign`) + captures d'écran à jour (P2-7).
 2. **Utilisateur (avant 1re release)** : générer la paire de clés updater (DÉC-5).
 3. **Agent** : corriger les éventuelles erreurs remontées par le build Windows → **Phase 2**.
 

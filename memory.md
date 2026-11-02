@@ -1,7 +1,7 @@
 # 🧠 MEMORY — Contexte durable du projet Islet
 
 > Ce fichier est la **mémoire long terme** du travail : à relire en début de chaque session
-> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-10-29.
+> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-02.
 
 ---
 
@@ -44,6 +44,7 @@
 - Publlic : `public/nectar.svg` + `public/nectar.png` (utilisé par `AboutTab.tsx` : `/nectar.png`), `installer-app/public/nectar.svg`
 - Docs : `docs/logo.png` (512², logo Nectar), `docs/wordmark-{dark,light}.png` (474×127), `docs/screenshots/` (à refaire en Phase 2)
 - **Master OFFICIEL : `docs/islet-logo.png`** (2000², alpha natif) — reçu via `main` (commit `14e3d80`) ; toute régénération d'icônes part de lui (`convert docs/islet-logo.png -resize 1024x1024` → `npx @tauri-apps/cli@2 icon`).
+- **Icône officielle = tuile** : `docs/brand/islet-icon-tile.png` (1024², fond `#111318` arrondi 22,37 %, mascotte blanche à 64,5 %). Toute régénération d'icônes part de CE fichier, pas du master transparent — la mascotte blanche sur transparent est invisible en thème clair. Variante fond clair : `islet-icon-tile-light.png`.
 - Wordmarks officiels : `docs/islet-wordmark-{dark,light}.png` (glyphes foncés/clairs respectivement). Sources design conservées : `new-logo*.jpg` (fond noir, historique), `yesjj.png` (illustration pastel 2048²), `yessjh.png` (variante fantôme 480²) — rôle à confirmer en Phase 2.
 
 ## 4. Contraintes & règles inviolables
