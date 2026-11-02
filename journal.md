@@ -5,6 +5,23 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-02 (2) — Clé de signature updater intégrée (DÉC-5 résolue)
+
+**Fait**
+- Le mainteneur a généré la paire : privée `C:\Users\stephane dikoume 2DS\.tauri\islet.key`, publique `islet.key.pub`.
+- Clé publique **décodée et validée** avant intégration : 2 lignes, en-tête `untrusted comment: minisign public key: BA3FEE8CCD2277FC`, seconde ligne `RW…` (56 car.), base64 aller-retour identique.
+- `plugins.updater.pubkey` de `src-tauri/tauri.conf.json` remplacé : ancienne clé kua8 (`66A2BF13F216B96A`) → **`BA3FEE8CCD2277FC`**. Diff = **une seule ligne**, JSON revalidé, autres champs (`active`, `windows.installMode`, `endpoints`) intacts.
+- `installer-app` n'a **pas** d'updater (vérifié) → rien à changer de ce côté.
+- Chaîne de release vérifiée : `scripts/release.ps1` exige `TAURI_SIGNING_PRIVATE_KEY`, attend `Islet_<ver>_x64-setup.exe.sig` et génère `latest.json` avec `signature` + `pub_date`. Aucune modification nécessaire.
+
+**Constats**
+- `.gitignore` couvre `*.key` et `*.key.pub` ; `git ls-files` confirme qu'aucune clé n'est suivie.
+- La clé privée n'a **jamais** transité par le chat ni par le dépôt : seule la publique a été communiquée (c'est sa fonction).
+- Point d'attention : si la clé privée a un mot de passe, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` est requis au build de release.
+
+**À faire ensuite**
+- Rebuild Windows signé ou non (`--bundles nsis` / `--no-sign`) + captures P2-7.
+
 ## 2026-11-02 — Phase 2 : finitions visuelles (icône, favicons, attribution)
 
 **Fait**

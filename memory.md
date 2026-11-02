@@ -73,6 +73,7 @@
 - **D-DRV-2** : `productName` Tauri = **`Islet`** (casquette) → artefacts NSIS `Islet_1.4.1_x64-setup.exe` ; binaire Cargo = `islet.exe` (minuscules)
 - **D-DRV-3** : identifiant `com.2DS.islet` contient des majuscules — non conventionnel mais chaîne valide ; si le build Tauri le refuse, replier sur `com.2ds.islet`
 - **D-DRV-4** : lockfiles `bun.lock` / `Cargo.lock` — `bun`/`cargo` absents du sandbox → retouche chirurgicale documentée (uniquement le champ `name`), désormais **régénérés sur Windows** par l'utilisateur (`bun install` ✅, `cargo check` ✅ 30/10)
+- **DÉC-5 (résolue 2026-11-02)** : paire de signature updater générée par le mainteneur. Clé publique ID `BA3FEE8CCD2277FC` intégrée dans `plugins.updater.pubkey`. Clé privée : `~/.tauri/islet.key` — **hors dépôt, à sauvegarder**. Ne jamais la committer ni la partager. Build de release : `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD` si protégée) ; build local : `--no-sign`.
 - **D-DRV-5** : build Windows = `bun run tauri build --bundles nsis --no-sign`. `--bundles nsis` car `targets: "all"` ferait télécharger WiX pour un MSI que le projet ne livre jamais ; `--no-sign` car `createUpdaterArtifacts: true` + pubkey exigent `TAURI_SIGNING_PRIVATE_KEY` (DÉC-5 non tranchée). Ne PAS modifier `tauri.conf.json` pour contourner.
 - **D-DRV-5** : `docs/logo.png` = contenu remplacé par le logo Islet (nom de fichier conservé, stabilité du README)
 

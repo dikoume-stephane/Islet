@@ -61,5 +61,5 @@
 - [x] G2 — `npm install` + `npm run build` ✅ app principale **et** installer-app (tsc + vite verts)
 - [x] G3 — `cargo check` sur Windows : ✅ `Finished dev profile in 5m 10s`, aucune erreur (30/10)
 - [⏳] G4 — `islet.exe` release ✅ produit (12m 29s) ; **bundling restant** : `bun run tauri build --bundles nsis --no-sign` (MSI/WiX + clé updater écartés) puis test installateur/désinstallateur NSIS
-- [⏳] G5 — Clés updater Islet → avant 1re release (DÉC-5)
-- [x] G6 — **PR #1 ouverte** : https://github.com/dikoume-stephane/Islet/pull/1 (merge après retour G3/G4)
+- [x] G5 — Clé updater Islet générée et intégrée (ID `BA3FEE8CCD2277FC`, 2026-11-02) — privée hors dépôt, sauvegarde à la charge du mainteneur
+- [x] G6 — **PR #1 mergée** : https://github.com/dikoume-stephane/Islet/pull/1

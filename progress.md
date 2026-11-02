@@ -15,7 +15,7 @@
 | D | Backend Rust | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | E | Installateur NSIS | 2 | 2 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | F | Documentation | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
-| G | Validation | 6 | 3 | 🟡 G1/G2/G3 ✅ · G4 partiel (exe ✅, NSIS ⏳) · G5 ⏳ DÉC-5 · G6 ✅ PR #1 | ▓▓▓▓▓░░░░░ 50 % |
+| G | Validation | 6 | 5 | 🟡 G1/G2/G3/G5/G6 ✅ · G4 partiel (exe ✅, NSIS ⏳) | ▓▓▓▓▓▓▓▓░░ 83 % |
 | **Total** | | **44** | **38** | | **≈ 90 %** |
 
 ## Métriques clés
