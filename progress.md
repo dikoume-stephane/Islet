@@ -1,7 +1,7 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
 **Dernière mise à jour :** 2026-11-03 (par l'agent)
-**État global :** ✅ **Phases 1 et 2 mergées (PR #1 et #2). Phase 3 cadrée : accueil, assistant « Is », parité Nusa, thèmes**
+**État global :** ✅ **Phases 1 et 2 mergées (PR #1 et #2). Phase 3 en cours : les signaux système d'Is sont livrés (PR #3)**
 
 ## Tableau de bord
 
@@ -25,11 +25,12 @@
 | H | Onboarding premier démarrage | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
 | I | Moteur de thèmes + Liquid Glass | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
 | J | Parité Nusa (paroles, shelf, eau, to-do…) | 7 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
-| K | Assistant « Is » | 10 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| K | Assistant « Is » | 18 | 7 | 🟡 Signaux système livrés (K0) · personnage à venir | ▓▓▓▓░░░░░░ 39 % |
 | L | IA optionnelle | 4 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
 | M | Outillage (skills) | 2 | 1 | 🟡 Skills installées | ▓▓▓▓▓░░░░░ 50 % |
 
 **Jalons** : J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
+⚠️ Amendé le 2026-11-03 : à la demande de l'utilisateur, **J3 (Is — signaux système)** est attaqué avant J1. Le capteur, les règles et l'interface de conseils sont livrés ; restent le personnage animé et les signaux orientés développement (git, ports, build).
 Détail complet dans `ROADMAP.md` § PHASE 3.
 
 ## Métriques clés

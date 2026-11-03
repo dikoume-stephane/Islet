@@ -12,6 +12,9 @@ import { useWeather } from "./hooks/useWeather";
 import { useSettingsSync } from "./hooks/useSettingsSync";
 import { useTrailingThrottle } from "./hooks/useTrailingThrottle";
 import { useCaldav } from "./hooks/useCaldav";
+import { useSystemSignals } from "./hooks/useSystemSignals";
+import { useAssistant } from "./hooks/useAssistant";
+import { AssistantTipView } from "./components/AssistantTip";
 import { NotchCalendar } from "./components/NotchCalendar";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
@@ -314,6 +317,14 @@ function App() {
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
   const [hasBattery, setHasBattery] = useState(true);
+  // Is: hardware signals + tips (battery, disks, memory, session).
+  const systemSignals = useSystemSignals();
+  const {
+    tip: assistantTip,
+    dismiss: dismissAssistantTip,
+    settings: assistantSettings,
+  } = useAssistant(systemSignals);
+
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
   const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("islet-low-battery-threshold") || "20"));
@@ -351,7 +362,9 @@ function App() {
 
   useEffect(() => {
     // Trigger pulse when dropping below threshold while discharging
-    if (hasBattery && isReady && batteryLevel <= lowBatteryThreshold && !isCharging && !lowBatteryPulseShownRef.current) {
+    // Is already covers the battery with a more detailed tip: skip the duplicate.
+    const isHandlesBattery = assistantSettings.enabled && assistantSettings.battery;
+    if (hasBattery && isReady && !isHandlesBattery && batteryLevel <= lowBatteryThreshold && !isCharging && !lowBatteryPulseShownRef.current) {
       setShowLowBatteryPulse(true);
       if (notchMode === 'peek') triggerEventPeek(5000);
       lowBatteryPulseShownRef.current = true;
@@ -362,7 +375,12 @@ function App() {
     if (isCharging || batteryLevel > lowBatteryThreshold) {
       lowBatteryPulseShownRef.current = false;
     }
-  }, [batteryLevel, isCharging, lowBatteryThreshold, isReady, notchMode, triggerEventPeek, hasBattery]);
+  }, [batteryLevel, isCharging, lowBatteryThreshold, isReady, notchMode, triggerEventPeek, hasBattery, assistantSettings.enabled, assistantSettings.battery]);
+
+  // Is has something to say: in peek mode, unfold the notch for the tip.
+  useEffect(() => {
+    if (assistantTip && notchMode === "peek") triggerEventPeek(10_000);
+  }, [assistantTip, notchMode, triggerEventPeek]);
 
   // Weather state (managed by useWeather hook)
 
@@ -1474,6 +1492,7 @@ function App() {
       return Math.min(200 + totalWidgets * 65, 460);
     }
     if (isMusicMode && isHovered) return mediaLayout === 'compact' ? 300 : 340;
+    if (assistantTip && !isHovered) return 290;
     if ((showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered) return 200;
 
     let w = 140;
@@ -1817,7 +1836,9 @@ function App() {
                   >
                     <div className="main-row">
                       <AnimatePresence mode="wait">
-                        {(showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered ? (
+                        {assistantTip && !isHovered ? (
+                          <AssistantTipView tip={assistantTip} onDismiss={dismissAssistantTip} />
+                        ) : (showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered ? (
                           showUpdatePulse ? (
                             <motion.div
                               key="update-pulse-view"

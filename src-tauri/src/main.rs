@@ -16,6 +16,7 @@ mod caldav;
 mod calendar_sync;
 mod ics;
 mod active_look;
+mod signals;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -171,6 +172,7 @@ fn main() {
             get_cpu_usage,
             get_ram_usage,
             get_disk_space,
+            signals::get_system_signals,
             get_network_speed,
             get_running_processes,
             kill_process,
@@ -220,6 +222,9 @@ fn main() {
             }
 
             crate::calendar_sync::start_background_sync(app.handle().clone());
+
+            // Is: sample system signals (battery, disks, memory, uptime).
+            signals::start_sampler(app.handle().clone());
 
             let window = app.get_webview_window("main").unwrap();
             let dock_win = app.get_webview_window("dock").unwrap();

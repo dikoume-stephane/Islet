@@ -5,6 +5,32 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-03 (2) — Is lit les signaux du PC et prévient l'utilisateur
+
+**Contexte** — Retour de l'utilisateur sur le cadrage Phase 3 : « c'est parfait pour un debut », puis une demande précise — Is doit lire les signaux de la machine et notifier : batterie, temps de mise en marche, rappel de charge, espace disque, « et bien d'autres petits tips utiles ». L'ordre proposé (J1 accueil d'abord) est donc inversé : on attaque l'assistant.
+
+**Fait**
+- **Capteur Rust** `src-tauri/src/signals.rs` (nouveau, ~300 lignes) : batterie (`GetSystemPowerStatus`), mémoire (`GlobalMemoryStatusEx`), disques `C:`–`Z:` (`GetDriveTypeW` + `GetDiskFreeSpaceExW`), CPU (`GetSystemTimes`), uptime (`GetTickCount64`). Échantillon toutes les 30 s publié sur l'événement `system-signals`, plus une commande `get_system_signals` pour le premier affichage.
+- **Câblage** : `Cargo.toml` (+ feature `Win32_System_Power`), `main.rs` (`mod signals;`, commande enregistrée, `start_sampler` lancé après la synchro calendrier).
+- **Moteur de conseils** `src/lib/assistant.ts` : fonction pure `pickTip()`, un seul conseil à la fois, ordre de priorité batterie critique → batterie faible → batterie pleine → rappel de charge → disque → mémoire → CPU → session longue, avec un délai de répétition par type (10 min à 12 h).
+- **Hooks** `useSystemSignals` (invoke + écoute) et `useAssistant` (réglages `islet-assistant-*`, cooldowns persistés, affichage 10 s, écoute de `settings-changed`).
+- **UI** : composant `AssistantTip` (avatar Is + pastille de gravité + croix), intégré dans le notch, largeur dédiée (290 px), déroulé automatique en mode `peek`. Le conseil passe avant les pastilles charge/mise à jour.
+- **Réglages** : nouvel onglet « Is » dans Settings — interrupteur général, 4 catégories, 4 seuils, et une section « Right now » qui affiche CPU, mémoire, uptime et espace libre réels.
+- **Doublon évité** : la pastille « Low Battery » historique (`islet-low-battery-threshold`) se met en veille quand Is prend la batterie en charge ; elle revient si l'utilisateur coupe Is.
+- `SETTINGS.md` : nouvelle section « Is (assistant) » avec les 10 clés.
+
+**Constats**
+- Le crate `windows` 0.61 n'expose pas `DRIVE_FIXED` / `DRIVE_REMOVABLE` : les valeurs du SDK (3 et 2) sont redéclarées localement. Vérifié dans les bindings du tag `0.61.0`.
+- `GetSystemPowerStatus` renvoie bien `Result<()>` dans cette version, comme `GetSystemTimes` et `GlobalMemoryStatusEx` — la gestion d'erreur est homogène.
+- `settings-changed` existe bien et est émis par `save_setting` : l'écoute dans `useAssistant` est légitime. Les fenêtres ne partageant pas forcément leur `localStorage`, le hook réécrit la valeur reçue avant de relire la configuration.
+
+**Bloqué**
+- Pas de `cargo` dans le sandbox : la compilation Rust est à faire sur la machine Windows de l'utilisateur.
+
+**À faire ensuite**
+- `cargo check` puis build NSIS sur la machine de l'utilisateur.
+- Enchaîner sur J1 (accueil au premier démarrage), puis les thèmes.
+
 ## 2026-11-03 — Cadrage Phase 3 : accueil, assistant « Is », parité Nusa, thèmes
 
 **Contexte** — Phase 2 mergée (PR #2, `2d0c2b5`). L'utilisateur ouvre la Phase 3 avec quatre demandes : un accueil au premier démarrage, les fonctionnalités de Nusa, une mascotte-assistante orientée développeurs, et davantage de thèmes dont *Liquid Glass*.

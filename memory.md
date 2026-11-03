@@ -98,7 +98,30 @@
 | DÉC-8 | IA | **Opt-in, désactivée par défaut**. Deux fournisseurs : Ollama/llama.cpp en local, ou endpoint OpenAI-compatible avec clé de l'utilisateur. Périmètre bridé : expliquer une erreur, résumer un diff. **Jamais d'écriture dans le dépôt** |
 | DÉC-9 | Thèmes | Refonte en **presets nommés** (`ThemePreset`) + réglages libres, avec migration des `themeMode` existants. 8 presets proposés, dont **Liquid Glass** |
 | DÉC-10 | Liquid Glass | Deux niveaux : *frost* (blur + saturate + liseré, partout) et *réfraction* SVG. **WebView2 = Chromium sur Windows → la réfraction fonctionne réellement** dans l'app, contrairement au web classique |
-| DÉC-11 | Ordre de livraison | **J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA** |
+| DÉC-11 | Ordre de livraison | **J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA** — ⚠️ **amendé 2026-11-03** : l'utilisateur a demandé Is (signaux PC) d'abord ; J3 est donc attaqué avant J1 |
+
+### 3.B — Is : lecture des signaux système (livré 2026-11-03)
+
+**Demande utilisateur** : Is lit les signaux du PC et prévient — batterie, temps de mise en marche, rappel de charge, espace disque, « et bien d'autres petits tips utiles ».
+
+| Élément | Fichier | Rôle |
+|---|---|---|
+| Capteur | `src-tauri/src/signals.rs` | Échantillonne batterie / mémoire / disques / CPU / uptime, événement `system-signals` toutes les 30 s + commande `get_system_signals` |
+| Miroir TS | `src/hooks/useSystemSignals.ts` | Types + hook (`invoke` immédiat puis `listen`) |
+| Règles | `src/lib/assistant.ts` | `pickTip()` pure : un seul conseil, priorité + délais de répétition |
+| Orchestration | `src/hooks/useAssistant.ts` | Réglages `islet-assistant-*`, cooldowns persistés, affichage 10 s |
+| Vue | `src/components/AssistantTip.tsx` + `App.css` | Avatar Is, pastille de gravité, croix de fermeture |
+| Réglages | `src/settings/AssistantTab.tsx` | Onglet « Is » : interrupteurs, seuils, valeurs temps réel |
+
+**Règles livrées** — ordre strict : batterie critique (≤ 10 %) → batterie faible (≤ seuil) → batterie pleine → rappel de charge (≥ seuil) → disque (occupation ≥ 100 − marge, disques fixes seulement) → mémoire ≥ 90 % → CPU ≥ 90 % → session ≥ N heures.
+**Cooldowns** : critique 10 min · faible 30 min · plein/charge 2 h · disque 12 h · mémoire 45 min · CPU 30 min · session 8 h.
+**Doublon traité** : `showLowBatteryPulse` (clé héritée `islet-low-battery-threshold`, défaut 20) est désactivé tant qu'Is gère la batterie ; il revient si Is est coupé.
+
+**Contraintes techniques vérifiées**
+- Le crate `windows` **0.61** ne fournit pas `DRIVE_FIXED` / `DRIVE_REMOVABLE` → constantes locales (`3` et `2`).
+- `GetSystemPowerStatus`, `GetSystemTimes`, `GlobalMemoryStatusEx`, `GetDiskFreeSpaceExW` renvoient tous `Result<()>` dans 0.61.
+- `settings-changed` est bien émis par `save_setting` ; il sert à propager un changement fait dans la fenêtre Settings vers le notch. Les webviews ne partageant pas toujours `localStorage`, le hook réécrit la valeur reçue.
+- **Pas de `cargo` dans le sandbox** : la compilation reste à faire côté Windows.
 
 ### Ce qu'Islet fait déjà (ne pas re-livrer)
 

@@ -1303,3 +1303,33 @@ input:checked + .slider:before {
 .caldav-providers {
   align-self: flex-start;
 }
+
+/* --- Is tab ------------------------------------------------------------- */
+
+.assistant-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.assistant-slider-value {
+  min-width: 38px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--islet-text, #fff);
+  opacity: 0.8;
+}
+
+.assistant-readout {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--islet-text, #fff);
+  opacity: 0.75;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

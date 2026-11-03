@@ -4,11 +4,12 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Effect, EffectState } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Settings, Palette, PanelTop, Monitor, Layers, Info } from "lucide-react";
+import { Settings, Palette, PanelTop, Monitor, Layers, Info, Sparkles } from "lucide-react";
 import { WindowControls } from "./components/WindowControls";
 import {
   useSettings,
   GeneralTab,
+  AssistantTab,
   AppearanceTab,
   NotchTab,
   CalendarSyncPage,
@@ -24,6 +25,7 @@ const appWindow = getCurrentWebviewWindow();
 
 const TABS: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
   { id: "general", label: "General", icon: Settings },
+  { id: "assistant", label: "Is", icon: Sparkles },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "notch", label: "Notch", icon: PanelTop },
   { id: "dock", label: "Dock", icon: Monitor },
@@ -106,6 +108,8 @@ function SettingsApp() {
               quitIslet={settings.quitIslet}
             />
           )}
+          {activeTab === "assistant" && <AssistantTab />}
+
           {activeTab === "appearance" && (
             <AppearanceTab
               themeMode={settings.themeMode}

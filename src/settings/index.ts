@@ -1,6 +1,7 @@
 export { useSettings } from "./useSettings";
 export { SettingRow } from "./SettingRow";
 export { GeneralTab } from "./GeneralTab";
+export { AssistantTab } from "./AssistantTab";
 export { AppearanceTab } from "./AppearanceTab";
 export { NotchTab } from "./NotchTab";
 export { CalendarSyncPage } from "./CalendarSyncPage";

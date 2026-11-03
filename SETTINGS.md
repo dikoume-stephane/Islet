@@ -151,6 +151,23 @@ Example:
 }
 ```
 
+### Is (assistant)
+
+Is watches the machine and shows one short tip at a time in the notch — battery, charge reminder, disk space, memory/CPU pressure and long sessions. It reads only local Windows counters (`GetSystemPowerStatus`, `GlobalMemoryStatusEx`, `GetDriveTypeW`/`GetDiskFreeSpaceExW`, `GetSystemTimes`, `GetTickCount64`), sampled every 30 seconds. Nothing leaves the machine and no account is needed. Tips never interrupt: they respect a per-tip cooldown (10 min for a critical battery, up to 12 h for a disk) and disappear after 10 seconds, or on click.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `islet-assistant-enabled` | `"true"` / `"false"` | `"true"` | Master switch. When `"false"`, Is is silent and the classic low-battery pulse takes over again. |
+| `islet-assistant-battery` | `"true"` / `"false"` | `"true"` | Low battery, critical battery, charge reminder and "battery full" tips. While this is on, the legacy `islet-low-battery-threshold` pulse is suppressed to avoid two messages for the same fact. |
+| `islet-assistant-storage` | `"true"` / `"false"` | `"true"` | Warn when a fixed drive has less than `islet-assistant-free-space-floor` percent free. Removable drives are ignored. |
+| `islet-assistant-performance` | `"true"` / `"false"` | `"true"` | Warn on sustained memory (≥ 90 %) or CPU (≥ 90 %) load. |
+| `islet-assistant-session` | `"true"` / `"false"` | `"true"` | Suggest a break once Windows uptime passes `islet-assistant-session-hours`. |
+| `islet-assistant-low-battery` | integer string | `"20"` | Battery percentage that triggers the low-battery tip (5 to 50). |
+| `islet-assistant-charge-limit` | integer string | `"80"` | While charging, suggest unplugging once the battery reaches this level (60 to 100). `100` gives a single "battery full" tip. |
+| `islet-assistant-free-space-floor` | integer string | `"10"` | Minimum free space, in percent, before warning about a drive (5 to 25). |
+| `islet-assistant-session-hours` | integer string | `"8"` | Hours of uptime before suggesting a break (2 to 16). |
+| `islet-assistant-cooldowns` | JSON string | `{}` | Internal. Last display time per tip id, so a tip does not repeat too soon. Safe to clear. |
+
 ### System
 
 | Key | Type | Default | Description |

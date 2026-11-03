@@ -2266,3 +2266,97 @@ img {
     text-align: center;
     opacity: 0.35;
 }
+
+/* --- Is tip in the notch ------------------------------------------------ */
+
+.assistant-tip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 0 8px 0 4px;
+    box-sizing: border-box;
+}
+
+.assistant-tip-avatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.assistant-tip-avatar img {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Severity dot, pinned to the avatar corner. */
+.assistant-tip-dot {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid #0b0b0d;
+    box-sizing: border-box;
+}
+
+.assistant-tip-message {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.assistant-tip-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.assistant-tip-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+}
+
+.assistant-tip-close:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 1px;
+}
+
+/* Light mode: the notch stays dark, but keep the text contrast. */
+.light-mode .assistant-tip-message {
+    color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .assistant-tip {
+        animation: none;
+        transition: none;
+    }
+}

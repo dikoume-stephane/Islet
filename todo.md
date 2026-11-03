@@ -98,6 +98,18 @@
 - [ ] J7 — To-do du jour avec échéances et rappels
 
 ## Bloc K — Assistant « Is » (J3, J5)
+
+### K0 — Signaux système ✅ (livré 2026-11-03)
+- [x] K0a — Capteur Rust `signals.rs` : batterie, mémoire, disques, CPU, uptime → événement `system-signals` (30 s) + commande `get_system_signals`
+- [x] K0b — Miroir TypeScript `useSystemSignals`
+- [x] K0c — Moteur de règles pur `pickTip()` : priorité + délais de répétition par conseil
+- [x] K0d — Hook `useAssistant` : réglages `islet-assistant-*`, cooldowns persistés, affichage 10 s
+- [x] K0e — Rendu dans le notch (`AssistantTip`, largeur 290 px, déroulé auto en mode `peek`)
+- [x] K0f — Onglet Settings « Is » : 4 catégories, 4 seuils, valeurs temps réel
+- [x] K0g — `SETTINGS.md` + neutralisation du doublon avec la pastille « Low Battery » héritée
+- [ ] K0h — `cargo check` + build NSIS sur la machine Windows (pas de cargo dans le sandbox)
+
+### Personnage & contexte dev
 - [ ] K1 — Sprite 5 états (idle, blink, listening, thinking, happy, sleeping, alert)
 - [ ] K2 — Regard qui suit le curseur à proximité du notch
 - [ ] K3 — Sommeil après inactivité / réveil à l'interaction
