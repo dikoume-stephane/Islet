@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import type { AssistantTip, TipSeverity } from "../lib/assistant";
 
@@ -22,14 +22,17 @@ interface AssistantTipViewProps {
 
 export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
   const accent = SEVERITY_COLOR[tip.severity];
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
       className="assistant-tip"
-      initial={{ opacity: 0, scale: 0.94, filter: "blur(4px)" }}
+      role="status"
+      aria-live="polite"
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.94, filter: "blur(4px)" }}
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-      exit={{ opacity: 0, scale: 1.04, filter: "blur(4px)" }}
-      transition={{ type: "spring", stiffness: 320, damping: 26 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.04, filter: "blur(4px)" }}
+      transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 26 }}
     >
       <span className="assistant-tip-avatar" aria-hidden>
         <img src="/islet.png" alt="" draggable={false} />
