@@ -1,7 +1,7 @@
 # 🧠 MEMORY — Contexte durable du projet Islet
 
 > Ce fichier est la **mémoire long terme** du travail : à relire en début de chaque session
-> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-02.
+> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-03.
 
 ---
 
@@ -14,7 +14,7 @@
 | Identifiant Tauri | `com.kua8.nectar` (+ `.installer`) | ✅ **`com.2DS.islet`** (+ `.installer`) — appliqué 2026-10-29 |
 | Version au moment du fork | 1.4.1 | inchangée (Phase 1) |
 | Licence | GPL-3.0-only (fichier `LICENSE` — **INTOUCHABLE**) | identique |
-| Branche de travail Arena | — | `arena/7705c682-islet` (base : `c2c072c`) |
+| Branche de travail Arena | — | `arena/6f8fc574-islet` (base : `main` `2d0c2b5`, après merge PR #1 et #2) |
 
 ## 2. Stack et structure
 
@@ -56,7 +56,7 @@
 5. Lockfiles (`bun.lock`, `package-lock.json` ×2, `Cargo.lock` ×2) : **régénérés**, jamais édités à la main.
 6. Phase 1 = rebranding **purement nominatif/visuel** : zéro changement fonctionnel, zéro bump de version.
 7. Clés privées : jamais dans le dépôt (`.gitignore` couvre déjà `*.key`, `*.key.pub`).
-8. Branche de travail imposée : `arena/7705c682-islet` (ne pas créer/pousser ailleurs).
+8. Branche de travail imposée : celle de la session Arena en cours (`arena/6f8fc574-islet`) — ne pas créer/pousser ailleurs.
 
 ## 5. Décisions
 
@@ -66,7 +66,7 @@
 | DÉC-2 | Wordmarks Islet (dark/light) | ✅ **fournis** (via `main`, 2026-10-29) | `docs/islet-wordmark-dark.png` (glyphes foncés → fonds clairs) / `islet-wordmark-light.png` (glyphes clairs → fonds sombres). ⚠️ mapping README par **couleur de glyphes** : mode sombre ← `*-light.png` |
 | DÉC-3 | Identifiant + politique de données | ✅ tranché 2026-10-29 | Identifiant = **`com.2DS.islet`** (+ `com.2DS.islet.installer`). Données = **reset assumé** → renommage pur des clés/registre/AppData, aucun code de migration |
 | DÉC-4 | Attribution mainteneur du fork | ✅ tranché 2026-10-29 | **« dikoume-stephane (2DS) »** — ajouté à côté de l'attribution kua8 (conservée) |
-| DÉC-5 | Endpoint updater + nouvelle clé de signature | 🕓 différé | « Plus tard » → endpoint repointé vers `dikoume-stephane/Islet` (404 = pas de mise à jour = **sécurisé**), pubkey kua8 laissée en placeholder. ⚠️ **Avant toute release Islet** : nouvelle paire de clés (`tauri signer generate`) + maj pubkey |
+| DÉC-5 | Endpoint updater + nouvelle clé de signature | ✅ **résolue 2026-11-02** | « Plus tard » → endpoint repointé vers `dikoume-stephane/Islet` (404 = pas de mise à jour = **sécurisé**), pubkey kua8 laissée en placeholder. ⚠️ **Avant toute release Islet** : nouvelle paire de clés (`tauri signer generate`) + maj pubkey |
 
 ### Décisions dérivées (2026-10-29, révocables par l'utilisateur)
 - **D-DRV-1** : vendeur registre `Software\kua8\nectar` → **`Software\2DS\islet`** (cohérent avec `com.2DS.islet` et l'attribution 2DS)
@@ -75,12 +75,41 @@
 - **D-DRV-4** : lockfiles `bun.lock` / `Cargo.lock` — `bun`/`cargo` absents du sandbox → retouche chirurgicale documentée (uniquement le champ `name`), désormais **régénérés sur Windows** par l'utilisateur (`bun install` ✅, `cargo check` ✅ 30/10)
 - **DÉC-5 (résolue 2026-11-02)** : paire de signature updater générée par le mainteneur. Clé publique ID `BA3FEE8CCD2277FC` intégrée dans `plugins.updater.pubkey`. Clé privée : `~/.tauri/islet.key` — **hors dépôt, à sauvegarder**. Ne jamais la committer ni la partager. Build de release : `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD` si protégée) ; build local : `--no-sign`.
 - **D-DRV-5** : build Windows = `bun run tauri build --bundles nsis --no-sign`. `--bundles nsis` car `targets: "all"` ferait télécharger WiX pour un MSI que le projet ne livre jamais ; `--no-sign` car `createUpdaterArtifacts: true` + pubkey exigent `TAURI_SIGNING_PRIVATE_KEY` (DÉC-5 non tranchée). Ne PAS modifier `tauri.conf.json` pour contourner.
-- **D-DRV-5** : `docs/logo.png` = contenu remplacé par le logo Islet (nom de fichier conservé, stabilité du README)
+- **D-DRV-6** : `docs/logo.png` = contenu remplacé par le logo Islet (nom de fichier conservé, stabilité du README)
 
 ## 6. Rappels outillage sandbox
 
 - Sandbox = Linux → validation possible : `bun install`, `bun run build` (tsc + vite). ImageMagick disponible (`identify`, conversion BMP possible).
 - Validation impossible ici : `cargo check`, build NSIS, run de l'app, captures d'écran → machine Windows du mainteneur (`ELEMENTS_MANQUANTS.md` #4).
 - **Fait sur Windows (30/10)** : `cargo check` ✅ 5m10s ; `islet.exe` release ✅ 12m29s ; bundling NSIS restant.
-- **Piège récurrent** : `.git` du sandbox est parfois restauré en arrière en début de tour (HEAD revient à `c2c072c`) alors que le distant est correct → toujours `git fetch` + `git reset --hard origin/arena/7705c682-islet` AVANT d'éditer, sinon les fichiers ajoutés par le commit disparaissent de l'arbre.
+- **Piège récurrent** : `.git` du sandbox est parfois restauré en arrière en début de tour (HEAD revient à `c2c072c`) alors que le distant est correct → toujours `git fetch` + `git reset --hard origin/<branche de session>` AVANT d'éditer, sinon les fichiers ajoutés par le commit disparaissent de l'arbre.
 - Fichiers de pilotage racine : `ROADMAP.md` (plan), `todo.md` (cases), `progress.md` (tableau de bord), `journal.md` (log), `ELEMENTS_MANQUANTS.md` (attentes utilisateur).
+
+---
+
+## 7. Phase 3 — cap fonctionnel (cadré le 2026-11-03)
+
+### Décisions
+
+| # | Sujet | Décision |
+|---|---|---|
+| DÉC-6 | Onboarding | Vit **dans la fenêtre Settings existante**, mode `onboarding`. Pas de 6ᵉ fenêtre Tauri. Déclenché par `islet-onboarded` absent. Toujours « Passer » possible |
+| DÉC-7 | Assistant « Is » | Nom par défaut **`Is`**, renommable (`assistantName`). S'appuie **d'abord sur des signaux locaux** (git, ports, build, focus) — **aucune IA au départ** |
+| DÉC-8 | IA | **Opt-in, désactivée par défaut**. Deux fournisseurs : Ollama/llama.cpp en local, ou endpoint OpenAI-compatible avec clé de l'utilisateur. Périmètre bridé : expliquer une erreur, résumer un diff. **Jamais d'écriture dans le dépôt** |
+| DÉC-9 | Thèmes | Refonte en **presets nommés** (`ThemePreset`) + réglages libres, avec migration des `themeMode` existants. 8 presets proposés, dont **Liquid Glass** |
+| DÉC-10 | Liquid Glass | Deux niveaux : *frost* (blur + saturate + liseré, partout) et *réfraction* SVG. **WebView2 = Chromium sur Windows → la réfraction fonctionne réellement** dans l'app, contrairement au web classique |
+| DÉC-11 | Ordre de livraison | **J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA** |
+
+### Ce qu'Islet fait déjà (ne pas re-livrer)
+
+Musique (SMTC), command center (Wi-Fi/BT/DND/volume/luminosité), statut (batterie/météo), calendrier, **Pomodoro**, gestion des processus, overlays, multi-moniteurs, veille plein écran, tray, autostart, updater.
+
+### Écart réel avec Nusa (à ajouter)
+
+Paroles synchronisées (LRCLIB) · file shelf · suivi d'hydratation · to-do du jour · chronomètre/minuteur libre · indicateurs Caps Lock/langue · pilule minimale.
+
+### Skills installées
+
+`.claude/skills/` (versionné, 644 Ko) — `web-design-guidelines`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-view-transitions`, `writing-guidelines`.
+Installation : `npx skills add vercel-labs/agent-skills --skill <nom> -a claude-code -y --copy`.
+⚠️ Le registre `skills.sh` est **injoignable depuis le sandbox** (DNS restreint) → passer par GitHub. ⚠️ Les noms réels sont préfixés `vercel-`.

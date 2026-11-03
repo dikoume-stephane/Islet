@@ -1,14 +1,14 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
-**Dernière mise à jour :** 2026-11-02 (par l'agent)
-**État global :** ✅ **Phase 1 mergée (PR #1). Phase 2 démarrée : finitions visuelles livrées (icône, favicons, attribution)**
+**Dernière mise à jour :** 2026-11-03 (par l'agent)
+**État global :** ✅ **Phases 1 et 2 mergées (PR #1 et #2). Phase 3 cadrée : accueil, assistant « Is », parité Nusa, thèmes**
 
 ## Tableau de bord
 
 | Bloc | Périmètre | Tâches | Faites | État | Avancement |
 |---|---|---|---|---|---|
 | 0 | Préparation & analyse | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
-| DÉC | Décisions utilisateur | 6 | 6 | ✅ Tranchées (DÉC-5 = différé volontairement) | ▓▓▓▓▓▓▓▓▓▓ 100 % |
+| DÉC | Décisions utilisateur | 6 | 6 | ✅ Tranchées (DÉC-5 résolue le 2026-11-02) | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | A | Identité visuelle | 7 | 6 | ✅ Fait — **assets officiels intégrés** (A8 → Phase 2) | ▓▓▓▓▓▓▓▓▓▓ 100 %¹ |
 | B | Manifests & config | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | C | Frontend | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
@@ -17,6 +17,20 @@
 | F | Documentation | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | G | Validation | 6 | 5 | 🟡 G1/G2/G3/G5/G6 ✅ · G4 partiel (exe ✅, NSIS ⏳) | ▓▓▓▓▓▓▓▓░░ 83 % |
 | **Total** | | **44** | **38** | | **≈ 90 %** |
+
+## Phase 3 — Fonctionnalités (cadrée le 2026-11-03)
+
+| Bloc | Périmètre | Tâches | Faites | État | Avancement |
+|---|---|---|---|---|---|
+| H | Onboarding premier démarrage | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| I | Moteur de thèmes + Liquid Glass | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| J | Parité Nusa (paroles, shelf, eau, to-do…) | 7 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| K | Assistant « Is » | 10 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| L | IA optionnelle | 4 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| M | Outillage (skills) | 2 | 1 | 🟡 Skills installées | ▓▓▓▓▓░░░░░ 50 % |
+
+**Jalons** : J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
+Détail complet dans `ROADMAP.md` § PHASE 3.
 
 ## Métriques clés
 

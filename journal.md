@@ -5,6 +5,29 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-03 — Cadrage Phase 3 : accueil, assistant « Is », parité Nusa, thèmes
+
+**Contexte** — Phase 2 mergée (PR #2, `2d0c2b5`). L'utilisateur ouvre la Phase 3 avec quatre demandes : un accueil au premier démarrage, les fonctionnalités de Nusa, une mascotte-assistante orientée développeurs, et davantage de thèmes dont *Liquid Glass*.
+
+**Fait**
+- **Skills installées** (`npx skills add vercel-labs/agent-skills`) : `web-design-guidelines`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-view-transitions`, `writing-guidelines` → `.claude/skills/` (644 Ko, 98 fichiers, versionné).
+- **Recherche Nusa** : notch C#/WPF pour Windows 10/11. Fonctions relevées — musique + paroles synchronisées (LRCLIB), Pomodoro, rappels d'eau, shelf de fichiers, to-do, overlays volume/luminosité, Caps Lock + langue, batterie/Wi-Fi/casque, masquage plein écran. Écart calculé contre l'existant Islet : paroles, shelf, eau, to-do, chronomètre, indicateurs clavier, pilule minimale.
+- **Recherche Liquid Glass** : deux niveaux (frost partout, réfraction Chromium-only via `feDisplacementMap` dans `backdrop-filter`). Constat décisif : **sous Tauri le rendu passe par WebView2 = Chromium**, donc la réfraction est réellement disponible sur Windows — ce qui est faux sur le web classique.
+- **Roadmap Phase 3** écrite dans `ROADMAP.md` : 4 blocs (3.A accueil, 3.B assistant, 3.C parité Nusa, 3.D thèmes), 7 jalons J1→J7, et proposition de 8 presets de thème.
+
+**Décisions**
+- **Pas d'IA au départ** : l'assistant « Is » s'appuie d'abord sur des signaux locaux (git, ports, build, focus). L'IA (Ollama local ou endpoint BYO) est un bloc séparé, opt-in, désactivé par défaut, et volontairement bridé (expliquer une erreur, résumer un diff — pas d'agent qui écrit dans le dépôt).
+- **Onboarding dans la fenêtre Settings existante** (mode `onboarding`) plutôt qu'une 6ᵉ fenêtre Tauri : moins de surface, composants déjà cohérents.
+- **Moteur de thèmes par presets** avec migration des `themeMode` actuels, plutôt qu'un simple ajout de cases.
+- Ordre de livraison proposé : J1 (accueil) → J2 (thèmes) → J4 (parité) → J3 (personnage) → J5 (dev) → J6 → J7.
+
+**Constats**
+- Le registre `skills.sh` n'est pas joignable depuis le sandbox (DNS restreint) : l'installation a été faite directement depuis GitHub, ce qui fonctionne.
+- Les noms de skills sont préfixés `vercel-` (`vercel-react-best-practices`, …), à ne pas confondre avec les noms de dossiers du dépôt source.
+
+**À faire ensuite**
+- Attendre l'arbitrage de l'utilisateur sur l'ordre des jalons, puis démarrer J1 (onboarding).
+
 ## 2026-11-02 (3) — Screenshots intégrés
 
 **Fait**

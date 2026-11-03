@@ -198,3 +198,193 @@ ELEMENTS MANQUANTS (décisions humaines)
 | P2-6 | `docs/brand/README.md` (charte + procédures de régénération) | ✅ |
 | P2-7 | Remplacer `docs/screenshots/*` par des captures à jour | ⏳ Windows requis |
 | P2-8 | Générer la paire de clés updater (DÉC-5) | ⏳ Utilisateur |
+
+> **P2-7** reste ouvert (nouvelle capture après rebuild) et **P2-8** est fait depuis (clé `BA3FEE8CCD2277FC` intégrée).
+
+---
+
+# 🚀 PHASE 3 — Fonctionnalités
+
+> Ouverte le 2026-11-02. Cadre : **aucune régression** sur l'existant, tout ce qui touche au réseau ou à l'IA est **opt-in**.
+> Les skills Vercel sont installées dans `.claude/skills/` (voir § Recherche).
+
+## 3.0 Vision
+
+Islet n'est plus seulement une barre des tâches remplacée : c'est une **surface d'information permanente** en haut de l'écran. La Phase 3 ajoute trois couches :
+
+1. **Un accueil** — au premier lancement, l'utilisateur configure son Islet au lieu de tomber sur des réglages par défaut.
+2. **Un personnage** — « Is », mascotte-assistante qui vit dans le notch et sert surtout les développeurs.
+3. **Une matière** — un moteur de thèmes qui donne une vraie identité visuelle, dont *Liquid Glass*.
+
+---
+
+## 3.A — Onboarding au premier démarrage
+
+**Demande** : « le panneau de contrôle s'ouvre au premier démarrage pour permettre à l'utilisateur de choisir ses préférences ».
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-A1 | Détection du premier lancement | Clé `islet-onboarded` (settings.json + localStorage), migration douce si absente |
+| P3-A2 | Fenêtre plein écran d'accueil | Réutilise la fenêtre `settings.html` en mode `onboarding` (évite un 6ᵉ point d'entrée Tauri) |
+| P3-A3 | Étape 1 — Bienvenue | Nom de l'assistant (« Is » par défaut), choix de la langue d'affichage |
+| P3-A4 | Étape 2 — Apparence | Sélecteur de thème avec **aperçu en direct** sur le notch réel |
+| P3-A5 | Étape 3 — Notch ou Dock | Choix du mode, écran cible si plusieurs moniteurs |
+| P3-A6 | Étape 4 — Confidentialité | Ce qui reste local, ce qui sort sur le réseau (légendes, météo, updates) |
+| P3-A7 | Étape 5 — Récapitulatif | Résumé + bouton « Terminer », écrire `islet-onboarded: true` |
+| P3-A8 | Rappel ultérieur | Entrée « Revoir l'accueil » dans Settings › General |
+
+**Contraintes**
+- Aucun blocage : bouton **Passer** à chaque étape.
+- Ne s'affiche **qu'une fois** ; en cas de crash pendant l'accueil, l'état partiel est conservé.
+- Réutilise les composants `SettingRow` / `Dropdown` existants → cohérence visuelle gratuite.
+
+---
+
+## 3.B — Assistant « Is »
+
+**Demande** : « le mini avatar "Is" (ou le nom que l'utilisateur aura choisi) soit un mini assistant, utile pour les dev surtout », avec l'idée d'un avatar « que l'on poussera un peu plus tard ».
+
+### 3.B.1 Le personnage
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-B1 | Sprite de base | `docs/yessjh.png` (variante fantôme) retravaillée en 5 états ; ou mascotte existante déclinée |
+| P3-B2 | États d'animation | `idle` (respiration), `blink` (clignement aléatoire), `listening`, `thinking`, `happy`, `sleeping`, `alert` |
+| P3-B3 | Regard | Les yeux suivent le curseur quand il est proche du notch (léger parallaxe, pas de suivi hors fenêtre) |
+| P3-B4 | Réveil / sommeil | S'endort après inactivité prolongée, se réveille à l'interaction ou à un événement |
+| P3-B5 | Nom personnalisable | Champ dans l'onboarding, stocké dans `settings.json` (`assistantName`, défaut `"Is"`) |
+| P3-B6 | Interaction « pousser » (plus tard) | Physique ressort sur le sprite, réutilise les springs du notch ; **hors périmètre initial** |
+| P3-B7 | Réduction des animations | Respecte `prefers-reduced-motion` → `idle` statique |
+
+### 3.B.2 Ce qu'Is fait pour un développeur
+
+Le parti pris : **aucune IA requise au départ**. Is agrège des signaux locaux déjà disponibles, sans prompt ni coût. L'IA vient en 3.B.4, en option.
+
+| ID | Signal | Ce qu'Is montre | Source |
+|---|---|---|---|
+| P3-B8 | **Git pulse** | Branche courante, fichiers modifiés, ahead/behind du dépôt ouvert | `git` CLI lancé sur le dossier du projet suivi |
+| P3-B9 | **Port radar** | Ports en écoute, processus associé, bouton « tuer » | `netstat`/API Windows, réutilise `ProcessesTab` |
+| P3-B10 | **Build watcher** | L'utilisateur enregistre une commande (`bun run build`, `cargo check`…) ; Is l'exécute à la demande et affiche ✅/❌ + durée | spawn Rust, sortie capturée |
+| P3-B11 | **Focus guard** | Mode focus = DND + chrono + Is au repos ; réutilise le Pomodoro existant | modules notch |
+| P3-B12 | **Rappels de contexte** | « 12 min sans commit sur une branche dirty », « port 3000 occupé depuis 2 h » | règles locales, pas de LLM |
+
+> ⚠️ **Aucun accès disque arbitraire** : l'utilisateur choisit explicitement le ou les dossiers que suit Is.
+
+### 3.B.3 Modèle d'état
+
+```
+Is = { mood: idle|listening|thinking|happy|sleeping|alert,
+       signal: none|git|ports|build|focus,
+       speech?: string }   // bulle courte, 1 ligne max
+```
+
+Un seul réducteur, alimenté par des *watchers* Rust (`emit` → `listen`), sur le modèle déjà utilisé par `settings-changed`.
+
+### 3.B.4 Assistance IA (optionnelle, différée)
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-B13 | Fournisseur « local d'abord » | Ollama ou llama.cpp sur `localhost` — aucun compte, aucune donnée sortante |
+| P3-B14 | Fournisseur « clé à soi » | Endpoint OpenAI-compatible configurable (BYO key, stockée dans le trousseau Windows) |
+| P3-B15 | Portée volontairement étroite | Expliquer une erreur de build collée, résumer un diff, proposer une commande. **Pas** d'agent qui écrit dans le dépôt |
+| P3-B16 | Opt-in strict | Désactivé par défaut, écran de consentement explicite, indicateur visible quand Is « pense » en ligne |
+
+---
+
+## 3.C — Parité fonctionnelle avec Nusa
+
+Nusa = notch Windows (C#/WPF) : musique + **lèvres synchronisées**, focus, eau, shelf, to-do, statut système.
+Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, processus. Voici l'écart réel :
+
+| ID | Fonction | État Islet | À faire |
+|---|---|---|---|
+| P3-C1 | **Lecteur + paroles synchronisées** | Lecteur ✅ (SMTC) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ±, cache local |
+| P3-C2 | **File shelf** | ❌ | Glisser-déposer des fichiers sur le notch, liste persistante, glisser-vers-l'extérieur |
+| P3-C3 | **Chronomètre + minuteur** | Pomodoro ✅ | Chronomètre (tourne, tours) et minuteur libre en plus du Pomodoro |
+| P3-C4 | **Suivi d'hydratation** | ❌ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours |
+| P3-C5 | **To-do du jour** | ❌ | Tâches avec heure d'échéance, rappel via le notch, report au lendemain |
+| P3-C6 | **Indicateurs clavier** | ❌ | Caps Lock / Verr Num / langue active — overlay bref, comme les overlays volume existants |
+| P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
+| P3-C8 | **Modes notch minimalistes** | Partiel | Ajouter la « pilule minimale » (temps seul, aucun module) |
+
+**Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+---
+
+## 3.D — Moteur de thèmes
+
+**Demande** : « plus de thèmes, avec un thème liquid glass et d'autres que tu vas me proposer ».
+
+### 3.D.1 Refonte du moteur
+
+Aujourd'hui : `themeMode` ∈ {`dark`, `light`, `custom`, `adaptive`} + réglages HSL.
+Cible : **presets nommés** + réglages libres, sans casser `settings.json` existant.
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-D1 | Table de presets | Objet `ThemePreset` (variables CSS, blur, rayon, ombres, police d'accent) |
+| P3-D2 | Migration | `themeMode` actuel → preset équivalent (`dark` → `onyx`, `light` → `frost-light`…) |
+| P3-D3 | Aperçu en direct | Applique le preset au notch réel pendant la sélection (onboarding + Appearance) |
+| P3-D4 | Garde-fous d'accessibilité | `prefers-reduced-transparency`, contraste minimum sur le texte, repli opaque si le blur est indisponible |
+| P3-D5 | Thèmes communautaires | Un preset = un fichier JSON ; chargement depuis `themes/` du profil utilisateur |
+
+### 3.D.2 Presets proposés
+
+| Preset | Intention | Signature |
+|---|---|---|
+| **Liquid Glass** ⭐ | La demande explicite | `backdrop-filter: blur() saturate(180%)`, liseré spéculaire `inset 0 1px 0`, réfraction par `feDisplacementMap` là où c'est supporté |
+| **Onyx** | Le défaut actuel, assumé | Noir mat, quasi opaque, aucune distraction |
+| **Frost Light** | Jour / bureaux clairs | Verre laiteux clair, contraste AA garanti |
+| **Aurora** | Vivant, coloré | Dégradé de fond animé très lent, verre par-dessus |
+| **Nord** | Confort, longue session | Palette froide désaturée (inspiration Nord/Solarized) |
+| **Paper** | Minimal imprimé | Aplats crème, ombres douces, zéro transparence |
+| **Neon Grid** | Ambiance dev / rétro | Accents cyan-magenta, grille discrète |
+| **Bento** | Modulaire | Blocs à coins marqués, séparateurs visibles entre modules |
+
+> **Note technique décisive** : sous Tauri, le rendu web passe par **WebView2 = Chromium**. La réfraction SVG (`backdrop-filter: url(#filtre)`) fonctionne donc réellement sur Windows — c'est l'exception au « Chromium only » qui rend le vrai Liquid Glass possible ici, contrairement au web classique.
+
+---
+
+## 3.E — Jalons
+
+| Jalon | Contenu | Dépendance |
+|---|---|---|
+| **J1 — Accueil** | 3.A complet | Aucune |
+| **J2 — Matière** | 3.D presets + Liquid Glass | Aucune |
+| **J3 — Personnage** | 3.B.1 + 3.B.3 (états, regard, sommeil) | J1 (nom de l'assistant) |
+| **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
+| **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
+| **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
+| **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
+
+Ordre recommandé : **J1 → J2 → J4 → J3 → J5 → J6 → J7** (J1/J2 apportent le plus de valeur visible par effort).
+
+---
+
+## 3.F — Recherche et sources
+
+### Skills installées (`.claude/skills/`)
+
+`npx skills add vercel-labs/agent-skills` — 5 skills, 644 Ko, 98 fichiers :
+
+| Skill | Usage dans ce projet |
+|---|---|
+| `web-design-guidelines` | Audit d'accessibilité et d'ergonomie de l'UI (fetch des règles à jour) |
+| `vercel-react-best-practices` | 70 règles perf React (re-renders, bundle, effets) |
+| `vercel-composition-patterns` | Découpage des composants du notch et de l'assistant |
+| `vercel-react-view-transitions` | Transitions entre états du notch |
+| `writing-guidelines` | Rédaction des textes UI et de la doc |
+
+> Le registre `skills.sh` n'est pas joignable depuis le sandbox : installation faite **directement depuis GitHub**.
+
+### Nusa (référence)
+
+- Notch C#/WPF pour Windows 10/11, ~30 Mo RAM, 0 % CPU au repos (annoncé).
+- Fonctions : musique + paroles synchronisées (LRCLIB), Pomodoro, rappels d'eau, shelf de fichiers, to-do, overlays volume/luminosité, Caps Lock et langue, batterie/Wi-Fi/casque, masquage en plein écran.
+- Enseignement : la valeur n'est pas dans le nombre de fonctions mais dans **le fait qu'elles tiennent dans un seul objet permanent**.
+
+### Liquid Glass (technique)
+
+- Deux niveaux : **frost** (blur + saturate + liseré) partout ; **réfraction** (`feDisplacementMap` dans `backdrop-filter`) sur Chromium uniquement.
+- Un `feTurbulence` donne un grain organique ; un **displacement map fabriqué** (canal R = X, G = Y, gris au centre) donne la vraie lentille d'Apple.
+- Garde-fous obligatoires : `prefers-reduced-transparency`, `prefers-contrast`, repli opaque par défaut.

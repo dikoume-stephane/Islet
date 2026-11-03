@@ -63,3 +63,58 @@
 - [⏳] G4 — `islet.exe` release ✅ produit (12m 29s) ; **bundling restant** : `bun run tauri build --bundles nsis --no-sign` (MSI/WiX + clé updater écartés) puis test installateur/désinstallateur NSIS
 - [x] G5 — Clé updater Islet générée et intégrée (ID `BA3FEE8CCD2277FC`, 2026-11-02) — privée hors dépôt, sauvegarde à la charge du mainteneur
 - [x] G6 — **PR #1 mergée** : https://github.com/dikoume-stephane/Islet/pull/1
+
+---
+
+# 🚀 PHASE 3 — Fonctionnalités
+
+## Bloc H — Onboarding (J1)
+- [ ] H1 — Détection premier lancement (`islet-onboarded`) avec migration douce
+- [ ] H2 — Mode `onboarding` dans la fenêtre Settings existante
+- [ ] H3 — Étape 1 : bienvenue + nom de l'assistant (défaut « Is »)
+- [ ] H4 — Étape 2 : apparence avec **aperçu en direct** sur le notch
+- [ ] H5 — Étape 3 : notch ou dock (+ écran cible)
+- [ ] H6 — Étape 4 : transparence sur les données (local vs réseau)
+- [ ] H7 — Étape 5 : récapitulatif + écriture du drapeau
+- [ ] H8 — « Passer » à chaque étape + entrée « Revoir l'accueil » dans General
+
+## Bloc I — Moteur de thèmes (J2)
+- [ ] I1 — Type `ThemePreset` + table de presets
+- [ ] I2 — Migration des `themeMode` existants (`dark`→`onyx`, `light`→`frost-light`, …)
+- [ ] I3 — Aperçu en direct dans Appearance et l'onboarding
+- [ ] I4 — Garde-fous : `prefers-reduced-transparency`, contraste AA, repli opaque
+- [ ] I5 — **Liquid Glass** : frost (blur + saturate + liseré spéculaire)
+- [ ] I6 — **Liquid Glass** : réfraction SVG (`feDisplacementMap`) — WebView2 = Chromium
+- [ ] I7 — Onyx · Frost Light · Aurora · Nord · Paper · Neon Grid · Bento
+- [ ] I8 — Presets utilisateur chargés depuis `themes/` du profil
+
+## Bloc J — Parité Nusa (J4, J6)
+- [ ] J1 — Paroles synchronisées LRCLIB (ligne courante, clic = seek, décalage ±, cache)
+- [ ] J2 — Chronomètre + minuteur libre (en plus du Pomodoro)
+- [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
+- [ ] J4 — Pilule minimale (temps seul)
+- [ ] J5 — File shelf (glisser-déposer, persistance)
+- [ ] J6 — Suivi d'hydratation + rappels
+- [ ] J7 — To-do du jour avec échéances et rappels
+
+## Bloc K — Assistant « Is » (J3, J5)
+- [ ] K1 — Sprite 5 états (idle, blink, listening, thinking, happy, sleeping, alert)
+- [ ] K2 — Regard qui suit le curseur à proximité du notch
+- [ ] K3 — Sommeil après inactivité / réveil à l'interaction
+- [ ] K4 — Modèle d'état unique (`mood`, `signal`, `speech`) + watchers Rust
+- [ ] K5 — Respect de `prefers-reduced-motion`
+- [ ] K6 — **Git pulse** : branche, fichiers modifiés, ahead/behind
+- [ ] K7 — **Port radar** : ports en écoute + kill
+- [ ] K8 — **Build watcher** : commande enregistrée, ✅/❌ + durée
+- [ ] K9 — **Focus guard** : DND + chrono + Is au repos
+- [ ] K10 — Rappels de contexte (branche dirty, port occupé trop longtemps)
+
+## Bloc L — IA optionnelle (J7)
+- [ ] L1 — Fournisseur local (Ollama / llama.cpp sur localhost)
+- [ ] L2 — Fournisseur BYO (endpoint OpenAI-compatible, clé dans le trousseau)
+- [ ] L3 — Périmètre bridé (expliquer une erreur, résumer un diff)
+- [ ] L4 — Opt-in strict + indicateur « Is pense en ligne »
+
+## Bloc M — Outillage
+- [x] M1 — Skills Vercel installées dans `.claude/skills/` (5 skills)
+- [x] M2 — `skills-lock.json` généré (5 skills, hashes de contenu) → `npx skills experimental_install` restaure l'ensemble
