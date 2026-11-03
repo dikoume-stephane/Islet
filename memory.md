@@ -1,7 +1,7 @@
 # 🧠 MEMORY — Contexte durable du projet Islet
 
 > Ce fichier est la **mémoire long terme** du travail : à relire en début de chaque session
-> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-10-29.
+> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-02.
 
 ---
 
@@ -44,6 +44,7 @@
 - Publlic : `public/nectar.svg` + `public/nectar.png` (utilisé par `AboutTab.tsx` : `/nectar.png`), `installer-app/public/nectar.svg`
 - Docs : `docs/logo.png` (512², logo Nectar), `docs/wordmark-{dark,light}.png` (474×127), `docs/screenshots/` (à refaire en Phase 2)
 - **Master OFFICIEL : `docs/islet-logo.png`** (2000², alpha natif) — reçu via `main` (commit `14e3d80`) ; toute régénération d'icônes part de lui (`convert docs/islet-logo.png -resize 1024x1024` → `npx @tauri-apps/cli@2 icon`).
+- **Icône officielle = tuile** : `docs/brand/islet-icon-tile.png` (1024², fond `#111318` arrondi 22,37 %, mascotte blanche à 64,5 %). Toute régénération d'icônes part de CE fichier, pas du master transparent — la mascotte blanche sur transparent est invisible en thème clair. Variante fond clair : `islet-icon-tile-light.png`.
 - Wordmarks officiels : `docs/islet-wordmark-{dark,light}.png` (glyphes foncés/clairs respectivement). Sources design conservées : `new-logo*.jpg` (fond noir, historique), `yesjj.png` (illustration pastel 2048²), `yessjh.png` (variante fantôme 480²) — rôle à confirmer en Phase 2.
 
 ## 4. Contraintes & règles inviolables
@@ -72,6 +73,7 @@
 - **D-DRV-2** : `productName` Tauri = **`Islet`** (casquette) → artefacts NSIS `Islet_1.4.1_x64-setup.exe` ; binaire Cargo = `islet.exe` (minuscules)
 - **D-DRV-3** : identifiant `com.2DS.islet` contient des majuscules — non conventionnel mais chaîne valide ; si le build Tauri le refuse, replier sur `com.2ds.islet`
 - **D-DRV-4** : lockfiles `bun.lock` / `Cargo.lock` — `bun`/`cargo` absents du sandbox → retouche chirurgicale documentée (uniquement le champ `name`), désormais **régénérés sur Windows** par l'utilisateur (`bun install` ✅, `cargo check` ✅ 30/10)
+- **DÉC-5 (résolue 2026-11-02)** : paire de signature updater générée par le mainteneur. Clé publique ID `BA3FEE8CCD2277FC` intégrée dans `plugins.updater.pubkey`. Clé privée : `~/.tauri/islet.key` — **hors dépôt, à sauvegarder**. Ne jamais la committer ni la partager. Build de release : `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD` si protégée) ; build local : `--no-sign`.
 - **D-DRV-5** : build Windows = `bun run tauri build --bundles nsis --no-sign`. `--bundles nsis` car `targets: "all"` ferait télécharger WiX pour un MSI que le projet ne livre jamais ; `--no-sign` car `createUpdaterArtifacts: true` + pubkey exigent `TAURI_SIGNING_PRIVATE_KEY` (DÉC-5 non tranchée). Ne PAS modifier `tauri.conf.json` pour contourner.
 - **D-DRV-5** : `docs/logo.png` = contenu remplacé par le logo Islet (nom de fichier conservé, stabilité du README)
 

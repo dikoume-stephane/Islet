@@ -5,6 +5,68 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-02 (3) — Screenshots intégrés
+
+**Fait**
+- L'utilisateur a poussé `docs/screenshots/desktop.png` (1920×1080, capture réelle de l'app sous Windows) sur `main` → `54fb1dd`, mergé dans la branche.
+- Le même commit régénère `src-tauri/Cargo.lock` par `cargo check` : le paquet passe de `nectar` à `islet` (29 lignes déplacées, 0 occurrence de « nectar » restante). D-DRV-4 est donc **soldée** côté Cargo.
+- Dérivés produits : `desktop.webp` (1400×788, 35,6 ko contre 65 ko pour l'ancien), `island.png` (recadrage du notch, 320×90), `dock.png` (recadrage du dock, 560×70). Les trois étaient les images obsolètes du README.
+- `docs/screenshots/README.md` : provenance, dimensions, état, commandes de régénération.
+- README : largeur de `island.png` ajustée à sa taille native (320).
+
+**Constat — à refaire**
+- La capture a été prise avec un build **antérieur à la PR #2** : l'icône Islet du dock montre encore la mascotte blanche nue (vérifié au zoom ×4 sur le premier emplacement du dock), pas la tuile sombre. Le reste (notch, dock, thème) est à jour.
+- Une nouvelle capture après rebuild est donc nécessaire ; le crop du dock sera alors automatiquement correct sans retoucher le code.
+
+**Validations**
+- `desktop.webp` 35,6 ko (le README reste léger), images recadrées contrôlées visuellement.
+
+**À faire ensuite**
+- Rebuild + nouvelle capture côté Windows, puis remplacer `desktop.png` (procédure dans `docs/screenshots/README.md`).
+
+## 2026-11-02 (2) — Clé de signature updater intégrée (DÉC-5 résolue)
+
+**Fait**
+- Le mainteneur a généré la paire : privée `C:\Users\stephane dikoume 2DS\.tauri\islet.key`, publique `islet.key.pub`.
+- Clé publique **décodée et validée** avant intégration : 2 lignes, en-tête `untrusted comment: minisign public key: BA3FEE8CCD2277FC`, seconde ligne `RW…` (56 car.), base64 aller-retour identique.
+- `plugins.updater.pubkey` de `src-tauri/tauri.conf.json` remplacé : ancienne clé kua8 (`66A2BF13F216B96A`) → **`BA3FEE8CCD2277FC`**. Diff = **une seule ligne**, JSON revalidé, autres champs (`active`, `windows.installMode`, `endpoints`) intacts.
+- `installer-app` n'a **pas** d'updater (vérifié) → rien à changer de ce côté.
+- Chaîne de release vérifiée : `scripts/release.ps1` exige `TAURI_SIGNING_PRIVATE_KEY`, attend `Islet_<ver>_x64-setup.exe.sig` et génère `latest.json` avec `signature` + `pub_date`. Aucune modification nécessaire.
+
+**Constats**
+- `.gitignore` couvre `*.key` et `*.key.pub` ; `git ls-files` confirme qu'aucune clé n'est suivie.
+- La clé privée n'a **jamais** transité par le chat ni par le dépôt : seule la publique a été communiquée (c'est sa fonction).
+- Point d'attention : si la clé privée a un mot de passe, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` est requis au build de release.
+
+**À faire ensuite**
+- Rebuild Windows signé ou non (`--bundles nsis` / `--no-sign`) + captures P2-7.
+
+## 2026-11-02 — Phase 2 : finitions visuelles (icône, favicons, attribution)
+
+**Fait**
+- **Défaut critique corrigé** : la mascotte officielle est **blanche sur transparent** → comme icône d'application elle était **invisible sur tout fond clair** (barre des tâches Windows en thème clair, Explorateur, Bureau, onglet navigateur, README GitHub en mode clair). Vérifié en compositant le master sur blanc : il ne restait qu'un contour fantôme.
+- Solution retenue (validée par l'utilisateur parmi 3 propositions) : **tuile `#111318`** à coins arrondis 22,37 %, mascotte blanche à 64,5 % du côté. Visible sur fond clair **et** sombre ; testé jusqu'à 32 px.
+- `docs/brand/` créé comme **source unique de vérité** : `islet-mascot-transparent.png` (master conservé), `islet-icon-tile.png` (icône officielle), `islet-icon-tile-light.png` (variante fond clair, mascotte `#111318` sur tuile `#EDEDED`), `README.md` (charte + procédures de régénération).
+- Jeux d'icônes **régénérés depuis la tuile** : `src-tauri/icons` (23 fichiers) et `installer-app/src-tauri/icons` (élagué aux 4 fichiers de `bundle.icon`).
+- `public/islet.svg`, `installer-app/public/islet.svg` (wrappers base64 de la tuile), `public/islet.png` (512²), `docs/logo.png` (1024²) alignés.
+- **Favicons** : `settings.html`, `calendar.html`, `overlay.html` pointaient encore sur `/vite.svg` → `/islet.svg`.
+- **Orphelins supprimés** : `public/tauri.svg`, `public/vite.svg`, `src/assets/react.svg` (0 référence).
+- **Attribution corrigée** : README ligne 31 créditait « Bloom by Sehajveer Singh » alors que la section Credits/Legal crédite « Nectar by kua8 ». Risque juridique en GPL (mauvais auteur crédité) → ligne réécrite sur Nectar/kua8 + mention du mainteneur 2DS.
+- README : `<picture>` pour servir la variante claire du logo selon `prefers-color-scheme`.
+
+**Constats**
+- `AboutTab` était déjà correct (`filter: invert(1)` sous `.light-mode`).
+- L'installateur et les BMP NSIS étaient déjà corrects (fond sombre) — contrôlés visuellement.
+- `docs/screenshots/*` restent obsolètes : il faut un build Windows pour les refaire (P2-7).
+- `docs/yesjj.png` = illustration pastel utilisée comme fond d'écran dans `docs/screenshots/desktop.webp` ; conservée comme ressource design.
+
+**Validations**
+- `npm run build` ✅ app principale et installer-app.
+- Rendu contrôlé : tuile sur blanc / sombre / 32 px ; BMP header+sidebar ; simulation d'écran d'installateur.
+
+**À faire ensuite**
+- P2-7 : captures d'écran à jour (Windows) · P2-8 : clés updater · puis nouvelles fonctionnalités.
+
 ## 2026-10-30 (3) — G3 ✅ sur Windows · échec de bundling diagnostiqué
 
 **Fait**

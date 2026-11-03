@@ -1,7 +1,7 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
-**Dernière mise à jour :** 2026-10-29 (nuit, par l'agent)
-**État global :** ✅ **Rebranding exécuté sur les assets OFFICIELS, PR ouverte vers `main` — en attente de la validation Windows (G3/G4) avant merge**
+**Dernière mise à jour :** 2026-11-02 (par l'agent)
+**État global :** ✅ **Phase 1 mergée (PR #1). Phase 2 démarrée : finitions visuelles livrées (icône, favicons, attribution)**
 
 ## Tableau de bord
 
@@ -15,7 +15,7 @@
 | D | Backend Rust | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | E | Installateur NSIS | 2 | 2 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | F | Documentation | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
-| G | Validation | 6 | 3 | 🟡 G1/G2/G3 ✅ · G4 partiel (exe ✅, NSIS ⏳) · G5 ⏳ DÉC-5 · G6 ✅ PR #1 | ▓▓▓▓▓░░░░░ 50 % |
+| G | Validation | 6 | 5 | 🟡 G1/G2/G3/G5/G6 ✅ · G4 partiel (exe ✅, NSIS ⏳) | ▓▓▓▓▓▓▓▓░░ 83 % |
 | **Total** | | **44** | **38** | | **≈ 90 %** |
 
 ## Métriques clés
@@ -36,10 +36,10 @@
 ## En cours
 - *(aucune tâche agent active — le rebranding sandbox est terminé)*
 
-¹ hors A8 (screenshots) volontairement reporté en Phase 2 — nécessite un build Windows fonctionnel.
+¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 
 ## Prochaines actions
-1. **Utilisateur (Windows)** : G3 ✅ · terminer G4 → `bun run tauri build --bundles nsis --no-sign` + test installateur (`ELEMENTS_MANQUANTS.md`) → puis **merge de la PR**.
+1. **Utilisateur (Windows)** : rebuild avec les nouvelles icônes (`bun run tauri build --bundles nsis --no-sign`) + captures d'écran à jour (P2-7).
 2. **Utilisateur (avant 1re release)** : générer la paire de clés updater (DÉC-5).
 3. **Agent** : corriger les éventuelles erreurs remontées par le build Windows → **Phase 2**.
 

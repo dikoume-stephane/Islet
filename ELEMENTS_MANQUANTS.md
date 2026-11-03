@@ -1,7 +1,7 @@
 # ⚠️ ELEMENTS MANQUANTS — Statut après exécution de la Phase 1
 
-> **Mise à jour 2026-10-29 (nuit).** Rebranding exécuté **sur les assets officiels** (reçus via upload sur `main`). PR ouverte.
-> Il reste **2 actions utilisateur** + 1 clarification. Format de réponse en bas.
+> **Mise à jour 2026-11-02.** Phase 1 mergée (PR #1). Phase 2 en cours (PR #2). Clé updater intégrée.
+> Il reste **1 action utilisateur** : refaire les captures d'écran sur Windows (P2-7).
 
 ---
 
@@ -130,29 +130,58 @@ Si le téléchargement de **NSIS** échoue aussi (même erreur DNS), au choix :
 
 > 💡 **L'exécutable seul suffit pour valider le rebranding** : `src-tauri\target\release\islet.exe` s'exécute directement, sans installateur — icône, About, Settings, notch, tout est testable. Le NSIS ne valide que l'installation/désinstallation.
 
-## 🟡 Avant la première release (#5 / DÉC-5, différé)
+## ✅ #5 / DÉC-5 — Clé de signature updater (résolu le 2026-11-02)
 
-La clé publique updater actuelle appartient à l'upstream (kua8) ; l'endpoint pointe déjà vers `dikoume-stephane/Islet` (404 tant qu'il n'y a pas de release → aucun risque de mise à jour parasite). Avant de publier une release Islet (et **obligatoire** pour `scripts/release.ps1`, qui refuse de démarrer sans elle) :
+La paire a été générée par le mainteneur et la **clé publique** est intégrée dans `src-tauri/tauri.conf.json` :
+
+| | |
+|---|---|
+| ID de clé (minisign) | `BA3FEE8CCD2277FC` |
+| Emplacement privé | `C:\Users\stephane dikoume 2DS\.tauri\islet.key` |
+| Pubkey embarquée | `plugins.updater.pubkey` (base64 des 2 lignes du `.pub`) |
+| Endpoint | `https://github.com/dikoume-stephane/Islet/releases/latest/download/latest.json` |
+
+L'ancienne clé (`66A2BF13F216B96A`) appartenait à l'upstream kua8 — remplacée.
+
+### 🔐 Règles à ne jamais enfreindre
+
+1. **`islet.key` (privée) ne quitte JAMAIS la machine** — ni dépôt, ni GitHub, ni chat.
+2. **Sauvegarde-la** dans un gestionnaire de mots de passe ou un support chiffré : perdue, plus aucune mise à jour ne pourra être signée, et les Islet installés refuseront les futures versions.
+3. `.gitignore` couvre déjà `*.key` et `*.key.pub` — même posés dans le dossier, ils ne seraient pas committés.
+
+### 🧪 Build local **non signé** (usage courant)
 
 ```powershell
-bunx tauri signer generate -w $env:USERPROFILE\.tauri\islet.key    # garde la clé PRIVÉE hors du dépôt
+bun run tauri build --bundles nsis --no-sign
 ```
 
-→ m'envoyer uniquement la **clé publique** ; je l'intègre dans `src-tauri/tauri.conf.json`. (`.gitignore` couvre déjà `*.key`.)
+### 🚀 Build de release **signé**
 
-> En attendant, les builds locaux se font avec `--no-sign` : aucun impact sur le test de l'app.
+Si la clé a un mot de passe, la variable `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` est indispensable. Vérifie avec :
 
-## 🟢 Clarification demandée (sans urgence)
+```powershell
+$env:TAURI_SIGNING_PRIVATE_KEY = Get-Content "$env:USERPROFILE\.tauri\islet.key" -Raw
+$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = "ton-mot-de-passe"   # seulement si la clé en a un
+bun run tauri build --bundles nsis
+```
 
-**Rôle de `docs/yesjj.png` (2048², illustration pastel) et `docs/yessjh.png` (480², variante « fantôme » du mascot)** — uploadés avec les assets officiels. Je les ai conservés tels quels. Confirme leur usage : illustration hero (README/site) ? ressources design Phase 2 ? sans objet ?
+Sortie attendue : `Islet_1.4.1_x64-setup.exe` **et** `Islet_1.4.1_x64-setup.exe.sig`. Sans le `.sig`, `scripts/release.ps1` s'arrête (`Expected build output not found`).
+
+> `scripts/release.ps1` orchestre tout le reste (manifeste `latest.json`, note de version, `gh release`) et refuse de démarrer sans `TAURI_SIGNING_PRIVATE_KEY`.
+
+## 🟢 Clarification — `docs/yesjj.png` / `yessjh.png`
+
+Réponse du 2026-11-02 : **ressources de design**, conservées telles quelles sans intégration. (`yesjj.png` sert de fond d'écran dans `docs/screenshots/desktop.webp`.)
 
 ---
 
-## 📬 Format de réponse attendu
+## 📬 Reste à faire
 
 ```
-#4 validation Windows : OK / erreurs (coller le log)
-#5 clé updater : maintenant (coller la clé publique) / toujours plus tard
-yesjj.png / yessjh.png : hero README / ressources Phase 2 / sans objet
-→ ensuite : merge de la PR, puis GO Phase 2
+#4 rebuild Windows  : bun run tauri build --bundles nsis --no-sign
+                      → vérifier l'icône en thème clair, l'installateur NSIS
+P2-7 screenshots    : captures à jour (notch, dock, settings, desktop)
 ```
+
+Ensuite : merge de la PR #2, puis on choisit le prochain chantier
+(infrastructure de release / expérience utilisateur / nouvelles fonctionnalités).

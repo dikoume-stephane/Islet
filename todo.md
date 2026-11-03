@@ -48,7 +48,7 @@
 - [x] A5 — BMP NSIS (voir E2)
 - [x] A6 — `islet.svg` (wrapper vectoriel du mascot) + `islet.png` ×2 apps ; `docs/logo.png` remplacé
 - [x] A7 — Wordmarks **officiels** `docs/islet-wordmark-{dark,light}.png` intégrés (reçus via `main`) ; anciens fichiers supprimés ; README recâblé par couleur de glyphes
-- [⏳] A8 — Screenshots `docs/screenshots/` → **Phase 2** (rebuild visuel sur Windows)
+- [x] A8 — Screenshots régénérés depuis une capture Windows réelle (notch, dock, desktop) — ⚠️ icône du dock = ancienne mascotte (build antérieur à la PR #2), à refaire après rebuild
 
 ## Bloc F — Documentation ✅
 - [x] F1 — `README.md` : badges/liens repo Islet + **section Credits / Legal** (fork de Nectar, GPL-3.0)
@@ -61,5 +61,5 @@
 - [x] G2 — `npm install` + `npm run build` ✅ app principale **et** installer-app (tsc + vite verts)
 - [x] G3 — `cargo check` sur Windows : ✅ `Finished dev profile in 5m 10s`, aucune erreur (30/10)
 - [⏳] G4 — `islet.exe` release ✅ produit (12m 29s) ; **bundling restant** : `bun run tauri build --bundles nsis --no-sign` (MSI/WiX + clé updater écartés) puis test installateur/désinstallateur NSIS
-- [⏳] G5 — Clés updater Islet → avant 1re release (DÉC-5)
-- [x] G6 — **PR #1 ouverte** : https://github.com/dikoume-stephane/Islet/pull/1 (merge après retour G3/G4)
+- [x] G5 — Clé updater Islet générée et intégrée (ID `BA3FEE8CCD2277FC`, 2026-11-02) — privée hors dépôt, sauvegarde à la charge du mainteneur
+- [x] G6 — **PR #1 mergée** : https://github.com/dikoume-stephane/Islet/pull/1
