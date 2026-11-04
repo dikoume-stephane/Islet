@@ -8,7 +8,7 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 ## 2026-11-04 — Is : catalogue de conseils étendu
 
 **Fait**
-- Sept conseils ajoutés, **12 au total** (catalogue complet dans `ROADMAP.md` § 3.B.0) :
+- **Cinq conseils ajoutés** (8 → **13**) et **deux messages enrichis** — catalogue complet dans `ROADMAP.md` § 3.B.0 :
   - `battery-low` enrichi du temps restant quand Windows le connaît (`— 40 min left`)
   - `battery-time` : « About 1 h 40 of battery left » quand le pourcentage rassure mais l'horloge non
   - `disk-critical` : nouveau palier rouge (< 2 Go libres ou ≥ 97 % utilisé), distinct de l'avertissement

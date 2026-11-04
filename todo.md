@@ -107,7 +107,7 @@
 - [x] K0e — Rendu dans le notch (`AssistantTip`, largeur 290 px, déroulé auto en mode `peek`)
 - [x] K0f — Onglet Settings « Is » : 4 catégories, 4 seuils, valeurs temps réel
 - [x] K0g — `SETTINGS.md` + neutralisation du doublon avec la pastille « Low Battery » héritée
-- [x] K0h — **Catalogue étendu (2026-11-04)** : 7 conseils de plus, 12 au total
+- [x] K0h — **Catalogue étendu (2026-11-04)** : 5 conseils de plus, **13 au total** (+ 2 messages enrichis)
   - batterie : temps restant dans le message de charge faible (`— 40 min left`)
   - batterie : conseil « environ 1 h 40 d'autonomie » quand la jauge rassure mais l'horloge non
   - disque : palier **critique** (moins de 2 Go libres ou 97 % utilisé) distinct de l'avertissement
