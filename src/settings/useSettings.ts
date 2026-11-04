@@ -5,7 +5,7 @@ import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getVersion } from "@tauri-apps/api/app";
 import type { UpdateCheckResult } from "../updater";
 import { useSettingsSync } from "../hooks/useSettingsSync";
-import { hexToHsl } from "../theme";
+import { applyTheme, hexToHsl } from "../theme";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 
 function saveSetting(key: string, value: string) {
@@ -658,6 +658,9 @@ export function useSettings() {
   const handleThemeModeChange = async (mode: string) => {
     setThemeMode(mode);
     saveSetting("islet-theme-mode", mode);
+    // Paint now instead of waiting for the round-trip through settings-changed:
+    // picking a theme has to feel like a switch, not like a save.
+    applyTheme(mode, themeColor, themeOpacity, themeSaturation, themeBrightness);
 
     if (mode === "adaptive") {
       try {
@@ -676,6 +679,7 @@ export function useSettings() {
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
     saveSetting("islet-theme-color", color);
+    applyTheme("custom", color, themeOpacity, themeSaturation, themeBrightness);
 
     try {
       const hsl = hexToHsl(color);
@@ -691,6 +695,7 @@ export function useSettings() {
   const handleOpacityChange = (value: number) => {
     setThemeOpacity(value);
     saveSetting("islet-theme-opacity", String(value));
+    applyTheme(themeMode, themeColor, value, themeSaturation, themeBrightness);
   };
 
   const handleSaturationChange = (value: number) => {

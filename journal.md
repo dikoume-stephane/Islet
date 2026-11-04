@@ -5,6 +5,45 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-04 (5) — J2 Matière : huit presets, dont Liquid Glass
+
+**Fait**
+- `src/theme/presets.ts` : huit presets complets (couleur, alpha, texte, bordure, accent,
+  matière) et quatre matières. `resolvePreset()` absorbe les anciennes valeurs `dark` et
+  `light`, une valeur inconnue retombe sur `onyx` : **aucune migration de `settings.json`**.
+- `src/material.css` : flou variable, liseré spéculaire, reflet, et trois garde-fous
+  (`prefers-reduced-transparency`, `prefers-contrast`, `@supports not backdrop-filter`).
+- Les surfaces (notch, dock, réglages, agenda) lisent `--islet-material-filter` avec leur
+  flou historique en repli, donc rien ne change tant qu'on reste sur Onyx.
+- Apparence : la liste déroulante devient une **galerie de swatches** (8 cartes + couleur
+  libre + suit Windows). Le thème s'applique immédiatement, sans attendre l'aller-retour
+  par `settings-changed`.
+- 20 tests (`test:theme`) : migration, bornes d'opacité, et surtout **contraste sur fond
+  noir et blanc** pour le texte principal et secondaire.
+
+**Constat 1 — la réfraction SVG ne peut pas marcher**
+Le cadrage affirmait que `backdrop-filter: url(#filtre)` fonctionnait sous WebView2 parce
+que Chromium. C'est faux : Chromium n'implémente `url()` que pour `filter:`, où il
+s'applique à l'élément lui-même et non à ce qui est derrière. Aucune réfraction possible.
+Livrer un `feDisplacementMap` inerte aurait été pire que de ne rien livrer.
+
+**Constat 2 — le verre décoratif est illisible**
+Premier jet à 42 % d'opacité : texte blanc à 2,4:1 sur un bureau blanc. Les alphas ont
+été remontés jusqu'à ce que **chaque** preset passe 4,5:1 sur les deux extrêmes (noir et
+blanc), texte principal *et* secondaire. Liquid Glass est à 66 %, Frost à 78 %, Papier à
+97 %. Le test refuse tout retour en arrière.
+
+**Non vérifié**
+- Rendu réel sur Windows : le sandbox n'a pas de navigateur. L'aperçu
+  `/home/user/apercu-themes/index.html` est généré depuis la table de presets, donc il ne
+  peut pas mentir sur les couleurs ni sur les contrastes, seulement sur le flou (le
+  `backdrop-filter` du navigateur de l'utilisateur n'a pas le même fond).
+
+**À faire ensuite**
+- J4 (parité Nusa : paroles LRCLIB, chrono, clavier), puis J3 (personnage d'Is).
+
+---
+
 ## 2026-11-04 (4) — Plus de tiret cadratin, et des conseils composés
 
 **Demande** — « n'utilise jamais de tiret cadratin dans l'interface » et « mets l'une

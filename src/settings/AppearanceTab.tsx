@@ -1,6 +1,6 @@
-import { Palette, Droplet, Contrast, Droplets, Sun, Square, Maximize2 } from "lucide-react";
+import { Droplet, Contrast, Droplets, Sun, Square, Maximize2, MonitorSmartphone } from "lucide-react";
+import { MATERIAL_LABEL, PRESETS, resolvePreset } from "../theme/presets";
 import { SettingRow } from "./SettingRow";
-import { Dropdown } from "./Dropdown";
 import { useT } from "../i18n";
 
 interface AppearanceTabProps {
@@ -38,24 +38,76 @@ export function AppearanceTab({
 }: AppearanceTabProps) {
   const t = useT();
   const showCustomColor = themeMode === "custom";
-  const showAdvancedSliders = themeMode === "custom" || themeMode === "adaptive";
+  const showAdaptive = themeMode === "adaptive";
+  const showAdvancedSliders = showCustomColor || showAdaptive;
 
   return (
     <>
-      <div className="setting-group-label">{t("appearance.theme")}</div>
+      <div className="setting-group-label">{t("appearance.preset.title")}</div>
+      <div className="preset-block">
+        {/* A grid of real swatches, not a dropdown: a theme is a look, and a
+            name in a list cannot show what it looks like. Each card paints the
+            preset's own colours, so the choice is made by eye. */}
+        <div className="preset-grid" role="radiogroup" aria-label={t("appearance.preset.title")}>
+          {PRESETS.map((preset) => {
+            const active = resolvePreset(themeMode).id === preset.id && !showCustomColor && !showAdaptive;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                className={`preset-card${active ? " active" : ""}`}
+                onClick={() => handleThemeModeChange(preset.id)}
+                title={t(preset.descKey)}
+              >
+                <span
+                  className="preset-swatch"
+                  style={{
+                    background: `linear-gradient(150deg, ${preset.swatch[0]}, ${preset.swatch[1]})`,
+                    // The card must read as the surface it describes, so the
+                    // preview is filled by the preset, not by a generic card.
+                    color: preset.text,
+                  }}
+                >
+                  <span className={`preset-swatch-bar ${preset.material}`} />
+                </span>
+                <span className="preset-name">{t(preset.labelKey)}</span>
+                <span className="preset-material">{t(MATERIAL_LABEL[preset.material])}</span>
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked={showCustomColor}
+            className={`preset-card${showCustomColor ? " active" : ""}`}
+            onClick={() => handleThemeModeChange("custom")}
+          >
+            <span className="preset-swatch preset-swatch--dynamic">
+              <Droplet size={14} />
+            </span>
+            <span className="preset-name">{t("appearance.preset.custom")}</span>
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked={showAdaptive}
+            className={`preset-card${showAdaptive ? " active" : ""}`}
+            onClick={() => handleThemeModeChange("adaptive")}
+          >
+            <span className="preset-swatch preset-swatch--dynamic">
+              <MonitorSmartphone size={14} />
+            </span>
+            <span className="preset-name">{t("appearance.preset.adaptive")}</span>
+          </button>
+        </div>
+        <p className="preset-hint">{t("appearance.preset.hint")}</p>
+      </div>
+
       <div className="setting-group">
-        <SettingRow icon={Palette} label={t("appearance.mode")} desc={t("appearance.mode.desc")}>
-          <Dropdown
-            value={themeMode}
-            onChange={handleThemeModeChange}
-            options={[
-              { value: "dark", label: t("appearance.mode.dark") },
-              { value: "light", label: t("appearance.mode.light") },
-              { value: "custom", label: t("appearance.mode.custom") },
-              { value: "adaptive", label: t("appearance.mode.adaptive") },
-            ]}
-          />
-        </SettingRow>
 
         {showCustomColor && (
           <SettingRow icon={Droplet} label={t("appearance.color")} desc={t("appearance.color.desc")}>

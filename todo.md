@@ -84,15 +84,23 @@
 - [x] H9 — Nom réellement utilisé : champ dans Settings › Is, **et libellé de l'onglet latéral** qui suit
 - [ ] H10 — Validation sur Windows : taille de fenêtre, lisibilité, comportement du zoom
 
-## Bloc I — Moteur de thèmes (J2)
-- [ ] I1 — Type `ThemePreset` + table de presets
-- [ ] I2 — Migration des `themeMode` existants (`dark`→`onyx`, `light`→`frost-light`, …)
-- [ ] I3 — Aperçu en direct dans Appearance et l'onboarding
-- [ ] I4 — Garde-fous : `prefers-reduced-transparency`, contraste AA, repli opaque
-- [ ] I5 — **Liquid Glass** : frost (blur + saturate + liseré spéculaire)
-- [ ] I6 — **Liquid Glass** : réfraction SVG (`feDisplacementMap`) — WebView2 = Chromium
-- [ ] I7 — Onyx · Frost Light · Aurora · Nord · Paper · Neon Grid · Bento
+## Bloc I — Moteur de thèmes (J2) ✅ livré 2026-11-04
+- [x] I1 — Type `ThemePreset` + table de presets (`src/theme/presets.ts`)
+- [x] I2 — Migration : `dark`→`onyx`, `light`→`frost-light`, valeur inconnue→`onyx`,
+      `custom`/`adaptive` restent dynamiques. Aucun passage de migration nécessaire.
+- [x] I3 — Galerie de swatches dans Apparence, appliquée **immédiatement** (pas
+      d'aller-retour par l'événement `settings-changed`)
+- [x] I4 — Garde-fous : `prefers-reduced-transparency`, `prefers-contrast`,
+      `@supports not backdrop-filter`, et un test de contraste sur bureau noir **et** blanc
+- [x] I5 — **Liquid Glass** : frost (`blur(34px) saturate(200%) brightness(1.08)`),
+      liseré spéculaire, reflet fixe. Ancienne valeur de repli conservée partout.
+- [x] I7 — Onyx · Liquid Glass · Frost Light · Aurora · Nord · Paper · Neon Grid · Bento
+- [ ] I6 — Réfraction SVG (`feDisplacementMap`) : **non retenue**. `backdrop-filter: url()`
+      n'est pas implémenté dans Chromium/WebView2 (seul un `filter:` sur un élément
+      l'est), donc elle ne marchait pas sur la cible. Le liseré et le reflet donnent
+      l'essentiel du rendu sans faux espoir.
 - [ ] I8 — Presets utilisateur chargés depuis `themes/` du profil
+- [ ] I9 — Contrôle visuel des huit presets sur Windows (le sandbox n'a pas de navigateur)
 
 ## Bloc J — Parité Nusa (J4, J6)
 - [ ] J1 — Paroles synchronisées LRCLIB (ligne courante, clic = seek, décalage ±, cache)

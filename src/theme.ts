@@ -1,5 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import "./material.css";
+import {
+  MATERIAL_FILTER,
+  isDynamicMode,
+  presetBackground,
+  resolveAlpha,
+  resolvePreset,
+  type Material,
+} from "./theme/presets";
 
 // Convert a hex color string to rgba with a specified alpha
 function hexToRgba(hex: string, alpha: number): string {
@@ -86,6 +95,18 @@ function hslToHex(h: number, s: number, l: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+/**
+ * Apply a theme.
+ *
+ * `mode` is either a preset id (`onyx`, `liquid`, `frost-light`, …) or one of
+ * the two dynamic modes (`custom`, `adaptive`) that read the user's colour or
+ * the Windows accent at runtime. Legacy `dark` / `light` still resolve, so a
+ * settings file written before the preset table keeps working unchanged.
+ *
+ * Three things are written: the colour variables, the tone class
+ * (`light-mode` / `dark-mode`, which the CSS reads in a hundred places), and
+ * the material attributes, which drive blur, rim and sheen.
+ */
 export async function applyTheme(
   mode: string,
   customColor: string,
@@ -110,23 +131,34 @@ export async function applyTheme(
     brightness = cachedBrightness !== null ? parseFloat(cachedBrightness) : 0.15;
   }
 
+  const dynamic = isDynamicMode(mode);
+  const preset = resolvePreset(mode);
+
+  // Dynamic modes keep the material they always had (none on the notch): they
+  // are colour experiments, not surfaces, and changing that silently would be
+  // a regression for everyone who already picked one.
+  applyMaterial(root, dynamic ? 'matte' : preset.material, dynamic ? mode : preset.id);
+
+  if (!dynamic) {
+    const op = resolveAlpha(preset, opacity);
+    const opExpanded = Math.min(1, op + preset.expandedBoost);
+
+    root.style.setProperty('--islet-bg', presetBackground(preset, op));
+    root.style.setProperty('--islet-bg-expanded', presetBackground(preset, opExpanded));
+    root.style.setProperty('--islet-text', preset.text);
+    root.style.setProperty('--islet-text-muted', preset.textMuted);
+    root.style.setProperty('--islet-border', preset.border);
+    root.style.setProperty('--islet-group-bg', preset.groupBg);
+    root.style.setProperty('--islet-accent', preset.accent);
+    root.style.setProperty('--islet-scrollbar-thumb', preset.scrollbar);
+    setTone(root, preset.light);
+    return;
+  }
+
   const op = opacity;
   const opExpanded = Math.min(1.0, opacity + 0.12);
 
-  if (mode === 'light') {
-    root.style.setProperty('--islet-bg', `rgba(255, 255, 255, ${op})`);
-    root.style.setProperty('--islet-bg-expanded', `rgba(245, 245, 247, ${opExpanded})`);
-    root.style.setProperty('--islet-text', '#1c1c1e');
-    root.style.setProperty('--islet-text-muted', 'rgba(28, 28, 30, 0.65)');
-    root.style.setProperty('--islet-border', 'rgba(0, 0, 0, 0.12)');
-    root.style.setProperty('--islet-group-bg', 'rgba(0, 0, 0, 0.04)');
-    root.style.setProperty('--islet-accent', '#007aff');
-    root.style.setProperty('--islet-scrollbar-thumb', 'rgba(0, 0, 0, 0.15)');
-    root.classList.add('light-mode');
-    root.classList.remove('dark-mode');
-    root.classList.add('theme-light');
-    root.classList.remove('theme-dark', 'theme-custom', 'theme-adaptive');
-  } else if (mode === 'custom') {
+  if (mode === 'custom') {
     const hsl = hexToHsl(customColor);
     hsl.s = saturation * 100;
     hsl.l = brightness * 100;
@@ -141,15 +173,7 @@ export async function applyTheme(
     root.style.setProperty('--islet-group-bg', isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)');
     root.style.setProperty('--islet-accent', customColor);
     root.style.setProperty('--islet-scrollbar-thumb', isLight ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)');
-    root.classList.add('theme-custom');
-    root.classList.remove('theme-light', 'theme-dark', 'theme-adaptive');
-    if (isLight) {
-      root.classList.add('light-mode');
-      root.classList.remove('dark-mode');
-    } else {
-      root.classList.add('dark-mode');
-      root.classList.remove('light-mode');
-    }
+    setTone(root, isLight);
   } else if (mode === 'adaptive') {
     try {
       const accentHex = await invoke<string>('get_system_accent_color');
@@ -167,34 +191,35 @@ export async function applyTheme(
       root.style.setProperty('--islet-group-bg', isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)');
       root.style.setProperty('--islet-accent', accentHex);
       root.style.setProperty('--islet-scrollbar-thumb', isLight ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)');
-      root.classList.add('theme-adaptive');
-      root.classList.remove('theme-light', 'theme-dark', 'theme-custom');
-      if (isLight) {
-        root.classList.add('light-mode');
-        root.classList.remove('dark-mode');
-      } else {
-        root.classList.add('dark-mode');
-        root.classList.remove('light-mode');
-      }
+      setTone(root, isLight);
     } catch (e) {
       console.error("Failed to apply adaptive theme:", e);
-      applyTheme('dark', customColor, op, saturation, brightness);
+      applyTheme('onyx', customColor, op, saturation, brightness);
     }
   } else {
-    // default/dark
-    root.style.setProperty('--islet-bg', `rgba(0, 0, 0, ${op})`);
-    root.style.setProperty('--islet-bg-expanded', `rgba(0, 0, 0, ${opExpanded})`);
-    root.style.setProperty('--islet-text', '#ffffff');
-    root.style.setProperty('--islet-text-muted', 'rgba(255, 255, 255, 0.6)');
-    root.style.setProperty('--islet-border', 'rgba(255, 255, 255, 0.1)');
-    root.style.setProperty('--islet-group-bg', 'rgba(255, 255, 255, 0.04)');
-    root.style.setProperty('--islet-accent', '#007aff');
-    root.style.setProperty('--islet-scrollbar-thumb', 'rgba(255, 255, 255, 0.1)');
-    root.classList.add('dark-mode');
-    root.classList.remove('light-mode');
-    root.classList.add('theme-dark');
-    root.classList.remove('theme-light', 'theme-custom', 'theme-adaptive');
+    // Unreachable: every non-dynamic mode resolved to a preset above. Kept as
+    // a safety net so a corrupt settings.json still paints a usable surface.
+    applyTheme('onyx', customColor, op, saturation, brightness);
   }
+}
+
+/** Light or dark tone — the two classes the stylesheets actually read. */
+function setTone(root: HTMLElement, light: boolean) {
+  root.classList.toggle('light-mode', light);
+  root.classList.toggle('dark-mode', !light);
+}
+
+/**
+ * Publish the material on `<html>`: a data attribute for the CSS layers (rim,
+ * sheen) and the filter variable that every blurry surface reads.
+ */
+function applyMaterial(root: HTMLElement, material: Material, presetId: string) {
+  root.dataset.material = material;
+  root.dataset.preset = presetId;
+
+  const filter = MATERIAL_FILTER[material];
+  if (filter) root.style.setProperty('--islet-material-filter', filter);
+  else root.style.removeProperty('--islet-material-filter');
 }
 
 export function initTheme() {

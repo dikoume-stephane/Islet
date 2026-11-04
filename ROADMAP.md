@@ -348,7 +348,7 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 
 ---
 
-## 3.D — Moteur de thèmes
+## 3.D — Moteur de thèmes ✅ livré 2026-11-04
 
 **Demande** : « plus de thèmes, avec un thème liquid glass et d'autres que tu vas me proposer ».
 
@@ -380,6 +380,23 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 
 > **Note technique décisive** : sous Tauri, le rendu web passe par **WebView2 = Chromium**. La réfraction SVG (`backdrop-filter: url(#filtre)`) fonctionne donc réellement sur Windows — c'est l'exception au « Chromium only » qui rend le vrai Liquid Glass possible ici, contrairement au web classique.
 
+### 3.D.3 — Livré : ce qui a été fait, et ce qui ne marche pas
+
+**Livré** : `src/theme/presets.ts` (8 presets, une matière par preset), `src/material.css`
+(flou, liseré, reflet, garde-fous), galerie de swatches dans Apparence, 20 tests.
+
+**Correction d'une hypothèse du cadrage** : `backdrop-filter: url(#filtre)` **n'est pas
+implémenté dans Chromium**, y compris WebView2. Seul `filter: url()` l'est, et il
+s'applique à l'élément, pas à ce qui est derrière — donc il ne produit pas une
+réfraction. La couche `feDisplacementMap` a été abandonnée plutôt que livrée en
+illusion : le Liquid Glass d'Islet est **frost + liseré spéculaire + reflet fixe**,
+ce qui donne l'essentiel du rendu sans dépendre d'une fonction absente.
+
+**Découverte utile** : une vitre translucide n'est lisible que si on la densifie.
+À 42 % d'opacité, du texte blanc sur un bureau blanc tombe à 2,4:1. Les alphas sont
+donc calculés : chaque preset doit passer 4,5:1 **sur fond noir et sur fond blanc**,
+et `test:theme` refuse le contraire. Liquid Glass est à 66 %, pas à 42 %.
+
 ---
 
 ## 3.E — Jalons
@@ -387,7 +404,7 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | Jalon | Contenu | Dépendance |
 |---|---|---|
 | **J1 — Accueil** ✅ | 3.A complet (sauf sélecteur de langue, reporté en J8) | Aucune |
-| **J2 — Matière** | 3.D presets + Liquid Glass | Aucune |
+| **J2 — Matière** ✅ | 3.D presets + Liquid Glass (2026-11-04) | Aucune |
 | **J3 — Personnage** | 3.B.1 + 3.B.3 (états, regard, sommeil) | J1 (nom de l'assistant) |
 | **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
@@ -395,7 +412,7 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
 | **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |
 
-Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → **J2 → J4 → J3 → J5 → J6 → J7**
+Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → ~~J2~~ ✅ → **J4 → J3 → J5 → J6 → J7**
 (J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
 chaque écran livré avant lui est un écran à traduire plus tard).
 

@@ -237,9 +237,35 @@ L'ancienne règle « ≤ 46 caractères sur une ligne » était fausse : elle au
 lignes que le rendu coupait. Le test mesure maintenant **ligne par ligne**
 (titre ≤ 28, détail ≤ 32).
 
+### Matières et presets (J2, livré 2026-11-04)
+
+`src/theme/presets.ts` porte **8 presets** (`onyx`, `liquid`, `frost-light`, `aurora`,
+`nord`, `paper`, `neon`, `bento`) et **4 matières** (`matte`, `frost`, `glass`, `liquid`).
+Un preset décide de tout à la fois : couleur de surface, alpha, texte, bordure, accent,
+matière. C'est volontaire — une couleur et une matière choisies séparément finissent en
+texte blanc sur vitre pâle.
+
+- **Aucune migration nécessaire** : `islet-theme-mode` accepte encore `dark` et `light`,
+  qui résolvent vers `onyx` et `frost-light` ; une valeur inconnue retombe sur `onyx`.
+  `custom` et `adaptive` restent dynamiques et gardent leur rendu d'origine.
+- **Le curseur d'opacité est un facteur**, pas une valeur absolue : à 0,8 le preset rend
+  exactement son alpha. Changer de preset ne déplace donc jamais le curseur.
+- `--islet-material-filter` est lu par les surfaces avec **leur flou historique en repli** :
+  un `settings.json` d'avant J2 rend à l'identique.
+- `data-material` sur `<html>` pilote le liseré et le reflet (CSS dans `src/material.css`).
+
+⚠️ **`backdrop-filter: url(#filtre)` n'existe pas dans Chromium** (ni WebView2). Le
+`feDisplacementMap` du cadrage initial était donc une fausse piste : la réfraction n'est
+pas livrée, et le Liquid Glass repose sur flou + saturation + liseré + reflet.
+
+⚠️ **Une vitre translucide doit être densifiée** : à 42 % d'opacité, du blanc sur un
+bureau blanc est à ~2,4:1. Les alphas sont calculés pour passer 4,5:1 sur fond noir
+**et** blanc, texte principal comme secondaire. `test:theme` (20 tests) le vérifie et
+échouerait sur tout preset trop transparent.
+
 ### Tests
 
-`bun run test:assistant` → bundle esbuild puis `node --test`. **40 tests, zéro dépendance ajoutée** (esbuild est fourni par Vite).
+`bun run test` → `test:assistant` (44) + `test:theme` (20), bundle esbuild puis `node --test`. **64 tests, zéro dépendance ajoutée** (esbuild est fourni par Vite).
 ⚠️ `node --test` **ignore `node_modules`** : le bundle doit être écrit ailleurs (ici `.test-build/`, gitignoré). Node ESM exige aussi des extensions explicites, d'où le passage par esbuild plutôt que `--experimental-strip-types`.
 
 ### Skills installées

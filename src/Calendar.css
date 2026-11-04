@@ -43,8 +43,8 @@ button {
   flex-direction: column;
   box-sizing: border-box;
   background: var(--cw-bg);
-  backdrop-filter: blur(25px) saturate(140%);
-  -webkit-backdrop-filter: blur(25px) saturate(140%);
+  backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
+  -webkit-backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
   border-radius: 12px;
   border: 1px solid var(--cw-line);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);

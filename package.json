@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "bump": "bun scripts/bump-version.mjs",
-    "test:assistant": "node_modules/.bin/esbuild scripts/assistant.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/assistant.test.mjs --log-level=error && node --test .test-build/assistant.test.mjs"
+    "test:assistant": "node_modules/.bin/esbuild scripts/assistant.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/assistant.test.mjs --log-level=error && node --test .test-build/assistant.test.mjs",
+    "test:theme": "node_modules/.bin/esbuild scripts/theme.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/theme.test.mjs --log-level=error && node --test .test-build/theme.test.mjs",
+    "test": "npm run test:assistant && npm run test:theme"
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",

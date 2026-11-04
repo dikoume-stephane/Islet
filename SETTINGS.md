@@ -131,9 +131,9 @@ Removing a link or disconnecting the account deletes its stored secret and cache
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `islet-theme-mode` | `"dark"` / `"light"` / `"custom"` / `"adaptive"` | `"dark"` | Theme mode. **dark** = dark translucent. **light** = light translucent. **custom** = user-picked color. **adaptive** = follows Windows system accent color. |
+| `islet-theme-mode` | preset id: `"onyx"` · `"liquid"` · `"frost-light"` · `"aurora"` · `"nord"` · `"paper"` · `"neon"` · `"bento"`, plus `"custom"` / `"adaptive"` | `"dark"` (resolves to `onyx`) | Theme preset. Legacy `"dark"` and `"light"` still resolve to `onyx` and `frost-light`, so no migration pass was needed. **custom** = user-picked colour, **adaptive** = follows the Windows accent. Presets also set the material (blur strength, rim, sheen). |
 | `islet-theme-color` | hex string | `"#007aff"` | Custom theme color (used in `custom` and `adaptive` modes). |
-| `islet-theme-opacity` | float string | `"0.80"` | Background opacity (0.1 to 1.0). |
+| `islet-theme-opacity` | float string | `"0.80"` | Opacity slider (0.1 to 1.0). It scales the preset's own alpha: at the neutral 0.8 a preset renders exactly as defined, so switching preset never silently changes the slider. Floor 0.35. |
 | `islet-theme-saturation` | float string | `"0.50"` | Color saturation for custom/adaptive themes (0.0 to 1.0). |
 | `islet-theme-brightness` | float string | `"0.15"` | Background brightness for custom/adaptive themes (0.0 to 1.0). |
 | `islet-corners-enabled` | `"true"` / `"false"` | `"false"` | Render rounded screen corner overlays on top edges. |
