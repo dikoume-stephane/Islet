@@ -73,14 +73,7 @@ webview2-com = "0.38"
 # (BMP, GIF, ICO). The default feature set additionally pulls `ravif`/`rav1e`
 # -- a full AV1 encoder, worth several minutes of compile time and a lot of
 # RAM on a cold build -- plus TIFF and EXR support that a notch never needs.
-image = { version = "0.25", default-features = false, features = [
-  "bmp",
-  "gif",
-  "ico",
-  "jpeg",
-  "png",
-  "webp",
-] }
+image = { version = "0.25", default-features = false, features = ["bmp", "gif", "ico", "jpeg", "png", "webp"] }
 tauri-plugin-drag = "2.1.1"
 tauri-plugin-dialog = "2"
 rustfft = "6"
