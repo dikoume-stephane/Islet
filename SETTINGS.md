@@ -153,7 +153,9 @@ Example:
 
 ### Is (assistant)
 
-Is watches the machine and shows one short tip at a time in the notch — battery, charge reminder, disk space, memory/CPU pressure and long sessions. It reads only local Windows counters (`GetSystemPowerStatus`, `GlobalMemoryStatusEx`, `GetDriveTypeW`/`GetDiskFreeSpaceExW`, `GetSystemTimes`, `GetTickCount64`), sampled every 30 seconds. Nothing leaves the machine and no account is needed. Tips never interrupt: they respect a per-tip cooldown (10 min for a critical battery, up to 12 h for a disk) and disappear after 10 seconds, or on click.
+Is watches the machine and shows one short tip at a time in the notch — battery, charge reminder, disk space, memory/CPU pressure and long sessions. It reads only local Windows counters (`GetSystemPowerStatus`, `GlobalMemoryStatusEx`, `GetDriveTypeW`/`GetDiskFreeSpaceExW`, `GetSystemTimes`, `GetTickCount64`), sampled every 30 seconds. Nothing leaves the machine and no account is needed. Tips never interrupt: they respect a per-tip cooldown (10 min for a critical battery, up to 12 h for a disk).
+
+So that a tip is not missed, Is signals it in three steps. On arrival, two rings bloom out of the mascot and the row flashes once in its severity colour. While the tip is up (10 s for information, 12 s for a warning, 15 s for a critical one), the severity dot keeps a slow heartbeat. When the window closes, the tip does not vanish silently: the collapsed notch keeps a thin outline in the severity colour, carrying the message as a tooltip, until the notch is clicked. Under `prefers-reduced-motion`, the rings and the heartbeat are dropped and the outline stays static.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import {
   pickTip,
+  TIP_CATEGORY,
   type AssistantSettings,
   type AssistantTip,
   type CooldownMap,
@@ -9,8 +10,18 @@ import {
 import type { SystemSignals } from "./useSystemSignals";
 
 const COOLDOWNS_KEY = "islet-assistant-cooldowns";
-/** How long a tip stays on screen before folding away. */
-const TIP_VISIBLE_MS = 10_000;
+
+/**
+ * How long a tip stays fully unfolded, by severity.
+ *
+ * A red tip buys itself a few more seconds: "plug in now" is worth reading
+ * twice, "take a break" is not.
+ */
+const VISIBLE_MS: Record<AssistantTip["severity"], number> = {
+  info: 10_000,
+  warn: 12_000,
+  critical: 15_000,
+};
 
 function readBool(key: string, fallback: boolean): boolean {
   const raw = localStorage.getItem(key);
@@ -66,11 +77,19 @@ function writeCooldowns(map: CooldownMap) {
  */
 export function useAssistant(signals: SystemSignals | null) {
   const [tip, setTip] = useState<AssistantTip | null>(null);
+  /**
+   * The last tip whose window elapsed without being acknowledged. Kept so the
+   * notch can carry a coloured marker: a 10 s message is easy to miss, a mark
+   * that stays until you look is not.
+   */
+  const [unread, setUnread] = useState<AssistantTip | null>(null);
   const [settings, setSettings] = useState<AssistantSettings>(() => readAssistantSettings());
   const cooldownsRef = useRef<CooldownMap>(readCooldowns());
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tipRef = useRef<AssistantTip | null>(null);
   tipRef.current = tip;
+  const unreadRef = useRef<AssistantTip | null>(null);
+  unreadRef.current = unread;
 
   const clearHideTimer = useCallback(() => {
     if (hideTimerRef.current) {
@@ -83,6 +102,11 @@ export function useAssistant(signals: SystemSignals | null) {
     clearHideTimer();
     setTip(null);
   }, [clearHideTimer]);
+
+  /** Acknowledge the marker: the notch stops signalling. */
+  const acknowledge = useCallback(() => {
+    setUnread(null);
+  }, []);
 
   // Re-evaluate on every new sample (every 30 s).
   useEffect(() => {
@@ -99,8 +123,13 @@ export function useAssistant(signals: SystemSignals | null) {
     writeCooldowns(cooldownsRef.current);
 
     setTip(next);
+    setUnread(null);
     clearHideTimer();
-    hideTimerRef.current = setTimeout(() => setTip(null), TIP_VISIBLE_MS);
+    hideTimerRef.current = setTimeout(() => {
+      setTip(null);
+      // The window closed without a click: leave a mark instead of vanishing.
+      setUnread(next);
+    }, VISIBLE_MS[next.severity]);
   }, [signals, clearHideTimer]);
 
   // Settings change in the Settings window: mirror the received value into our
@@ -117,26 +146,18 @@ export function useAssistant(signals: SystemSignals | null) {
 
       if (!next.enabled) {
         dismiss();
+        setUnread(null);
         return;
       }
-      // A category switched off while one of its tips is on screen: remove it.
-      if (
-        (tipRef.current?.icon === "battery-low" ||
-          tipRef.current?.icon === "battery-critical" ||
-          tipRef.current?.icon === "battery-full" ||
-          tipRef.current?.icon === "charge") &&
-        !next.battery
-      ) {
+      // A category switched off while one of its tips is on screen: remove it,
+      // and drop a marker that just became unwanted.
+      const current = tipRef.current;
+      if (current && !next[TIP_CATEGORY[current.icon]]) {
         dismiss();
       }
-      if (tipRef.current?.icon === "disk" && !next.storage) dismiss();
-      if (
-        (tipRef.current?.icon === "cpu" || tipRef.current?.icon === "memory") &&
-        !next.performance
-      ) {
-        dismiss();
+      if (unreadRef.current && !next[TIP_CATEGORY[unreadRef.current.icon]]) {
+        setUnread(null);
       }
-      if (tipRef.current?.icon === "session" && !next.session) dismiss();
     };
 
     const unlistenSC = listen<{ key: string; value: unknown }>("settings-changed", (e) =>
@@ -155,5 +176,5 @@ export function useAssistant(signals: SystemSignals | null) {
 
   useEffect(() => clearHideTimer, [clearHideTimer]);
 
-  return { tip, dismiss, settings };
+  return { tip, unread, dismiss, acknowledge, settings };
 }

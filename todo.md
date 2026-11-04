@@ -118,6 +118,16 @@
 - [x] K0i — 29 tests de la fonction pure `pickTip()` (esbuild + node, hors dépôt) : priorités, seuils, interrupteurs, cooldowns
 - [ ] K0j — `cargo check` + build NSIS sur la machine Windows (pas de cargo dans le sandbox)
 
+### K0 — Signal d'attention ✅ (livré 2026-11-04)
+- [x] K0k — **L'arrivée** : deux anneaux partent du mascotte + cadre coloré qui s'éteint (2,2 s)
+- [x] K0l — **La présence** : lueur derrière le mascotte + le point de gravité bat toutes les 2,4 s
+- [x] K0m — **Le marqueur** : le conseil se replie, le notch garde un contour coloré jusqu'au clic
+- [x] K0n — Durée graduée par gravité : 10 s (info) / 12 s (avertissement) / 15 s (critique)
+- [x] K0o — Le marqueur porte le texte du conseil en infobulle — on peut relire ce qu'on a manqué
+- [x] K0p — Correctif : `TIP_CATEGORY` — les 5 conseils ajoutés n'étaient pas coupés avec leur catégorie
+- [x] K0q — Tests sortis de `/tmp` → `scripts/assistant.test.ts`, `bun run test:assistant` (31 tests, 0 dépendance)
+- [ ] K0r — Option « signal d'attention » désactivable, si le marqueur s'avère gênant à l'usage
+
 ### Personnage & contexte dev
 - [ ] K1 — Sprite 5 états (idle, blink, listening, thinking, happy, sleeping, alert)
 - [ ] K2 — Regard qui suit le curseur à proximité du notch
@@ -144,3 +154,15 @@
   - `image` sans les features par défaut → supprime `ravif`/`rav1e` (encodeur AV1) et `exr`/`tiff`
   - `scripts/dev.ps1` — imprime RAM / disque / toolchain, limite la parallélisation (`-Jobs`, `-Clean`)
   - README : section « If the Rust build runs out of memory »
+
+## Bloc N — Langues FR / EN (J8)
+
+> Cadré dans `ROADMAP.md` § 3.G. **À faire après J1 et J2**, sinon on traduit deux fois.
+
+- [ ] N1 — Socle : `t()`, `src/i18n/fr.ts` + `en.ts`, `islet-language`, langue par défaut = celle de Windows
+- [ ] N2 — Onglet **Général → Langue** (Français / English / Suivre le système)
+- [ ] N3 — Catalogue d'Is : 13 conseils + `formatUptime` + `formatClock` (**priorité 1**, c'est le texte le plus lu)
+- [ ] N4 — Réglages : 11 onglets (~250 chaînes)
+- [ ] N5 — Notch, dock, composants, fenêtre À propos
+- [ ] N6 — Dates et nombres via `Intl.DateTimeFormat` / `Intl.NumberFormat` avec la langue active
+- [ ] N7 — Contrôle : chaque traduction vérifiée **dans le notch à 290 px**, pas seulement dans les réglages

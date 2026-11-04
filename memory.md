@@ -146,6 +146,27 @@ Tests : 29 assertions exécutées via `npx esbuild src/lib/assistant.ts --bundle
 - `[profile.dev.package."*"] debug = false` est autorisé (seuls `panic`, `lto`, `rpath` sont interdits en override).
 - `image` avec ses features par défaut tire `ravif` → `rav1e` (encodeur AV1 complet) : plusieurs minutes de compilation et beaucoup de RAM pour un format que l'app n'utilise pas.
 
+### Is — signal d'attention (livré 2026-11-04)
+
+Trois couches, dans `AssistantTip.tsx` + `App.css` (~120 lignes de CSS) et `useAssistant.ts` :
+1. **Arrivée** — deux anneaux `assistant-tip-bloom` partent du mascotte, le cadre fait un éclat de 2,2 s.
+2. **Présence** — lueur radiale derrière le mascotte, `assistant-tip-ping` sur le point de gravité.
+3. **Marqueur** — à l'expiration, le conseil passe de `tip` à `unread` au lieu de disparaître. Classe `is-signalling` sur `.islet` = `box-shadow` statique dans la couleur de gravité, + `title` = texte du conseil. Clic sur le notch = acquittement.
+
+Durées : `VISIBLE_MS` = 10 s (info) / 12 s (warn) / 15 s (critical).
+Tout est désactivé sous `prefers-reduced-motion` **sauf** le marqueur (statique par nature) et un cadre fixe à 50 %.
+
+⚠️ Le marqueur est **statique volontairement** : un élément qui pulse en permanence en haut de l'écran est pire que pas de rappel du tout.
+
+### Langues (cadré 2026-11-04, non commencé)
+
+Décisions DÉC-12 → DÉC-15 dans `ROADMAP.md` § 3.G : pas de bibliothèque (un `t()` maison + 2 dictionnaires plats), langue par défaut = celle de Windows, onglet Général → Langue, appliqué sans redémarrage.
+⚠️ Le notch est étroit (290 px) : toute traduction doit être vérifiée là, pas seulement dans les réglages.
+
+### Tests
+
+`bun run test:assistant` → `node --experimental-strip-types --test scripts/assistant.test.ts`. **31 tests, zéro dépendance ajoutée.** Node 22 charge le TypeScript directement ; le fichier doit être en `.ts` (le strip-types ne s'applique pas aux `.mjs`).
+
 ### Skills installées
 
 `.claude/skills/` (versionné, 644 Ko) — `web-design-guidelines`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-view-transitions`, `writing-guidelines`.

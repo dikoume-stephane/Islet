@@ -38,6 +38,51 @@ aucun `--locked` dans `scripts/release.ps1`.
 
 ---
 
+## 2026-11-04 (3) — Rendre les conseils d'Is impossibles à manquer
+
+**Contexte** — Retour utilisateur après le premier build réussi : « pour les conseils,
+il faut un hook pour que l'utilisateur les remarque ». Le vrai problème était plus
+large que l'effet visuel : un conseil affiché 10 s en haut de l'écran pendant qu'on
+regarde un terminal est **structurellement** ratable, et une fois replié il ne reste
+aucune trace. L'utilisateur ne peut pas savoir qu'il a manqué quelque chose.
+
+**Réponse — trois couches**
+1. **L'arrivée** — deux anneaux partent du mascotte, le cadre de la ligne fait un éclat
+   dans la couleur de gravité. C'est le mouvement qui accroche l'œil périphérique, pas
+   le texte.
+2. **La présence** — lueur radiale derrière le mascotte, et le point de gravité bat
+   toutes les 2,4 s tant que le conseil est affiché.
+3. **Le marqueur** — à l'expiration, le conseil devient `unread` au lieu de disparaître.
+   Le notch replié garde un contour dans la couleur de gravité, avec le texte du conseil
+   en infobulle, jusqu'au clic. C'est la couche qui répond vraiment à la demande :
+   on peut rater 10 s, on ne peut pas rater un contour qui reste.
+
+Durée graduée par gravité : 10 s / 12 s / 15 s. Tout est coupé sous
+`prefers-reduced-motion`, sauf le marqueur — qui est statique par conception.
+
+**Bug corrigé au passage** — `useAssistant` testait les icônes une par une pour
+savoir si une catégorie venait d'être coupée. La liste datait d'avant l'extension du
+catalogue : `battery-time`, `disk-critical`, `restart` et `late-night` n'étaient jamais
+retirés quand on coupait leur catégorie. Remplacé par `TIP_CATEGORY`, une table
+`TipIcon → catégorie` dans `assistant.ts`.
+
+**Tests rapatriés** — les 29 tests écrits la veille vivaient dans `/tmp` et ont disparu
+avec le bac à sable. Ils sont maintenant dans `scripts/assistant.test.ts`, lancés par
+`bun run test:assistant`. Node 22 charge le TypeScript directement via
+`--experimental-strip-types` : **aucune dépendance ajoutée**. 31 tests au total.
+
+**Demande suivante** — changer de langue (français / anglais). Cadré dans
+`ROADMAP.md` § 3.G : ~400 chaînes à extraire, pas de bibliothèque (un `t()` sur deux
+dictionnaires plats), langue par défaut = celle de Windows. Placé en **J8**, juste après
+J1 et J2 pour ne pas traduire deux fois. Le catalogue d'Is est prioritaire dans ce
+chantier : c'est le texte le plus lu de l'application.
+
+**À valider sur Windows** — le rendu réel des anneaux et du contour dans le notch, et
+surtout que le clic d'acquittement ne gêne pas (il ne fait rien d'autre, mais c'est un
+geste sur le notch).
+
+---
+
 ## 2026-11-04 — Is : catalogue de conseils étendu
 
 **Fait**

@@ -2270,6 +2270,7 @@ img {
 /* --- Is tip in the notch ------------------------------------------------ */
 
 .assistant-tip {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2277,6 +2278,27 @@ img {
     height: 100%;
     padding: 0 8px 0 4px;
     box-sizing: border-box;
+    /* Set inline by AssistantTipView from the tip's severity. */
+    --tip-accent: #64D2FF;
+}
+
+/* Brief outline in the severity colour: makes the whole row flash once, so the
+   shape of the notch changing is not the only cue. */
+.assistant-tip::before {
+    content: "";
+    position: absolute;
+    inset: 2px 4px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1.5px var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-flash 2.2s ease-out forwards;
+}
+
+@keyframes assistant-tip-flash {
+    0% { opacity: 0.9; }
+    55% { opacity: 0.45; }
+    100% { opacity: 0; }
 }
 
 .assistant-tip-avatar {
@@ -2287,6 +2309,48 @@ img {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+}
+
+/* Low-intensity halo behind the mascot, kept for as long as the tip is up. */
+.assistant-tip-avatar::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--tip-accent) 0%, transparent 70%);
+    opacity: 0.28;
+    pointer-events: none;
+}
+
+/* The two rings. They are drawn behind the mascot (declared first in the DOM)
+   and expand past the avatar box, which the notch does not clip. */
+.assistant-tip-ring {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 8px;
+    border: 1.5px solid var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-bloom 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.assistant-tip-ring-late {
+    animation-delay: 0.4s;
+}
+
+@keyframes assistant-tip-bloom {
+    0% {
+        opacity: 0.85;
+        transform: scale(1);
+    }
+    65% {
+        opacity: 0.18;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2.6);
+    }
 }
 
 .assistant-tip-avatar img {
@@ -2306,8 +2370,36 @@ img {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    background: var(--tip-accent);
     border: 1.5px solid #0b0b0d;
     box-sizing: border-box;
+}
+
+/* Slow heartbeat on the severity dot: the tip keeps a sign of life while it is
+   on screen, without moving the text or stealing focus. */
+.assistant-tip-dot::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.5px solid var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-ping 2.4s ease-out infinite 0.8s;
+}
+
+@keyframes assistant-tip-ping {
+    0% {
+        opacity: 0.85;
+        transform: scale(0.75);
+    }
+    60% {
+        opacity: 0.25;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2.1);
+    }
 }
 
 .assistant-tip-message {
@@ -2354,9 +2446,34 @@ img {
     color: #fff;
 }
 
+/* --- Unread marker on the collapsed notch -------------------------------- */
+
+/* A tip shows for 10-15 s then folds away. Without a trace, the user can never
+   know one was missed, so the notch keeps a coloured outline until the mark is
+   acknowledged. Static on purpose: a permanently animating element at the top
+   of the screen is worse than no reminder at all. */
+.islet.is-signalling {
+    box-shadow:
+        0 0 0 1.5px var(--signal-accent, #64D2FF),
+        0 0 14px -2px var(--signal-accent, #64D2FF);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .assistant-tip {
         animation: none;
         transition: none;
+    }
+
+    /* Keep the marking, drop the movement: a static outline instead of rings,
+       a visible dot instead of a heartbeat. */
+    .assistant-tip-ring,
+    .assistant-tip-dot::after {
+        animation: none;
+        display: none;
+    }
+
+    .assistant-tip::before {
+        animation: none;
+        opacity: 0.5;
     }
 }

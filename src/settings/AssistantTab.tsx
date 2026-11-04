@@ -126,7 +126,7 @@ export function AssistantTab() {
         <ToggleRow
           icon={Sparkles}
           label="Enable Is"
-          desc="Let Is watch your PC and surface short, useful tips in the notch"
+          desc="Short tips in the notch, plus a coloured outline that stays until you click the notch and read them"
           checked={config.enabled}
           onChange={(v) => update("enabled", v)}
         />

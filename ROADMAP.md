@@ -386,8 +386,75 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
 | **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
+| **J8 — Langues** | 3.G (français / anglais) | J1, J2 (à faire après, pour ne pas traduire deux fois) |
 
-Ordre recommandé : **J1 → J2 → J4 → J3 → J5 → J6 → J7** (J1/J2 apportent le plus de valeur visible par effort).
+Ordre recommandé : **J1 → J2 → J8 → J4 → J3 → J5 → J6 → J7**
+(J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
+chaque écran livré avant lui est un écran à traduire plus tard).
+
+---
+
+## 3.G — Langues (français / anglais)
+
+> Demandé par l'utilisateur le 2026-11-04. À traiter **après J1 et J2** : l'onboarding
+> et les thèmes ajoutent tous deux du texte, il vaut mieux les écrire directement
+> dans le système de traduction que de les reprendre ensuite.
+
+### 3.G.1 Le problème
+
+Islet affiche aujourd'hui **environ 400 chaînes en anglais codées en dur** dans le JSX,
+les réglages et le catalogue de conseils d'Is. Il n'existe aucune notion de langue dans
+le dépôt : les seules occurrences de « language » concernent la langue du clavier
+(indicateur Nusa) et un paramètre d'API météo.
+
+Un utilisateur francophone — le mainteneur lui-même — lit donc une interface anglaise.
+
+### 3.G.2 Décisions à prendre
+
+| # | Question | Recommandation |
+|---|---|---|
+| DÉC-12 | Bibliothèque | **Aucune dépendance.** Un `t()` maison sur deux dictionnaires plats (`fr.ts`, `en.ts`) suffit pour ~400 clés et évite `react-i18next` + 3 dépendances. |
+| DÉC-13 | Langue par défaut | **Suivre Windows** au premier lancement (`navigator.language`), puis mémoriser le choix explicite. Un utilisateur FR ne doit pas avoir à chercher le réglage. |
+| DÉC-14 | Portée | Interface d'abord (réglages, notch, dock, onglet À propos). Le catalogue d'Is **aussi** : c'est le texte le plus lu. Les noms d'applications, les titres de morceaux et les noms de processus ne sont jamais traduits. |
+| DÉC-15 | Où | Nouvel onglet **Général → Langue**, à côté du thème. Changement appliqué sans redémarrage. |
+
+### 3.G.3 Inventaire du travail
+
+| Zone | Volume | Difficulté |
+|---|---|---|
+| `src/settings/*.tsx` (11 onglets) | ~250 chaînes | Mécanique, gros volume |
+| `src/lib/assistant.ts` (13 conseils) | 16 chaînes + 2 formats | **Le plus utile** : c'est le texte que l'utilisateur lit le plus |
+| `src/App.tsx` (notch) | ~60 chaînes | Quelques pluriels (« 1 min » / « 2 min ») |
+| `src/Dock.tsx` | ~40 chaînes | Menu contextuel surtout |
+| `src/components/*` | ~30 chaînes | Mécanique |
+| Fenêtre À propos / mise à jour | ~15 chaînes | Mécanique |
+
+### 3.G.4 Points de vigilance
+
+- **Les formats ne sont pas des chaînes** : `formatUptime` produit `2 h 42` en français
+  et `2h42` en anglais ; les dates du calendrier passent de « lundi 4 novembre » à
+  « Monday, November 4 ». Prévoir `Intl.DateTimeFormat` avec la langue active, sans
+  jamais coder le format à la main.
+- **Le notch est étroit** : une traduction plus longue casse la ligne unique. Chaque clé
+  traduite doit être vérifiée dans le notch à 290 px, pas seulement dans les réglages.
+- **Le texte est généré côté Rust** pour quelques messages (mise à jour, erreurs de
+  diagnostic). Soit on les remonte en clés résolues côté frontend, soit on accepte
+  qu'ils restent en anglais au premier passage — décision à prendre.
+- **Ne pas casser `islet-*`** : le choix de langue est un `localStorage` de plus
+  (`islet-language`), pas un renommage.
+
+### 3.G.5 Jalons
+
+| Étape | Contenu | Effort |
+|---|---|---|
+| **G1** | Socle : `t()`, dictionnaires, `islet-language`, onglet Général | ~0,5 j |
+| **G2** | Catalogue d'Is (13 conseils + temps relatifs) | ~0,5 j |
+| **G3** | Réglages (11 onglets) | ~1,5 j |
+| **G4** | Notch + dock + composants + À propos | ~1 j |
+| **G5** | Dates et nombres via `Intl` | ~0,5 j |
+
+Total : **environ 4 jours**, découpable. G1 + G2 livrent déjà l'essentiel de la valeur
+perçue, puisque ce sont les textes que l'on lit tous les jours.
 
 ---
 

@@ -14,7 +14,7 @@ import { useTrailingThrottle } from "./hooks/useTrailingThrottle";
 import { useCaldav } from "./hooks/useCaldav";
 import { useSystemSignals } from "./hooks/useSystemSignals";
 import { useAssistant } from "./hooks/useAssistant";
-import { AssistantTipView } from "./components/AssistantTip";
+import { AssistantTipView, SEVERITY_COLOR } from "./components/AssistantTip";
 import { NotchCalendar } from "./components/NotchCalendar";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
@@ -321,9 +321,15 @@ function App() {
   const systemSignals = useSystemSignals();
   const {
     tip: assistantTip,
+    unread: assistantUnread,
     dismiss: dismissAssistantTip,
+    acknowledge: acknowledgeAssistantTip,
     settings: assistantSettings,
   } = useAssistant(systemSignals);
+
+  // Is has something to say that the user has not looked at yet: the collapsed
+  // notch carries a coloured outline until they acknowledge it.
+  const isSignalling = assistantUnread !== null && assistantTip === null;
 
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
@@ -1564,7 +1570,10 @@ function App() {
       <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center' }}>
         <motion.div
           ref={isletRef}
-          className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''}`}
+          className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isSignalling ? 'is-signalling' : ''}`}
+          // The marker doubles as a tooltip: hovering the notch reads back the
+          // message that was missed, without reopening anything.
+          title={isSignalling && assistantUnread ? assistantUnread.title : undefined}
           onMouseEnter={() => setIsNotchHovered(true)}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
@@ -1585,6 +1594,9 @@ function App() {
         }}
         onClick={(e) => {
           e.stopPropagation();
+          // Clicking the signalling notch says "seen". It does nothing in any
+          // other state, so the gesture costs nothing when there is no marker.
+          if (isSignalling) acknowledgeAssistantTip();
         }}
         onHoverStart={() => {
           setIsHovered(true);
@@ -1599,7 +1611,11 @@ function App() {
             setIsletMode(targetMode);
           }
         }}
-        style={{ originY: 0 }}
+        style={
+          isSignalling && assistantUnread
+            ? ({ originY: 0, "--signal-accent": SEVERITY_COLOR[assistantUnread.severity] } as React.CSSProperties)
+            : { originY: 0 }
+        }
         transition={{
           width: { type: "spring", stiffness: 400, damping: 31 },
           height: { type: "spring", stiffness: 450, damping: 29 },

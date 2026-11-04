@@ -65,6 +65,30 @@ const COOLDOWN_MS: Record<TipIcon, number> = {
   "late-night": 8 * 60 * 60_000,
 };
 
+/**
+ * Which setting gates each tip.
+ *
+ * The hook uses this instead of comparing icon names by hand: adding a tip to
+ * the catalogue is then enough for it to honour its category switch.
+ */
+export const TIP_CATEGORY: Record<
+  TipIcon,
+  "battery" | "storage" | "performance" | "session"
+> = {
+  "battery-critical": "battery",
+  "battery-low": "battery",
+  "battery-time": "battery",
+  "battery-full": "battery",
+  charge: "battery",
+  disk: "storage",
+  "disk-critical": "storage",
+  memory: "performance",
+  cpu: "performance",
+  restart: "session",
+  session: "session",
+  "late-night": "session",
+};
+
 /** Uptime after which Windows itself is worth restarting (5 days). */
 const RESTART_AFTER_SECS = 5 * 24 * 3600;
 /** Below this much free space a drive is treated as an emergency (GB). */
