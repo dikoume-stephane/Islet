@@ -68,15 +68,21 @@
 
 # 🚀 PHASE 3 — Fonctionnalités
 
-## Bloc H — Onboarding (J1)
-- [ ] H1 — Détection premier lancement (`islet-onboarded`) avec migration douce
-- [ ] H2 — Mode `onboarding` dans la fenêtre Settings existante
-- [ ] H3 — Étape 1 : bienvenue + nom de l'assistant (défaut « Is »)
-- [ ] H4 — Étape 2 : apparence avec **aperçu en direct** sur le notch
-- [ ] H5 — Étape 3 : notch ou dock (+ écran cible)
-- [ ] H6 — Étape 4 : transparence sur les données (local vs réseau)
-- [ ] H7 — Étape 5 : récapitulatif + écriture du drapeau
-- [ ] H8 — « Passer » à chaque étape + entrée « Revoir l'accueil » dans General
+## Bloc H — Onboarding (J1) ✅ (livré 2026-11-04)
+- [x] H1 — Détection premier lancement (`islet-onboarded`) avec migration douce côté Rust
+  - `utils::migrate_onboarding_flag` : un `settings.json` non vide sans drapeau = utilisateur existant → marqué comme déjà accueilli. Une installation neuve n'a pas de fichier du tout → accueil affiché.
+- [x] H2 — Mode `onboarding` dans la fenêtre Settings existante (pas de 6ᵉ point d'entrée Tauri)
+  - Fenêtre agrandie à 720 × 620 le temps de l'accueil, restaurée à 620 × 480 × échelle ensuite
+  - Ouverture différée de 1,2 s pour laisser le notch s'installer
+- [x] H3 — Étape 1 : bienvenue + nom de l'assistant (défaut « Is », préréglages Is/Nova/Pico/Kai)
+  - ⚠️ **Choix de langue retiré de l'étape** : il n'aurait rien fait (J8 pas encore livré). Il arrive avec l'i18n.
+- [x] H4 — Étape 2 : 4 thèmes (Dark / Light / Custom + accent / Adaptive) avec aperçu **en direct** via `applyTheme`
+- [x] H5 — Étape 3 : notch (Fixed / Smart / Peek) + dock on/off
+- [x] H6 — Étape 4 : transparence données (ce qui reste local, météo, CalDAV) + opt-in mises à jour auto
+- [x] H7 — Étape 5 : récapitulatif + écriture de `islet-onboarded`
+- [x] H8 — « Passer » à chaque étape + entrée « Replay the Welcome » dans General
+- [x] H9 — Nom réellement utilisé : champ dans Settings › Is, **et libellé de l'onglet latéral** qui suit
+- [ ] H10 — Validation sur Windows : taille de fenêtre, lisibilité, comportement du zoom
 
 ## Bloc I — Moteur de thèmes (J2)
 - [ ] I1 — Type `ThemePreset` + table de presets

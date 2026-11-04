@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Sparkles, BatteryCharging, HardDrive, Gauge, Clock } from "lucide-react";
+import { Sparkles, BatteryCharging, HardDrive, Gauge, Clock, Tag } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import type { SettingRowProps } from "./types";
 import { readAssistantSettings } from "../hooks/useAssistant";
@@ -109,7 +109,15 @@ function SliderRow({
 
 export function AssistantTab() {
   const [config, setConfig] = useState<AssistantSettings>(() => readAssistantSettings());
+  const [name, setName] = useState(() => localStorage.getItem("islet-assistant-name") || "Is");
   const signals = useSystemSignals();
+
+  const commitName = (value: string) => {
+    // Same rule as the welcome flow: never store an empty name.
+    const clean = value.slice(0, 24);
+    setName(clean);
+    saveSetting("islet-assistant-name", clean.trim() === "" ? "Is" : clean.trim());
+  };
 
   const update = <K extends keyof AssistantSettings>(key: K, value: AssistantSettings[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -123,6 +131,16 @@ export function AssistantTab() {
     <>
       <div className="setting-group-label">Is — Assistant</div>
       <div className="setting-group">
+        <SettingRow icon={Tag} label="Name" desc="What the notch calls your assistant">
+          <input
+            className="assistant-name-input"
+            value={name}
+            maxLength={24}
+            spellCheck={false}
+            onChange={(e) => commitName(e.target.value)}
+            aria-label="Assistant name"
+          />
+        </SettingRow>
         <ToggleRow
           icon={Sparkles}
           label="Enable Is"

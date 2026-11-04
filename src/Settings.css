@@ -1333,3 +1333,29 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- Is: name field ------------------------------------------------------ */
+
+.assistant-name-input {
+  width: 116px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 550;
+  color: var(--islet-text, #fff);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  outline: none;
+  text-align: right;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.light-mode .assistant-name-input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1c1c1e;
+}
+
+.assistant-name-input:focus {
+  border-color: var(--islet-accent, #007aff);
+}

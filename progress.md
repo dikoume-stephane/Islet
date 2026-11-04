@@ -22,15 +22,16 @@
 
 | Bloc | Périmètre | Tâches | Faites | État | Avancement |
 |---|---|---|---|---|---|
-| H | Onboarding premier démarrage | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| H | Onboarding premier démarrage | 10 | 9 | ✅ Livré (J1) — validation Windows restante | ▓▓▓▓▓▓▓▓▓░ 90 % |
 | I | Moteur de thèmes + Liquid Glass | 8 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
 | J | Parité Nusa (paroles, shelf, eau, to-do…) | 7 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
-| K | Assistant « Is » | 18 | 7 | 🟡 Signaux système livrés (K0) · personnage à venir | ▓▓▓▓░░░░░░ 39 % |
+| K | Assistant « Is » | 18 | 15 | 🟡 Signaux, conseils, signal d'attention livrés · personnage à venir | ▓▓▓▓▓▓▓▓░░ 83 % |
 | L | IA optionnelle | 4 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
-| M | Outillage (skills) | 2 | 1 | 🟡 Skills installées | ▓▓▓▓▓░░░░░ 50 % |
+| M | Outillage (skills) | 3 | 3 | ✅ Skills + outillage build | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 
-**Jalons** : J1 accueil → J2 thèmes → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
-⚠️ Amendé le 2026-11-03 : à la demande de l'utilisateur, **J3 (Is — signaux système)** est attaqué avant J1. Le capteur, les règles et l'interface de conseils sont livrés ; restent le personnage animé et les signaux orientés développement (git, ports, build).
+**Jalons** : ~~J1 accueil~~ ✅ → J2 thèmes → J8 langues → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
+⚠️ Amendé le 2026-11-03 : **J3 (Is — signaux système)** a été attaqué avant J1, puis J1 a suivi le 2026-11-04. Restent pour Is : le personnage animé et les signaux orientés développement (git, ports, build).
+🆕 Ajouté le 2026-11-04 : **J8 langues FR/EN** (demande utilisateur), placé juste après J2 pour ne pas traduire deux fois.
 Détail complet dans `ROADMAP.md` § PHASE 3.
 
 ## Métriques clés

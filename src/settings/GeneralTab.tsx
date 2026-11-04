@@ -1,4 +1,4 @@
-import { Power, Download, Clock, BatteryWarning, RefreshCw, LogOut } from "lucide-react";
+import { Power, Download, Clock, BatteryWarning, RefreshCw, LogOut, GraduationCap } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 
 interface GeneralTabProps {
@@ -12,6 +12,8 @@ interface GeneralTabProps {
   handleThresholdChange: (val: number) => void;
   restartIslet: () => void;
   quitIslet: () => void;
+  /** Replay the first-run welcome flow. */
+  replayOnboarding: () => void;
 }
 
 export function GeneralTab({
@@ -25,6 +27,7 @@ export function GeneralTab({
   handleThresholdChange,
   restartIslet,
   quitIslet,
+  replayOnboarding,
 }: GeneralTabProps) {
   return (
     <>
@@ -71,6 +74,13 @@ export function GeneralTab({
 
       <div className="setting-group-label">App</div>
       <div className="setting-group">
+        <SettingRow
+          icon={GraduationCap}
+          label="Replay the Welcome"
+          desc="Walk through the first-run setup again — nothing is reset"
+          action
+          onClick={replayOnboarding}
+        />
         <SettingRow icon={RefreshCw} label="Restart Islet" desc="Reinitialize all components" action onClick={restartIslet} />
         <SettingRow icon={LogOut} label="Quit Islet" desc="Exit application completely" action danger onClick={quitIslet} divider={false} />
       </div>

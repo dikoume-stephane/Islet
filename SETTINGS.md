@@ -159,6 +159,8 @@ So that a tip is not missed, Is signals it in three steps. On arrival, two rings
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| `islet-assistant-name` | string | `"Is"` | What the assistant is called. Set by the welcome flow, editable in Settings › Is; also used as the sidebar label of that tab. Empty values fall back to `"Is"`. |
+| `islet-onboarded` | `"true"` | — | Written when the welcome flow ends. Its absence on a fresh install is what triggers the first-run screen. Installs that predate the flow are marked automatically at startup (any non-empty `settings.json` counts as already welcomed), so upgrading never re-opens it. Clear the key (or delete `settings.json`) to see the flow again, or use Settings › General › Replay the Welcome. |
 | `islet-assistant-enabled` | `"true"` / `"false"` | `"true"` | Master switch. When `"false"`, Is is silent and the classic low-battery pulse takes over again. |
 | `islet-assistant-battery` | `"true"` / `"false"` | `"true"` | Low battery, critical battery, charge reminder and "battery full" tips. While this is on, the legacy `islet-low-battery-threshold` pulse is suppressed to avoid two messages for the same fact. |
 | `islet-assistant-storage` | `"true"` / `"false"` | `"true"` | Warn when a fixed drive has less than `islet-assistant-free-space-floor` percent free. Removable drives are ignored. |

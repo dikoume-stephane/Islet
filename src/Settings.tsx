@@ -5,6 +5,7 @@ import { Effect, EffectState } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Settings, Palette, PanelTop, Monitor, Layers, Info, Sparkles } from "lucide-react";
+import { Onboarding } from "./settings/Onboarding";
 import { WindowControls } from "./components/WindowControls";
 import {
   useSettings,
@@ -33,17 +34,77 @@ const TABS: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
   { id: "about", label: "About", icon: Info },
 ];
 
+/**
+ * Size of the first-run flow. Noticeably larger than the regular Settings
+ * window: five screens in a 620x480 box would scroll constantly.
+ */
+const ONBOARDING_SIZE = { width: 720, height: 620 };
+
 function SettingsApp() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  // The first sidebar entry is the assistant's tab; once the user renames it in
+  // the welcome flow, the tab should say that name rather than a stale "Is".
+  const [assistantName, setAssistantName] = useState(
+    () => localStorage.getItem("islet-assistant-name") || "Is",
+  );
+  // `null` until we know: showing the Settings UI for a frame and then
+  // swapping to the welcome flow is exactly the flicker we want to avoid.
+  const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const settings = useSettings();
 
   useEffect(() => {
     return initTheme();
   }, []);
 
+  // First run? The flag lives in settings.json, not localStorage: the two
+  // webviews do not reliably share storage, and this decision must be made
+  // once, authoritatively, on the main window's behalf.
+  useEffect(() => {
+    let cancelled = false;
+    invoke<Record<string, unknown>>("load_settings")
+      .then((stored) => {
+        if (cancelled) return;
+        const done = String(stored["islet-onboarded"] ?? "") === "true";
+        setOnboarding(!done);
+        if (!done) {
+          // Let the notch and the dock settle first: the window appearing on
+          // top of a half-drawn desktop feels like a crash, not a welcome.
+          setTimeout(() => {
+            if (!cancelled) invoke("open_settings_window").catch(console.error);
+          }, 1200);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setOnboarding(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The welcome flow has its own window size; restore the regular one on exit.
+  useEffect(() => {
+    if (onboarding === null) return;
+    const size = onboarding
+      ? ONBOARDING_SIZE
+      : { width: 620 * settings.scale, height: 480 * settings.scale };
+    invoke("resize_settings_window", size).catch(console.error);
+  }, [onboarding, settings.scale]);
+
   useEffect(() => {
     const unlisten = listen<string>("settings-navigate", (e) => {
       if (e.payload === "calendar-sync") setActiveTab("calendar-sync");
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  useEffect(() => {
+    const unlisten = listen<{ key: string; value: unknown }>("settings-changed", (e) => {
+      if (e.payload.key === "islet-assistant-name") {
+        setAssistantName(String(e.payload.value ?? "Is") || "Is");
+      }
     });
     return () => {
       unlisten.then((fn) => fn());
@@ -61,12 +122,33 @@ function SettingsApp() {
     };
   }, []);
 
-  useEffect(() => {
-    invoke("resize_settings_window", {
-      width: 620 * settings.scale,
-      height: 480 * settings.scale,
-    }).catch(console.error);
-  }, [settings.scale]);
+  // Undecided: render the window chrome only, so nothing flashes.
+  if (onboarding === null) {
+    return (
+      <div className="settings-container" style={{ zoom: settings.scale }}>
+        <div className="title-bar" data-tauri-drag-region>
+          <span className="title-text" data-tauri-drag-region>
+            Settings
+          </span>
+          <WindowControls />
+        </div>
+      </div>
+    );
+  }
+
+  if (onboarding) {
+    return (
+      <div className="settings-container" style={{ zoom: settings.scale }}>
+        <div className="title-bar" data-tauri-drag-region>
+          <span className="title-text" data-tauri-drag-region>
+            Welcome to Islet
+          </span>
+          <WindowControls />
+        </div>
+        <Onboarding onFinish={() => setOnboarding(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="settings-container" style={{ zoom: settings.scale }}>
@@ -88,7 +170,7 @@ function SettingsApp() {
               <div className="sidebar-tab-icon">
                 <Icon size={14} strokeWidth={1.5} />
               </div>
-              <span>{label}</span>
+              <span>{id === "assistant" ? assistantName : label}</span>
             </button>
           ))}
         </div>
@@ -106,6 +188,7 @@ function SettingsApp() {
               handleThresholdChange={settings.handleThresholdChange}
               restartIslet={settings.restartIslet}
               quitIslet={settings.quitIslet}
+              replayOnboarding={() => setOnboarding(true)}
             />
           )}
           {activeTab === "assistant" && <AssistantTab />}

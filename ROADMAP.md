@@ -218,20 +218,27 @@ Islet n'est plus seulement une barre des tâches remplacée : c'est une **surfac
 
 ---
 
-## 3.A — Onboarding au premier démarrage
+## 3.A — Onboarding au premier démarrage ✅ (livré 2026-11-04)
 
 **Demande** : « le panneau de contrôle s'ouvre au premier démarrage pour permettre à l'utilisateur de choisir ses préférences ».
 
+> **Livré** — `src/settings/Onboarding.tsx` (5 étapes) + `Onboarding.css`, rendu dans la fenêtre Settings existante.
+> La fenêtre passe à 720 × 620 pendant l'accueil et s'ouvre 1,2 s après le démarrage, le temps que le notch s'installe.
+> **Écart assumé vs le plan initial** : le choix de langue de l'étape 1 a été retiré. Il n'aurait eu aucun effet
+> visible tant que J8 n'est pas livré, et un réglage qui ne fait rien est pire qu'un réglage absent. Il revient avec l'i18n.
+> **Détection** : `utils::migrate_onboarding_flag` marque comme déjà accueilli tout profil dont `settings.json`
+> contient au moins une clé — un utilisateur existant ne voit donc jamais l'accueil comme une surprise après mise à jour.
+
 | ID | Tâche | Détail |
 |---|---|---|
-| P3-A1 | Détection du premier lancement | Clé `islet-onboarded` (settings.json + localStorage), migration douce si absente |
-| P3-A2 | Fenêtre plein écran d'accueil | Réutilise la fenêtre `settings.html` en mode `onboarding` (évite un 6ᵉ point d'entrée Tauri) |
-| P3-A3 | Étape 1 — Bienvenue | Nom de l'assistant (« Is » par défaut), choix de la langue d'affichage |
-| P3-A4 | Étape 2 — Apparence | Sélecteur de thème avec **aperçu en direct** sur le notch réel |
-| P3-A5 | Étape 3 — Notch ou Dock | Choix du mode, écran cible si plusieurs moniteurs |
-| P3-A6 | Étape 4 — Confidentialité | Ce qui reste local, ce qui sort sur le réseau (légendes, météo, updates) |
-| P3-A7 | Étape 5 — Récapitulatif | Résumé + bouton « Terminer », écrire `islet-onboarded: true` |
-| P3-A8 | Rappel ultérieur | Entrée « Revoir l'accueil » dans Settings › General |
+| P3-A1 ✅ | Détection du premier lancement | Clé `islet-onboarded` (settings.json + localStorage), migration douce si absente |
+| P3-A2 ✅ | Fenêtre plein écran d'accueil | Réutilise la fenêtre `settings.html` en mode `onboarding` (évite un 6ᵉ point d'entrée Tauri) |
+| P3-A3 ✅ | Étape 1 — Bienvenue | Nom de l'assistant (« Is » par défaut), choix de la langue d'affichage |
+| P3-A4 ✅ | Étape 2 — Apparence | Sélecteur de thème avec **aperçu en direct** sur le notch réel |
+| P3-A5 ✅ | Étape 3 — Notch ou Dock | Choix du mode, écran cible si plusieurs moniteurs |
+| P3-A6 ✅ | Étape 4 — Confidentialité | Ce qui reste local, ce qui sort sur le réseau (légendes, météo, updates) |
+| P3-A7 ✅ | Étape 5 — Récapitulatif | Résumé + bouton « Terminer », écrire `islet-onboarded: true` |
+| P3-A8 ✅ | Rappel ultérieur | Entrée « Revoir l'accueil » dans Settings › General |
 
 **Contraintes**
 - Aucun blocage : bouton **Passer** à chaque étape.
@@ -379,7 +386,7 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 
 | Jalon | Contenu | Dépendance |
 |---|---|---|
-| **J1 — Accueil** | 3.A complet | Aucune |
+| **J1 — Accueil** ✅ | 3.A complet (sauf sélecteur de langue, reporté en J8) | Aucune |
 | **J2 — Matière** | 3.D presets + Liquid Glass | Aucune |
 | **J3 — Personnage** | 3.B.1 + 3.B.3 (états, regard, sommeil) | J1 (nom de l'assistant) |
 | **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
@@ -388,7 +395,7 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
 | **J8 — Langues** | 3.G (français / anglais) | J1, J2 (à faire après, pour ne pas traduire deux fois) |
 
-Ordre recommandé : **J1 → J2 → J8 → J4 → J3 → J5 → J6 → J7**
+Ordre recommandé : ~~J1~~ ✅ → **J2 → J8 → J4 → J3 → J5 → J6 → J7**
 (J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
 chaque écran livré avant lui est un écran à traduire plus tard).
 

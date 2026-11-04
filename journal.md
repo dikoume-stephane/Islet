@@ -38,6 +38,43 @@ aucun `--locked` dans `scripts/release.ps1`.
 
 ---
 
+## 2026-11-04 (4) — J1 : l'accueil au premier démarrage
+
+**Fait** — `src/settings/Onboarding.tsx` + `Onboarding.css`, cinq étapes rendues dans la
+fenêtre Settings existante : bienvenue et nom, apparence, notch ou dock, confidentialité,
+récapitulatif.
+
+**Décisions de conception**
+- **Pas de 6ᵉ point d'entrée Tauri.** L'accueil réutilise `settings.html` : même chrome,
+  mêmes composants `SettingRow` / `Dropdown`, un webview de moins à garder en vie.
+- **La fenêtre s'ouvre 1,2 s après le démarrage.** La montrer immédiatement donne
+  l'impression d'un crash qui se superpose à un bureau à moitié dessiné ; une seconde de
+  respiration et c'est un accueil.
+- **Chaque choix s'écrit au clic**, pas au récapitulatif. Un crash au milieu du parcours
+  conserve ce qui était déjà choisi.
+- **Détection côté Rust**, pas côté frontend. `load_settings` lit le fichier, les webviews
+  ne partagent pas leur `localStorage` de façon fiable. La migration marque comme déjà
+  accueilli tout profil dont `settings.json` contient au moins une clé : un utilisateur
+  existant ne verra jamais l'accueil débarquer après une mise à jour.
+
+**Écart assumé** — Le plan prévoyait un choix de langue à l'étape 1. Je l'ai retiré : tant
+que J8 n'est pas livré, ce sélecteur n'aurait rien changé à l'écran. Un réglage qui ne fait
+rien est pire qu'un réglage absent, et c'est exactement le genre de faux contrôle qui
+abîme la confiance. Il revient avec l'i18n, où il aura un effet réel.
+
+**Corollaire** — Le nom de l'assistant serait devenu un réglage mort : saisi à l'accueil,
+lu nulle part. Il est maintenant éditable dans Settings › Is et le libellé de l'onglet
+latéral le suit. Un réglage doit se voir quelque part.
+
+**Validations** — `npm run build` ✅, 31 tests de `pickTip()` toujours verts.
+Pas de `cargo check` dans le sandbox : la migration Rust est à compiler côté Windows.
+
+**À valider sur Windows** — la taille 720 × 620 avec le facteur d'échelle, la lisibilité
+du parcours, et surtout que la fenêtre s'ouvre bien au tout premier lancement (test
+destructif : supprimer `settings.json` ou retirer `islet-onboarded`).
+
+---
+
 ## 2026-11-04 (3) — Rendre les conseils d'Is impossibles à manquer
 
 **Contexte** — Retour utilisateur après le premier build réussi : « pour les conseils,

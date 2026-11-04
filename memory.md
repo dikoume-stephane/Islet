@@ -158,6 +158,17 @@ Tout est désactivé sous `prefers-reduced-motion` **sauf** le marqueur (statiqu
 
 ⚠️ Le marqueur est **statique volontairement** : un élément qui pulse en permanence en haut de l'écran est pire que pas de rappel du tout.
 
+### Onboarding (livré 2026-11-04)
+
+`src/settings/Onboarding.tsx` — 5 étapes rendues **dans la fenêtre Settings existante** (pas un 6ᵉ point d'entrée Tauri) : bienvenue + nom, apparence (4 thèmes, aperçu live via `applyTheme`), notch/dock, confidentialité, récapitulatif.
+
+- **Détection** : `utils::migrate_onboarding_flag` — un `settings.json` non vide sans `islet-onboarded` = utilisateur existant, marqué automatiquement. Installation neuve = pas de fichier = accueil affiché.
+- **Taille** : 720 × 620 pendant l'accueil, 620 × 480 × échelle ensuite (`resize_settings_window`).
+- **Ouverture** : différée de 1,2 s pour que le notch soit dessiné avant la fenêtre.
+- **Sauvegarde immédiate** : chaque choix s'écrit au clic — un crash au milieu conserve l'acquis.
+- Le **nom** est un vrai réglage : champ dans Settings › Is et libellé de l'onglet latéral.
+- « Replay the Welcome » dans Settings › General (ne réinitialise rien).
+
 ### Langues (cadré 2026-11-04, non commencé)
 
 Décisions DÉC-12 → DÉC-15 dans `ROADMAP.md` § 3.G : pas de bibliothèque (un `t()` maison + 2 dictionnaires plats), langue par défaut = celle de Windows, onglet Général → Langue, appliqué sans redémarrage.
