@@ -256,6 +256,36 @@ Islet n'est plus seulement une barre des tâches remplacée : c'est une **surfac
 | P3-B6 | Interaction « pousser » (plus tard) | Physique ressort sur le sprite, réutilise les springs du notch ; **hors périmètre initial** |
 | P3-B7 | Réduction des animations | Respecte `prefers-reduced-motion` → `idle` statique |
 
+### 3.B.0 — Livré : catalogue de conseils système (2026-11-03 → 2026-11-04)
+
+Is échantillonne la machine toutes les 30 s (Rust `signals.rs`) et affiche **un seul**
+conseil à la fois dans le notch, choisi par une fonction pure (`pickTip`) où vivent
+toutes les décisions : priorités, seuils, délais de répétition.
+
+| # | Conseil | Déclencheur | Gravité | Répétition |
+|---|---|---|---|---|
+| 1 | Batterie critique | ≤ 10 % sur batterie | 🔴 | 10 min |
+| 2 | Batterie faible | ≤ seuil (20 % par défaut) | 🟠 | 30 min |
+| 3 | Autonomie restante | < 90 min alors que le % rassure | 🔵 | 2 h |
+| 4 | Batterie pleine | 100 % branché | 🔵 | 2 h |
+| 5 | Rappel de charge | ≥ seuil de charge (80 %) | 🔵 | 2 h |
+| 6 | Disque critique | < 2 Go libres ou ≥ 97 % utilisé | 🔴 | 2 h |
+| 7 | Disque qui se remplit | sous le plancher d'espace libre (10 %) | 🟠 | 12 h |
+| 8 | Mémoire critique | ≥ 95 % | 🔴 | 45 min |
+| 9 | Mémoire haute | ≥ 90 % | 🟠 | 45 min |
+| 10 | CPU occupé | ≥ 90 % | 🟠 | 30 min |
+| 11 | Redémarrage conseillé | 5 jours d'uptime | 🔵 | 12 h |
+| 12 | Session longue | ≥ seuil d'heures (8 h) | 🔵 | 8 h |
+| 13 | Tard dans la nuit | 00:00 – 04:00 locales | 🔵 | 8 h |
+
+**Principes tenus**
+- Un conseil à la fois, jamais deux ; le notch ne devient pas un flux de notifications.
+- Les messages sont **actionnables** : un temps restant, un volume en Mo, une heure.
+- Priorité = sécurité machine → intégrité des données → confort → hygiène de travail.
+- Tout est réglable (4 catégories, 4 seuils) et désactivable d'un interrupteur.
+- Aucune décision dans le backend : le Rust mesure, le TypeScript décide → testable sans machine Windows.
+- 29 tests de `pickTip()` couvrent seuils, priorités, interrupteurs et cooldowns.
+
 ### 3.B.2 Ce qu'Is fait pour un développeur
 
 Le parti pris : **aucune IA requise au départ**. Is agrège des signaux locaux déjà disponibles, sans prompt ni coût. L'IA vient en 3.B.4, en option.

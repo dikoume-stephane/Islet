@@ -149,7 +149,7 @@ export function AssistantTab() {
         <ToggleRow
           icon={HardDrive}
           label="Storage"
-          desc="Warn before a drive gets critically full"
+          desc="Disk filling up, and drives about to run out of space"
           checked={config.storage}
           disabled={off}
           onChange={(v) => update("storage", v)}
@@ -168,7 +168,7 @@ export function AssistantTab() {
           desc={
             signals
               ? `Uptime now: ${formatUptime(signals.uptime_secs)}`
-              : "Suggest a break after a long stretch"
+              : "Long session, delayed restart and late nights"
           }
           checked={config.session}
           disabled={off}

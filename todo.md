@@ -107,7 +107,16 @@
 - [x] K0e — Rendu dans le notch (`AssistantTip`, largeur 290 px, déroulé auto en mode `peek`)
 - [x] K0f — Onglet Settings « Is » : 4 catégories, 4 seuils, valeurs temps réel
 - [x] K0g — `SETTINGS.md` + neutralisation du doublon avec la pastille « Low Battery » héritée
-- [ ] K0h — `cargo check` + build NSIS sur la machine Windows (pas de cargo dans le sandbox)
+- [x] K0h — **Catalogue étendu (2026-11-04)** : 7 conseils de plus, 12 au total
+  - batterie : temps restant dans le message de charge faible (`— 40 min left`)
+  - batterie : conseil « environ 1 h 40 d'autonomie » quand la jauge rassure mais l'horloge non
+  - disque : palier **critique** (moins de 2 Go libres ou 97 % utilisé) distinct de l'avertissement
+  - disque : affichage en Mo sous 10 Go (`350 MB left`) au lieu d'un `0 GB` trompeur
+  - mémoire : palier **critique** à 95 % (sauvegarde ton travail)
+  - session : rappel de **redémarrage** après 5 jours d'uptime
+  - session : conseil **tard dans la nuit** (00:00–04:00, une fois par nuit)
+- [x] K0i — 29 tests de la fonction pure `pickTip()` (esbuild + node, hors dépôt) : priorités, seuils, interrupteurs, cooldowns
+- [ ] K0j — `cargo check` + build NSIS sur la machine Windows (pas de cargo dans le sandbox)
 
 ### Personnage & contexte dev
 - [ ] K1 — Sprite 5 états (idle, blink, listening, thinking, happy, sleeping, alert)

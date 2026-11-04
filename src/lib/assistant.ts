@@ -13,12 +13,16 @@ export type TipSeverity = "info" | "warn" | "critical";
 export type TipIcon =
   | "battery-low"
   | "battery-critical"
+  | "battery-time"
   | "battery-full"
   | "charge"
   | "disk"
+  | "disk-critical"
   | "memory"
   | "cpu"
-  | "session";
+  | "restart"
+  | "session"
+  | "late-night";
 
 export interface AssistantTip {
   /** Stable key, also used as the cooldown key. */
@@ -49,21 +53,38 @@ export interface AssistantSettings {
 const COOLDOWN_MS: Record<TipIcon, number> = {
   "battery-critical": 10 * 60_000,
   "battery-low": 30 * 60_000,
+  "battery-time": 2 * 60 * 60_000,
   "battery-full": 2 * 60 * 60_000,
   charge: 2 * 60 * 60_000,
+  "disk-critical": 2 * 60 * 60_000,
   disk: 12 * 60 * 60_000,
   memory: 45 * 60_000,
   cpu: 30 * 60_000,
+  restart: 12 * 60 * 60_000,
   session: 8 * 60 * 60_000,
+  "late-night": 8 * 60 * 60_000,
 };
+
+/** Uptime after which Windows itself is worth restarting (5 days). */
+const RESTART_AFTER_SECS = 5 * 24 * 3600;
+/** Below this much free space a drive is treated as an emergency (GB). */
+const DISK_CRITICAL_GB = 2;
+/** Show the "time left" tip only under this remaining time (and above the low threshold). */
+const BATTERY_TIME_NOTICE_SECS = 90 * 60;
+/** Ignore battery estimates shorter than this — Windows is too noisy there. */
+const BATTERY_TIME_FLOOR_SECS = 15 * 60;
+/** Local hours treated as "late night" (0 → 4 AM). */
+const LATE_NIGHT_FROM = 0;
+const LATE_NIGHT_TO = 4;
 
 export type CooldownMap = Record<string, number>;
 
 /**
  * Pick the most useful tip to show right now.
  *
- * Deliberate priority order: machine safety (critical battery) → data
- * integrity (disk) → comfort (charge, memory) → working hygiene (session).
+ * Deliberate priority order: machine safety (critical battery, disk out of
+ * space) → data integrity (disk filling up) → comfort (charge level, time
+ * left, memory) → working hygiene (restart, long session, late night).
  * Only one tip at a time, so Is never floods the notch.
  */
 export function pickTip(
@@ -78,6 +99,12 @@ export function pickTip(
   const { battery, memory, disks, cpu_percent, uptime_secs } = signals;
 
   // — Battery ---------------------------------------------------------------
+  // A Windows estimate is shown only when it exists and is plausible; it
+  // makes the warning actionable ("40 min") instead of abstract ("18 %").
+  const left = battery.seconds_left;
+  const leftIsPlausible = left !== null && left > BATTERY_TIME_FLOOR_SECS;
+  const leftSuffix = leftIsPlausible ? ` — about ${formatUptime(left)} left` : "";
+
   if (settings.battery && battery.present && battery.percent !== null && !battery.charging) {
     if (battery.percent <= 10) {
       candidates.push({
@@ -91,7 +118,16 @@ export function pickTip(
         id: "battery-low",
         severity: "warn",
         icon: "battery-low",
-        title: `Battery at ${battery.percent}% — time to charge`,
+        title: `Battery at ${battery.percent}%${leftSuffix} — time to charge`,
+      });
+    } else if (leftIsPlausible && left <= BATTERY_TIME_NOTICE_SECS) {
+      // Still comfortably above the low threshold, but the clock is running:
+      // useful when the percentage alone is reassuring.
+      candidates.push({
+        id: "battery-time",
+        severity: "info",
+        icon: "battery-time",
+        title: `About ${formatUptime(left)} of battery left`,
       });
     }
   }
@@ -115,24 +151,51 @@ export function pickTip(
   }
 
   // — Disks -----------------------------------------------------------------
+  // Two tiers: an emergency (a few hundred megabytes left) must not look like
+  // a warning (10 % free). Emergencies are pushed first so they win.
   if (settings.storage) {
     const floor = 100 - settings.freeSpaceFloor;
+    const warnings: AssistantTip[] = [];
+    const emergencies: AssistantTip[] = [];
+
     for (const disk of disks) {
       if (disk.removable || disk.total_gb < 1) continue;
-      if (disk.used_percent >= floor) {
-        candidates.push({
+
+      const freeText =
+        disk.free_gb < 10
+          ? `${(disk.free_gb * 1024).toFixed(0)} MB left`
+          : `${disk.free_gb.toFixed(0)} GB left`;
+
+      if (disk.free_gb < DISK_CRITICAL_GB || disk.used_percent >= 97) {
+        emergencies.push({
+          id: `disk-critical:${disk.mount}`,
+          severity: "critical",
+          icon: "disk-critical",
+          title: `${disk.mount} almost out of space — ${freeText}`,
+        });
+      } else if (disk.used_percent >= floor) {
+        warnings.push({
           id: `disk-low:${disk.mount}`,
           severity: "warn",
           icon: "disk",
-          title: `${disk.mount} almost full — ${disk.free_gb.toFixed(0)} GB left`,
+          title: `${disk.mount} almost full — ${freeText}`,
         });
       }
     }
+
+    candidates.push(...emergencies, ...warnings);
   }
 
   // — Performance -----------------------------------------------------------
   if (settings.performance) {
-    if (memory.load_percent >= 90) {
+    if (memory.load_percent >= 95) {
+      candidates.push({
+        id: "memory-critical",
+        severity: "critical",
+        icon: "memory",
+        title: `Memory nearly full (${Math.round(memory.load_percent)}%) — save your work`,
+      });
+    } else if (memory.load_percent >= 90) {
       candidates.push({
         id: "memory-high",
         severity: "warn",
@@ -150,15 +213,39 @@ export function pickTip(
     }
   }
 
-  // — Session ---------------------------------------------------------------
+  // — Session hygiene -------------------------------------------------------
+  // Three different reasons, in decreasing urgency: a machine that has been
+  // running for days, a person who has been working too long, and a clock
+  // that says it is the middle of the night.
   if (settings.session) {
     const hours = uptime_secs / 3600;
+    const hour = new Date(now).getHours();
+
+    if (uptime_secs >= RESTART_AFTER_SECS) {
+      const days = Math.floor(uptime_secs / 86400);
+      candidates.push({
+        id: "restart",
+        severity: "info",
+        icon: "restart",
+        title: `${days} days without a restart — a reboot would help`,
+      });
+    }
+
     if (hours >= settings.sessionHours) {
       candidates.push({
         id: "session-long",
         severity: "info",
         icon: "session",
         title: `${Math.floor(hours)} h uptime — take a break?`,
+      });
+    }
+
+    if (hour >= LATE_NIGHT_FROM && hour < LATE_NIGHT_TO) {
+      candidates.push({
+        id: "late-night",
+        severity: "info",
+        icon: "late-night",
+        title: `It's ${formatClock(now)} — time to wrap up?`,
       });
     }
   }
@@ -181,4 +268,10 @@ export function formatUptime(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   if (h === 0) return `${m} min`;
   return `${h} h ${String(m).padStart(2, "0")}`;
+}
+
+/** Local wall-clock time as `1:07` — 24 h format, no locale surprises. */
+function formatClock(now: number): string {
+  const date = new Date(now);
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
 }

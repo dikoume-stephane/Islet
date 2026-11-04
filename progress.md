@@ -1,6 +1,6 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
-**Dernière mise à jour :** 2026-11-03 (par l'agent)
+**Dernière mise à jour :** 2026-11-04 (par l'agent)
 **État global :** ✅ **Phases 1 et 2 mergées (PR #1 et #2). Phase 3 en cours : les signaux système d'Is sont livrés (PR #3)**
 
 ## Tableau de bord

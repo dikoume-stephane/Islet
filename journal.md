@@ -5,6 +5,33 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-04 — Is : catalogue de conseils étendu
+
+**Fait**
+- Sept conseils ajoutés, **12 au total** (catalogue complet dans `ROADMAP.md` § 3.B.0) :
+  - `battery-low` enrichi du temps restant quand Windows le connaît (`— 40 min left`)
+  - `battery-time` : « About 1 h 40 of battery left » quand le pourcentage rassure mais l'horloge non
+  - `disk-critical` : nouveau palier rouge (< 2 Go libres ou ≥ 97 % utilisé), distinct de l'avertissement
+  - Disques : affichage en **Mo** sous 10 Go — `0 GB left` était trompeur
+  - `memory-critical` : palier rouge à 95 % (« save your work »)
+  - `restart` : rappel de redémarrage après **5 jours** d'uptime (distinct de la pause)
+  - `late-night` : conseil entre **00:00 et 04:00**, une fois par nuit
+- `AssistantTab` : descriptions des catégories Storage et Session alignées sur la couverture réelle.
+
+**Constats**
+- **Aucune modification du backend** : tout reposait déjà sur des données échantillonnées, dont `battery.seconds_left` et `disks[].removable` qui étaient présents mais inexploités. Zéro nouveau risque de compilation Windows.
+- `seconds_left` de Windows est bruité sous ~15 min : un plancher évite les estimations absurdes.
+
+**Validations**
+- **29 tests** de `pickTip()` (priorités, seuils, interrupteurs, cooldowns, formateurs) exécutés via esbuild + node, hors dépôt — aucun framework de test ajouté au projet.
+- `npm run build` ✅.
+
+**À faire ensuite**
+- `cargo check` + build NSIS côté Windows (K0j) pour valider le capteur Rust.
+- Puis J1 (onboarding) ou J2 (thèmes), au choix de l'utilisateur.
+
+---
+
 ## 2026-11-03 (2) — Is lit les signaux du PC et prévient l'utilisateur
 
 **Contexte** — Retour de l'utilisateur sur le cadrage Phase 3 : « c'est parfait pour un debut », puis une demande précise — Is doit lire les signaux de la machine et notifier : batterie, temps de mise en marche, rappel de charge, espace disque, « et bien d'autres petits tips utiles ». L'ordre proposé (J1 accueil d'abord) est donc inversé : on attaque l'assistant.

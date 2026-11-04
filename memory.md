@@ -1,7 +1,7 @@
 # 🧠 MEMORY — Contexte durable du projet Islet
 
 > Ce fichier est la **mémoire long terme** du travail : à relire en début de chaque session
-> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-03.
+> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-04.
 
 ---
 
@@ -130,6 +130,13 @@ Musique (SMTC), command center (Wi-Fi/BT/DND/volume/luminosité), statut (batter
 ### Écart réel avec Nusa (à ajouter)
 
 Paroles synchronisées (LRCLIB) · file shelf · suivi d'hydratation · to-do du jour · chronomètre/minuteur libre · indicateurs Caps Lock/langue · pilule minimale.
+
+### Is — catalogue de conseils (livré 2026-11-04)
+
+13 règles dans `src/lib/assistant.ts` (`pickTip`, fonction pure) : batterie critique/faible/autonomie/pleine, rappel de charge, disque critique/qui se remplit, mémoire critique/haute, CPU, redémarrage (5 j), session longue, tard dans la nuit (00–04 h).
+Priorité : sécurité machine → intégrité des données → confort → hygiène. **Un seul conseil à la fois**, cooldown par type (10 min → 12 h).
+Réglages : 4 catégories (`islet-assistant-{battery,storage,performance,session}`) + 4 seuils. Aucun nouveau capteur requis : `seconds_left` et `disks[].removable` étaient déjà échantillonnés.
+Tests : 29 assertions exécutées via `npx esbuild src/lib/assistant.ts --bundle ... && node` — **aucun framework de test dans le projet**.
 
 ### Skills installées
 
