@@ -139,3 +139,8 @@
 ## Bloc M — Outillage
 - [x] M1 — Skills Vercel installées dans `.claude/skills/` (5 skills)
 - [x] M2 — `skills-lock.json` généré (5 skills, hashes de contenu) → `npx skills experimental_install` restaure l'ensemble
+- [x] M3 — **Build lent / à court de RAM (2026-11-04)** : `tauri dev` mourait sur `rustc-LLVM ERROR: out of memory`
+  - `[profile.dev.package."*"] debug = false` — divise par ~2 le pic mémoire, Islet garde ses infos de debug
+  - `image` sans les features par défaut → supprime `ravif`/`rav1e` (encodeur AV1) et `exr`/`tiff`
+  - `scripts/dev.ps1` — imprime RAM / disque / toolchain, limite la parallélisation (`-Jobs`, `-Clean`)
+  - README : section « If the Rust build runs out of memory »

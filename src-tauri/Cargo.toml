@@ -68,7 +68,19 @@ window-vibrancy = "0.7.1"
 wmi = "0.14"
 tokio = { version = "1", features = ["time", "sync"] }
 webview2-com = "0.38"
-image = "0.25"
+# Only the formats Islet actually decodes: dock/tray icons and media artwork
+# (PNG, JPEG, WebP) plus the formats a user can drop in as a custom icon
+# (BMP, GIF, ICO). The default feature set additionally pulls `ravif`/`rav1e`
+# -- a full AV1 encoder, worth several minutes of compile time and a lot of
+# RAM on a cold build -- plus TIFF and EXR support that a notch never needs.
+image = { version = "0.25", default-features = false, features = [
+  "bmp",
+  "gif",
+  "ico",
+  "jpeg",
+  "png",
+  "webp",
+] }
 tauri-plugin-drag = "2.1.1"
 tauri-plugin-dialog = "2"
 rustfft = "6"
@@ -79,3 +91,20 @@ keyring = { version = "3", features = ["windows-native"] }
 rrule = "0.14"
 chrono-tz = "0.10"
 
+
+# ---------------------------------------------------------------------------
+# Build profile tuning
+# ---------------------------------------------------------------------------
+# A cold `tauri dev` build compiles ~600 crates. On Windows, the single biggest
+# memory consumer is dependency debug info: rustc has to hold the debuginfo of
+# crates like `windows` or `tauri` in memory while also running several other
+# compilation jobs, and on an 8-16 GB machine that can end with
+# `rustc-LLVM ERROR: out of memory`, which in turn leaves truncated artifacts
+# and the confusing cascade of "only metadata stub found for rlib dependency"
+# errors.
+#
+# Dropping debug info for third-party crates roughly halves peak RAM and makes
+# cold builds noticeably faster. Islet's own code keeps full debug info, so
+# breakpoints and readable stack traces in `src-tauri/src` still work.
+[profile.dev.package."*"]
+debug = false

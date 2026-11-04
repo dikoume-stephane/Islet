@@ -5,6 +5,39 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-04 (2) — `tauri dev` s'arrête en cours de route : c'était la RAM
+
+**Symptôme** — `bun run tauri dev` meurt pendant la compilation de `rustls` avec
+`only metadata stub found for rlib dependency core`, `can't find crate for rustls_pki_types`,
+puis `rustc-LLVM ERROR: out of memory`, et le terminal lui-même redémarre.
+
+**Diagnostic** — Les trois premières erreurs sont une **cascade**, pas la cause.
+Cargo compile en pipeline : un crate produit d'abord un `.rmeta`, le `.rlib` complet
+arrive ensuite. Quand rustc est tué par le système en cours de route, le `.rlib` n'arrive
+jamais et tout ce qui en dépend échoue avec ces messages trompeurs. La vraie cause est
+la dernière ligne : **la machine a manqué de mémoire**. Le terminal qui redémarre confirme
+que c'est le système entier qui a manqué, pas seulement un processus rustc.
+Le profil `dev` compile avec `debug = true`, soit de la debuginfo complète sur ~600 crates —
+c'est de très loin le premier poste de consommation mémoire.
+
+**Correctifs**
+1. `[profile.dev.package."*"] debug = false` — la debuginfo des dépendances disparaît,
+   celle du code Islet reste (points d'arrêt et traces lisibles conservés).
+2. `image` n'active plus ses features par défaut : `ravif`/`rav1e` (encodeur AV1 complet),
+   `exr` et `tiff` sortent de l'arbre. Formats conservés : png, jpeg, webp, bmp, gif, ico —
+   tout ce qu'un utilisateur peut déposer comme icône ou ce que le lecteur média renvoie.
+3. `scripts/dev.ps1` : affiche RAM totale, espace libre sur C:, cible Rust, prévient si la
+   toolchain est 32 bits (un rustc i686 plafonne à ~3 Go quoi qu'il arrive), puis lance
+   `tauri dev` avec 2 jobs (`-Jobs 4`, `-Clean`).
+4. README : section « If the Rust build runs out of memory ».
+
+**Non vérifié** — pas de cargo dans le sandbox : Cargo.toml est validé syntaxiquement
+(tomllib) mais la compilation réelle se fait sur la machine Windows. `Cargo.lock` perdra
+les entrées `rav1e`/`ravif`/`exr`/`tiff` au premier build ; c'est cargo qui le réécrit,
+aucun `--locked` dans `scripts/release.ps1`.
+
+---
+
 ## 2026-11-04 — Is : catalogue de conseils étendu
 
 **Fait**

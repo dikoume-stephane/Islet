@@ -138,6 +138,14 @@ Priorité : sécurité machine → intégrité des données → confort → hygi
 Réglages : 4 catégories (`islet-assistant-{battery,storage,performance,session}`) + 4 seuils. Aucun nouveau capteur requis : `seconds_left` et `disks[].removable` étaient déjà échantillonnés.
 Tests : 29 assertions exécutées via `npx esbuild src/lib/assistant.ts --bundle ... && node` — **aucun framework de test dans le projet**.
 
+### Build — pièges connus (2026-11-04)
+
+- `tauri dev` = profil **dev** = `debug = true` → debuginfo complète sur ~600 crates. C'est le plus gros consommateur de RAM, bien avant l'optimisation.
+- Un `rustc` tué par manque de mémoire laisse des artefacts **tronqués**. Les erreurs qui suivent (`only metadata stub found for rlib dependency core`, `can't find crate for X`) sont une **cascade**, pas la cause : il faut lire la dernière ligne (`rustc-LLVM ERROR: out of memory`).
+- Cargo compile en pipeline : un crate ne produit d'abord qu'un `.rmeta`, le `.rlib` complet arrive après. Si le build meurt entre les deux, tout ce qui en dépend échoue.
+- `[profile.dev.package."*"] debug = false` est autorisé (seuls `panic`, `lto`, `rpath` sont interdits en override).
+- `image` avec ses features par défaut tire `ravif` → `rav1e` (encodeur AV1 complet) : plusieurs minutes de compilation et beaucoup de RAM pour un format que l'app n'utilise pas.
+
 ### Skills installées
 
 `.claude/skills/` (versionné, 644 Ko) — `web-design-guidelines`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-view-transitions`, `writing-guidelines`.
