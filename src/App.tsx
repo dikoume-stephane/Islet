@@ -16,6 +16,7 @@ import { useCaldav } from "./hooks/useCaldav";
 import { useSystemSignals } from "./hooks/useSystemSignals";
 import { useAssistant } from "./hooks/useAssistant";
 import { AssistantTipView, SEVERITY_COLOR } from "./components/AssistantTip";
+import { tipPlainText } from "./lib/assistant";
 import { NotchCalendar } from "./components/NotchCalendar";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
@@ -1439,7 +1440,7 @@ function App() {
       case "weather":
         if (!settingsWeatherEnabled || temperature === null) return null;
         return (
-          <div className="passive-feature" key="weather" data-tooltip={cityName ? `${weatherCondition} — ${cityName}` : weatherCondition}>
+          <div className="passive-feature" key="weather" data-tooltip={cityName ? `${weatherCondition} · ${cityName}` : weatherCondition}>
             <WeatherIcon size={12} strokeWidth={2.2} />
             <span className="label">{temperature}°{tempUnit === "fahrenheit" ? "F" : "C"}</span>
           </div>
@@ -1583,7 +1584,7 @@ function App() {
           // message that was missed, without reopening anything.
           title={
             isSignalling && assistantUnread
-              ? t(assistantUnread.message.key, assistantUnread.message.params)
+              ? tipPlainText(assistantUnread.message, t)
               : undefined
           }
           onMouseEnter={() => setIsNotchHovered(true)}

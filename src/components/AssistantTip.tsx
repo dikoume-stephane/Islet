@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import type { CSSProperties } from "react";
-import type { AssistantTip, TipSeverity } from "../lib/assistant";
+import { tipPlainText, tipText, type AssistantTip, type TipSeverity } from "../lib/assistant";
 import { useT } from "../i18n";
 
 /**
@@ -34,7 +34,10 @@ export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
   // Translated at render, not at pick time: switching language while a tip is
   // on screen re-reads it in the new language instead of leaving a relic.
   const t = useT();
-  const message = t(tip.message.key, tip.message.params);
+  // The tip is two parts, not one sentence: the fact, then the next step. The
+  // view decides the weight — not the translation, which only supplies words.
+  const { title, detail } = tipText(tip.message, t);
+  const plain = tipPlainText(tip.message, t);
 
   return (
     <motion.div
@@ -60,8 +63,9 @@ export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
         <span className="assistant-tip-dot" />
       </span>
 
-      <span className="assistant-tip-message" title={message}>
-        {message}
+      <span className="assistant-tip-message" title={plain}>
+        <span className="assistant-tip-title">{title}</span>
+        {detail && <span className="assistant-tip-detail">{detail}</span>}
       </span>
 
       <button

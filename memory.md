@@ -205,6 +205,38 @@ Deux schémas utiles, rencontrés en migrant :
 Décisions DÉC-12 → DÉC-15 dans `ROADMAP.md` § 3.G : pas de bibliothèque (un `t()` maison + 2 dictionnaires plats), langue par défaut = celle de Windows, onglet Général → Langue, appliqué sans redémarrage.
 ⚠️ Le notch est étroit (290 px) : toute traduction doit être vérifiée là, pas seulement dans les réglages.
 
+### Typographie de l'interface (règle utilisateur, 2026-11-04)
+
+Décidé par l'utilisateur après revue de l'interface, et inscrit dans `AGENTS.md` :
+
+- **Aucun tiret cadratin (`—`)** dans le texte affiché, dans aucune des deux langues.
+  Remplacements retenus : deux lignes, un point, un deux-points, ou une parenthèse
+  selon le cas. Un test parcourt `en.ts` et `fr.ts` et échoue si un `—` réapparaît.
+- **`…` et non `...`** pour les points de suspension (états de chargement).
+- **Signe moins `−` (U+2212)** pour les boutons de décrémentation ; le trait d'union
+  et le cadratin y étaient typographiquement faux.
+- Le tiret **demi-cadratin `–` reste** uniquement dans les plages (« 09:00 – 10:00 »,
+  « 4 – 11 novembre ») : autre glyphe, autre fonction.
+
+### Conseils d'Is — composition en deux parties (2026-11-04)
+
+`TipMessage` ne porte plus une clé unique mais **`titleKey` + `detailKey?`**, avec les
+mêmes `params`. `tipText()` renvoie les deux moitiés, `tipPlainText()` les joint pour
+une info-bulle ou un lecteur d'écran.
+
+Pourquoi deux lignes et non une : le notch fait 290 px, partagés avec la mascotte
+(20 px) et la croix (18 px), soit **~200 px de texte, environ 33 caractères à 12 px**.
+Une phrase « fait · action » y était tronquée juste avant le mot utile. D'où :
+
+| Élément | Style | Rôle |
+|---|---|---|
+| `.assistant-tip-title` | 12 px, **700**, blanc | le fait, jamais coupé |
+| `.assistant-tip-detail` | 11 px, 500, blanc 62 % | l'action, 8:1 de contraste |
+
+L'ancienne règle « ≤ 46 caractères sur une ligne » était fausse : elle autorisait des
+lignes que le rendu coupait. Le test mesure maintenant **ligne par ligne**
+(titre ≤ 28, détail ≤ 32).
+
 ### Tests
 
 `bun run test:assistant` → bundle esbuild puis `node --test`. **40 tests, zéro dépendance ajoutée** (esbuild est fourni par Vite).

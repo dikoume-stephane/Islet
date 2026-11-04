@@ -1792,7 +1792,7 @@ function AddAppPopup({
             <div className="popup-empty">
               {debouncedSearch.trim()
                 ? "No results"
-                : "Running apps show up here — search to pin anything else"}
+                : t("dock.win.empty")}
             </div>
           )}
         </div>

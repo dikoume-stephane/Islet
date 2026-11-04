@@ -35,8 +35,39 @@ export type TipIcon =
  * language was active when it was picked.
  */
 export interface TipMessage {
-  key: MessageKey;
+  /** The fact: what is happening. Rendered first and heaviest. */
+  titleKey: MessageKey;
+  /** The next step. Rendered lighter, after the separator. Absent when the
+   *  fact already says everything there is to do. */
+  detailKey?: MessageKey;
   params: MessageParams;
+}
+
+/**
+ * Split a tip into its two halves.
+ *
+ * Kept as data (two keys) rather than one string with a dash in it: the view
+ * decides the emphasis, so a translator can never accidentally break the
+ * hierarchy, and no locale has to inherit a punctuation convention it would
+ * not use.
+ */
+export function tipText(
+  message: TipMessage,
+  translate: (key: MessageKey, params?: MessageParams) => string,
+): { title: string; detail: string } {
+  return {
+    title: translate(message.titleKey, message.params),
+    detail: message.detailKey ? translate(message.detailKey, message.params) : "",
+  };
+}
+
+/** The two halves on one line, for a tooltip or a screen reader. */
+export function tipPlainText(
+  message: TipMessage,
+  translate: (key: MessageKey, params?: MessageParams) => string,
+): string {
+  const { title, detail } = tipText(message, translate);
+  return detail ? `${title} · ${detail}` : title;
 }
 
 export interface AssistantTip {
@@ -159,7 +190,11 @@ export function pickTip(
         id: "battery-critical",
         severity: "critical",
         icon: "battery-critical",
-        message: { key: "tip.batteryCritical", params: { percent: battery.percent } },
+        message: {
+          titleKey: "tip.batteryCritical.title",
+          detailKey: "tip.batteryCritical.detail",
+          params: { percent: battery.percent },
+        },
       });
     } else if (battery.percent <= settings.lowBattery) {
       candidates.push({
@@ -168,10 +203,15 @@ export function pickTip(
         icon: "battery-low",
         message: leftIsPlausible
           ? {
-              key: "tip.batteryLowWithTime",
+              titleKey: "tip.batteryLowWithTime.title",
+              detailKey: "tip.batteryLowWithTime.detail",
               params: { percent: battery.percent, time: leftText },
             }
-          : { key: "tip.batteryLow", params: { percent: battery.percent } },
+          : {
+              titleKey: "tip.batteryLow.title",
+              detailKey: "tip.batteryLow.detail",
+              params: { percent: battery.percent },
+            },
       });
     } else if (leftIsPlausible && left <= BATTERY_TIME_NOTICE_SECS) {
       // Still comfortably above the low threshold, but the clock is running:
@@ -180,7 +220,7 @@ export function pickTip(
         id: "battery-time",
         severity: "info",
         icon: "battery-time",
-        message: { key: "tip.batteryTime", params: { time: leftText } },
+        message: { titleKey: "tip.batteryTime.title", params: { time: leftText } },
       });
     }
   }
@@ -191,14 +231,22 @@ export function pickTip(
         id: "battery-full",
         severity: "info",
         icon: "battery-full",
-        message: { key: "tip.batteryFull", params: {} },
+        message: {
+          titleKey: "tip.batteryFull.title",
+          detailKey: "tip.batteryFull.detail",
+          params: {},
+        },
       });
     } else if (battery.percent >= settings.chargeLimit) {
       candidates.push({
         id: "charge-reminder",
         severity: "info",
         icon: "charge",
-        message: { key: "tip.chargeReminder", params: { percent: battery.percent } },
+        message: {
+          titleKey: "tip.chargeReminder.title",
+          detailKey: "tip.chargeReminder.detail",
+          params: { percent: battery.percent },
+        },
       });
     }
   }
@@ -226,14 +274,22 @@ export function pickTip(
           id: `disk-critical:${disk.mount}`,
           severity: "critical",
           icon: "disk-critical",
-          message: { key: "tip.diskCritical", params: { mount: disk.mount, free: freeText } },
+          message: {
+            titleKey: "tip.diskCritical.title",
+            detailKey: "tip.diskCritical.detail",
+            params: { mount: disk.mount, free: freeText },
+          },
         });
       } else if (disk.used_percent >= floor) {
         warnings.push({
           id: `disk-low:${disk.mount}`,
           severity: "warn",
           icon: "disk",
-          message: { key: "tip.diskLow", params: { mount: disk.mount, free: freeText } },
+          message: {
+            titleKey: "tip.diskLow.title",
+            detailKey: "tip.diskLow.detail",
+            params: { mount: disk.mount, free: freeText },
+          },
         });
       }
     }
@@ -248,14 +304,22 @@ export function pickTip(
         id: "memory-critical",
         severity: "critical",
         icon: "memory",
-        message: { key: "tip.memoryCritical", params: { percent: Math.round(memory.load_percent) } },
+        message: {
+          titleKey: "tip.memoryCritical.title",
+          detailKey: "tip.memoryCritical.detail",
+          params: { percent: Math.round(memory.load_percent) },
+        },
       });
     } else if (memory.load_percent >= 90) {
       candidates.push({
         id: "memory-high",
         severity: "warn",
         icon: "memory",
-        message: { key: "tip.memoryHigh", params: { percent: Math.round(memory.load_percent) } },
+        message: {
+          titleKey: "tip.memoryHigh.title",
+          detailKey: "tip.memoryHigh.detail",
+          params: { percent: Math.round(memory.load_percent) },
+        },
       });
     }
     if (cpu_percent >= 90) {
@@ -263,7 +327,11 @@ export function pickTip(
         id: "cpu-high",
         severity: "warn",
         icon: "cpu",
-        message: { key: "tip.cpuHigh", params: { percent: cpu_percent } },
+        message: {
+          titleKey: "tip.cpuHigh.title",
+          detailKey: "tip.cpuHigh.detail",
+          params: { percent: cpu_percent },
+        },
       });
     }
   }
@@ -282,7 +350,11 @@ export function pickTip(
         id: "restart",
         severity: "info",
         icon: "restart",
-        message: { key: "tip.restart", params: { count: days } },
+        message: {
+          titleKey: "tip.restart.title",
+          detailKey: "tip.restart.detail",
+          params: { count: days },
+        },
       });
     }
 
@@ -291,7 +363,11 @@ export function pickTip(
         id: "session-long",
         severity: "info",
         icon: "session",
-        message: { key: "tip.sessionLong", params: { hours: Math.floor(hours) } },
+        message: {
+          titleKey: "tip.sessionLong.title",
+          detailKey: "tip.sessionLong.detail",
+          params: { hours: Math.floor(hours) },
+        },
       });
     }
 
@@ -300,7 +376,11 @@ export function pickTip(
         id: "late-night",
         severity: "info",
         icon: "late-night",
-        message: { key: "tip.lateNight", params: { time: formatClock(now) } },
+        message: {
+          titleKey: "tip.lateNight.title",
+          detailKey: "tip.lateNight.detail",
+          params: { time: formatClock(now) },
+        },
       });
     }
   }

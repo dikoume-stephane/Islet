@@ -18,24 +18,42 @@ import type { en } from "./en";
  *    line, and a comma reads as a list rather than a cause.
  */
 export const fr: Record<keyof typeof en, string | { one: string; other: string }> = {
-  // — Is : conseils affichés dans le notch --------------------------------
-  "tip.batteryCritical": "Batterie à {{percent}} % — branchez maintenant",
-  "tip.batteryLow": "Batterie à {{percent}} % — à recharger",
-  "tip.batteryLowWithTime": "Batterie {{percent}} % — {{time}}, à recharger",
-  "tip.batteryTime": "Environ {{time}} d'autonomie",
-  "tip.batteryFull": "Batterie pleine — vous pouvez débrancher",
-  "tip.chargeReminder": "Chargée à {{percent}} % — vous pouvez débrancher",
-  "tip.diskCritical": "{{mount}} est presque plein — {{free}} restants",
-  "tip.diskLow": "{{mount}} se remplit — {{free}} restants",
-  "tip.memoryCritical": "Mémoire presque pleine ({{percent}} %) — sauvegardez",
-  "tip.memoryHigh": "Mémoire à {{percent}} % — fermer une application ?",
-  "tip.cpuHigh": "Processeur à {{percent}} % — quelque chose tourne",
-  "tip.restart": {
-    one: "{{count}} jour sans redémarrer — un redémarrage ?",
-    other: "{{count}} jours sans redémarrer — un redémarrage ?",
+  // — Conseils d'Is, affichés dans le notch --------------------------------
+  // Deux clés par conseil : le fait, puis l'action. La vue met le premier en
+  // gras et le second en retrait — la hiérarchie appartient à la mise en page,
+  // pas à la traduction. Aucun tiret cadratin : le séparateur est un détail
+  // typographique que la vue possède.
+  "tip.batteryCritical.title": "Batterie à {{percent}} %",
+  "tip.batteryCritical.detail": "branchez maintenant",
+  "tip.batteryLow.title": "Batterie à {{percent}} %",
+  "tip.batteryLow.detail": "à recharger",
+  "tip.batteryLowWithTime.title": "Batterie à {{percent}} %",
+  "tip.batteryLowWithTime.detail": "recharger dans {{time}}",
+  "tip.batteryTime.title": "Environ {{time}} d'autonomie",
+  "tip.batteryFull.title": "Batterie pleine",
+  "tip.batteryFull.detail": "vous pouvez débrancher",
+  "tip.chargeReminder.title": "Chargée à {{percent}} %",
+  "tip.chargeReminder.detail": "vous pouvez débrancher",
+  "tip.diskCritical.title": "{{mount}} est presque plein",
+  "tip.diskCritical.detail": "{{free}} restants",
+  "tip.diskLow.title": "{{mount}} se remplit",
+  "tip.diskLow.detail": "{{free}} restants",
+  "tip.memoryCritical.title": "Mémoire à {{percent}} %",
+  "tip.memoryCritical.detail": "sauvegardez votre travail",
+  "tip.memoryHigh.title": "Mémoire à {{percent}} %",
+  "tip.memoryHigh.detail": "fermer une application ?",
+  "tip.cpuHigh.title": "Processeur à {{percent}} %",
+  "tip.cpuHigh.detail": "quelque chose tourne",
+  "tip.restart.title": {
+    one: "{{count}} jour sans redémarrer",
+    other: "{{count}} jours sans redémarrer",
   },
-  "tip.sessionLong": "{{hours}} h de session — une pause ?",
-  "tip.lateNight": "Il est {{time}} — penser à s'arrêter ?",
+  "tip.restart.detail": "un redémarrage ?",
+  "tip.sessionLong.title": "{{hours}} h de session",
+  "tip.sessionLong.detail": "une pause ?",
+  "tip.lateNight.title": "Il est {{time}}",
+  "tip.lateNight.detail": "penser à s'arrêter ?",
+
   "tip.dismiss": "Fermer le conseil",
 
   // — Le notch -------------------------------------------------------------
@@ -45,7 +63,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "notch.onBattery": "Sur batterie",
 
   // — Interface partagée ---------------------------------------------------
-  "common.none": "—",
+  "common.none": "…",
   "common.charing": "en charge",
   "common.now": "Actuel : {{value}}",
 
@@ -74,7 +92,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "settings.general.lowBattery.desc": "Se déclenche à {{percent}} %",
   "settings.general.app": "Application",
   "settings.general.replay": "Revoir l'accueil",
-  "settings.general.replay.desc": "Refaire la configuration initiale — rien n'est réinitialisé",
+  "settings.general.replay.desc": "Refaire la configuration initiale. Rien n'est réinitialisé",
   "settings.general.restart": "Redémarrer Islet",
   "settings.general.restart.desc": "Réinitialiser tous les composants",
   "settings.general.quit": "Quitter Islet",
@@ -89,7 +107,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "settings.language.en": "English",
 
   // — Réglages : Is --------------------------------------------------------
-  "settings.assistant.group": "{{name}} — Assistant",
+  "settings.assistant.group": "{{name}} · Assistant",
   "settings.assistant.name": "Nom",
   "settings.assistant.name.desc": "Le nom que le notch donne à votre assistant",
   "settings.assistant.enable": "Activer {{name}}",
@@ -130,7 +148,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   // — Accueil --------------------------------------------------------------
   "welcome.title": "Bienvenue dans Islet",
   "welcome.lead":
-    "Un notch et un dock, en haut et en bas de votre écran. Deux minutes pour l'installer à votre façon — et rien n'est définitif.",
+    "Un notch et un dock, en haut et en bas de votre écran. Deux minutes pour l'installer à votre façon. Rien n'est définitif.",
   "welcome.name": "Comment dois-je m'appeler ?",
   "welcome.nameHint": "Le petit assistant qui lit votre PC et vous en parle.",
   "welcome.nameAria": "Nom de l'assistant",
@@ -170,13 +188,13 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
     "Batterie, disques, mémoire, processeur, durée de session, vos fenêtres, vos réglages, ce que Is vous dit. Rien n'est envoyé nulle part, et il n'y a pas de compte.",
   "welcome.privacy.weather": "La météo",
   "welcome.privacy.weatherBody":
-    "interroge un service public de prévisions pour une ville — son nom, rien d'autre. Inactive tant que vous n'avez pas choisi de ville.",
+    "interroge un service public de prévisions pour une ville : son nom, rien d'autre. Inactive tant que vous n'avez pas choisi de ville.",
   "welcome.privacy.calendar": "La synchronisation d'agenda",
   "welcome.privacy.calendarBody":
     "ne parle qu'au serveur CalDAV que vous configurez vous-même. Désactivée par défaut.",
   "welcome.updates": "Vérifier les mises à jour automatiquement",
   "welcome.updatesHint":
-    "Contacte GitHub au démarrage et télécharge les nouvelles versions. L'installation reste manuelle — la question vous est toujours posée.",
+    "Contacte GitHub au démarrage et télécharge les nouvelles versions. L'installation reste manuelle : la question vous est toujours posée.",
 
   "welcome.done": "Tout est prêt",
   "welcome.doneLead":
@@ -274,13 +292,13 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "about.reset": "Réinitialiser",
   "about.reset.desc": "Rétablir tous les réglages par défaut",
   "about.reset.confirm": "Cliquer encore pour confirmer",
-  "about.reset.confirmDesc": "Efface tous les réglages — irréversible",
+  "about.reset.confirmDesc": "Efface tous les réglages. Action irréversible.",
   "about.reset.working": "Réinitialisation…",
   "about.diag": "Copier le diagnostic",
   "about.diag.desc": "Infos système et journal récent, à coller dans un rapport de bug",
   "about.diag.working": "Collecte…",
   "about.diag.copied": "Copié dans le presse-papiers !",
-  "about.diag.error": "Copie impossible — ouvrir le dossier des journaux",
+  "about.diag.error": "Copie impossible : ouvrir le dossier des journaux",
   "about.diagnostics": "Diagnostic",
   "about.logs": "Ouvrir le dossier des journaux",
   "about.logs.desc": "islet.log et diagnostics.txt",
@@ -310,7 +328,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "common.monitor.desc": "Quel écran affiche {{target}}",
   "common.monitor.primaryTag": "(principal)",
   "common.monitor.primaryDesc": "Écran principal",
-  "common.monitor.behavior": "Comportement — {{name}}",
+  "common.monitor.behavior": "Comportement ({{name}})",
   "common.perMonitor": "Comportement par écran",
   "common.perMonitor.desc": "Régler un comportement différent pour chaque écran",
 
@@ -538,6 +556,7 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "dock.win.clearIcons": "Vider le cache d'icônes",
   "dock.win.quit": "Quitter Islet",
   "dock.win.searchApps": "Rechercher une application…",
+  "dock.win.empty": "Les applications ouvertes apparaissent ici. Cherchez pour épingler",
   "overlay.mixerTitle": "Mélangeur de volume",
   "wc.minimize": "Réduire",
   "wc.close": "Fermer",

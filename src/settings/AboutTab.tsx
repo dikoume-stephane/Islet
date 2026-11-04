@@ -176,7 +176,7 @@ export function AboutTab({
       <div className="about-header">
         <img src="/islet.png" className="about-logo" alt="Islet" />
         <h1 className="about-title">Islet</h1>
-        <p className="about-version">{t("about.version", { version: appVersion || "—" })}</p>
+        <p className="about-version">{t("about.version", { version: appVersion || "…" })}</p>
         <button
           className={`update-pill update-pill--${updateStatus || "idle"}`}
           disabled={pillBusy}

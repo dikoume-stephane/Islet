@@ -147,8 +147,9 @@ export function AppearanceTab({
               disabled={scale <= 0.8}
               className="scale-adjust-btn"
               title={t("appearance.scale.decrease")}
+              aria-label={t("appearance.scale.decrease")}
             >
-              —
+              −
             </button>
             <span className="scale-display-value">{Math.round(scale * 100)}%</span>
             <button
@@ -156,6 +157,7 @@ export function AppearanceTab({
               disabled={scale >= 1.3}
               className="scale-adjust-btn"
               title={t("appearance.scale.increase")}
+              aria-label={t("appearance.scale.increase")}
             >
               +
             </button>

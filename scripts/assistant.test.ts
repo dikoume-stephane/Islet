@@ -14,11 +14,16 @@ import assert from "node:assert/strict";
 import {
   pickTip,
   formatUptime,
+  tipText,
+  tipPlainText,
   TIP_CATEGORY,
   type AssistantSettings,
   type TipIcon,
+  type TipMessage,
 } from "../src/lib/assistant.ts";
 import { translate, type Language } from "../src/i18n/index.ts";
+import { en } from "../src/i18n/en.ts";
+import { fr } from "../src/i18n/fr.ts";
 
 // — Fixtures ---------------------------------------------------------------
 
@@ -69,9 +74,20 @@ const disk = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-/** Render a tip the way the view does: key + params through the dictionary. */
-const render = (tip: { message: { key: Parameters<typeof translate>[1]; params: Record<string, string | number> } } | null, lang: Language = "en") =>
-  tip ? translate(lang, tip.message.key, tip.message.params) : "";
+/**
+ * Render a tip the way the view does: two keys through the dictionary, joined
+ * by the separator the component draws. The join is repeated here on purpose —
+ * if the view ever stops adding the separator, this test keeps measuring the
+ * line the user actually sees.
+ */
+const render = (tip: { message: TipMessage } | null, lang: Language = "en") =>
+  tip
+    ? tipPlainText(tip.message, (key, params) => translate(lang, key, params))
+    : "";
+
+/** The two halves, for tests that care about the emphasis split. */
+const parts = (message: TipMessage, lang: Language = "en") =>
+  tipText(message, (key, params) => translate(lang, key, params));
 
 const id = (s: ReturnType<typeof signals>, now = NOON) =>
   pickTip(s, settings, {}, { now })?.id ?? null;
@@ -284,34 +300,29 @@ test("les 4 catégories sont représentées", () => {
 test("une clé absente d'une langue retombe sur l'anglais, jamais sur du vide", () => {
   // Garde-fou : le typage empêche déjà d'avoir une clé manquante, ce test
   // couvre le cas où un dictionnaire serait chargé partiellement.
-  assert.ok(translate("fr", "tip.batteryFull").length > 0);
-  assert.ok(translate("en", "tip.batteryFull").length > 0);
+  assert.ok(translate("fr", "tip.batteryFull.title").length > 0);
+  assert.ok(translate("en", "tip.batteryFull.title").length > 0);
 });
 
 test("les deux langues produisent un texte différent", () => {
-  assert.notEqual(translate("en", "tip.batteryFull"), translate("fr", "tip.batteryFull"));
+  assert.notEqual(translate("en", "tip.batteryFull.title"), translate("fr", "tip.batteryFull.title"));
 });
 
 test("interpolation : les valeurs remplacent les {{placeholders}}", () => {
-  assert.equal(
-    translate("en", "tip.batteryCritical", { percent: 8 }),
-    "Battery at 8% — plug in now",
-  );
-  assert.equal(
-    translate("fr", "tip.batteryCritical", { percent: 8 }),
-    "Batterie à 8 % — branchez maintenant",
-  );
+  assert.equal(translate("en", "tip.batteryCritical.title", { percent: 8 }), "Battery at 8%");
+  assert.equal(translate("fr", "tip.batteryCritical.title", { percent: 8 }), "Batterie à 8 %");
+  assert.equal(translate("fr", "tip.batteryCritical.detail"), "branchez maintenant");
 });
 
 test("pluriel : 1 jour et 6 jours dans les deux langues", () => {
-  assert.match(translate("en", "tip.restart", { count: 1 }), /^1 day without/);
-  assert.match(translate("en", "tip.restart", { count: 6 }), /^6 days without/);
-  assert.match(translate("fr", "tip.restart", { count: 1 }), /^1 jour sans/);
-  assert.match(translate("fr", "tip.restart", { count: 6 }), /^6 jours sans/);
+  assert.match(translate("en", "tip.restart.title", { count: 1 }), /^1 day without/);
+  assert.match(translate("en", "tip.restart.title", { count: 6 }), /^6 days without/);
+  assert.match(translate("fr", "tip.restart.title", { count: 1 }), /^1 jour sans/);
+  assert.match(translate("fr", "tip.restart.title", { count: 6 }), /^6 jours sans/);
 });
 
 test("aucun {{placeholder}} ne survit quand tous les paramètres sont fournis", () => {
-  const key = "tip.diskCritical";
+  const key = "tip.diskCritical.title";
   const out = translate("fr", key, { mount: "C:", free: "350 MB" });
   assert.doesNotMatch(out, /\{\{/);
   assert.match(out, /C:/);
@@ -319,40 +330,124 @@ test("aucun {{placeholder}} ne survit quand tous les paramètres sont fournis", 
 
 test("un paramètre manquant reste visible plutôt que de disparaître", () => {
   // Choix assumé : un trou silencieux se découvre chez l'utilisateur.
-  assert.match(translate("en", "tip.batteryCritical", {}), /\{\{percent\}\}/);
+  assert.match(translate("en", "tip.batteryCritical.title", {}), /\{\{percent\}\}/);
 });
 
-test("les 14 clés de conseil existent dans les deux langues", () => {
-  // Paramètres réalistes : sans eux, les {{placeholders}} comptent dans la
-  // longueur et le test mesure du vide.
-  const cases: [string, Record<string, string | number>][] = [
-    ["tip.batteryCritical", { percent: 8 }],
-    ["tip.batteryLow", { percent: 18 }],
-    ["tip.batteryLowWithTime", { percent: 18, time: "40 min" }],
-    ["tip.batteryTime", { time: "1 h 40" }],
-    ["tip.batteryFull", {}],
-    ["tip.chargeReminder", { percent: 85 }],
-    ["tip.diskCritical", { mount: "C:", free: "350 MB" }],
-    ["tip.diskLow", { mount: "C:", free: "9 GB" }],
-    ["tip.memoryCritical", { percent: 96 }],
-    ["tip.memoryHigh", { percent: 92 }],
-    ["tip.cpuHigh", { percent: 95 }],
-    ["tip.restart", { count: 6 }],
-    ["tip.sessionLong", { hours: 9 }],
-    ["tip.lateNight", { time: "2:30" }],
-  ];
+/**
+ * Le catalogue complet, tel que `pickTip` le construit : titre + détail.
+ * `detail: null` = conseil d'un seul tenant (le fait suffit à l'action).
+ */
+const CATALOGUE: [string, Record<string, string | number>, string | null][] = [
+  ["tip.batteryCritical", { percent: 8 }, "tip.batteryCritical.detail"],
+  ["tip.batteryLow", { percent: 18 }, "tip.batteryLow.detail"],
+  ["tip.batteryLowWithTime", { percent: 18, time: "40 min" }, "tip.batteryLowWithTime.detail"],
+  ["tip.batteryTime", { time: "1 h 40" }, null],
+  ["tip.batteryFull", {}, "tip.batteryFull.detail"],
+  ["tip.chargeReminder", { percent: 85 }, "tip.chargeReminder.detail"],
+  ["tip.diskCritical", { mount: "C:", free: "350 MB" }, "tip.diskCritical.detail"],
+  ["tip.diskLow", { mount: "C:", free: "9 GB" }, "tip.diskLow.detail"],
+  ["tip.memoryCritical", { percent: 96 }, "tip.memoryCritical.detail"],
+  ["tip.memoryHigh", { percent: 92 }, "tip.memoryHigh.detail"],
+  ["tip.cpuHigh", { percent: 95 }, "tip.cpuHigh.detail"],
+  ["tip.restart", { count: 6 }, "tip.restart.detail"],
+  ["tip.sessionLong", { hours: 9 }, "tip.sessionLong.detail"],
+  ["tip.lateNight", { time: "2:30" }, "tip.lateNight.detail"],
+];
 
-  for (const [key, params] of cases) {
+test("les 14 conseils existent dans les deux langues", () => {
+  for (const [titleKey, params, detailKey] of CATALOGUE) {
     for (const lang of ["en", "fr"] as const) {
-      const out = translate(lang, key, params);
-      assert.ok(out.length > 0 && out !== key, `${lang} manque ${key}`);
-      assert.doesNotMatch(out, /\{\{/, `${key} (${lang}) laisse un placeholder vide`);
-      // Le notch fait 290 px : au-delà de ~46 caractères la ligne se tronque.
-      // Ce test a déjà attrapé deux traductions trop longues.
-      assert.ok(
-        out.length <= 46,
-        `${key} (${lang}) déborde du notch : ${out.length} car. — « ${out} »`,
-      );
+      const title = translate(lang, `${titleKey}.title` as Parameters<typeof translate>[1], params);
+      assert.ok(title.length > 0 && !title.endsWith(".title"), `${lang} manque ${titleKey}.title`);
+      assert.doesNotMatch(title, /\{\{/, `${titleKey}.title (${lang}) laisse un placeholder vide`);
+      if (detailKey) {
+        const detail = translate(lang, detailKey as Parameters<typeof translate>[1], params);
+        assert.ok(detail.length > 0 && !detail.endsWith(".detail"), `${lang} manque ${detailKey}`);
+        assert.doesNotMatch(detail, /\{\{/, `${detailKey} (${lang}) laisse un placeholder vide`);
+      }
     }
   }
+});
+
+/**
+ * Le notch mesure 290 px, partagés avec la mascotte et la croix : il reste
+ * ~200 px de texte, soit ~33 caractères à 12 px. Mesure **ligne par ligne**,
+ * puisque c'est ainsi que la vue compose : un titre coupé cacherait le fait,
+ * un détail coupé cacherait l'action.
+ */
+test("chaque ligne de conseil tient dans le notch", () => {
+  for (const [titleKey, params, detailKey] of CATALOGUE) {
+    for (const lang of ["en", "fr"] as const) {
+      const { title, detail } = tipText(
+        {
+          titleKey: `${titleKey}.title` as Parameters<typeof translate>[1],
+          detailKey: detailKey as Parameters<typeof translate>[1] | undefined,
+          params,
+        },
+        (key, p) => translate(lang, key, p),
+      );
+      assert.ok(
+        title.length <= 28,
+        `${titleKey}.title (${lang}) déborde : ${title.length} car. « ${title} »`,
+      );
+      if (detailKey) {
+        assert.ok(
+          detail.length <= 32,
+          `${detailKey} (${lang}) déborde : ${detail.length} car. « ${detail} »`,
+        );
+      }
+    }
+  }
+});
+
+/**
+ * Le titre porte le fait : il ne doit jamais reculer. Un titre vide, ou un
+ * détail vide alors qu'il est déclaré, laisserait une ligne fantôme.
+ */
+test("titre et détail ne sont jamais vides", () => {
+  for (const [titleKey, params, detailKey] of CATALOGUE) {
+    for (const lang of ["en", "fr"] as const) {
+      const { title, detail } = tipText(
+        {
+          titleKey: `${titleKey}.title` as Parameters<typeof translate>[1],
+          detailKey: detailKey as Parameters<typeof translate>[1] | undefined,
+          params,
+        },
+        (key, p) => translate(lang, key, p),
+      );
+      assert.ok(title.trim().length > 0, `${titleKey} (${lang}) : titre vide`);
+      if (detailKey) assert.ok(detail.trim().length > 0, `${titleKey} (${lang}) : détail vide`);
+    }
+  }
+});
+
+/**
+ * Règle produit : le tiret cadratin n'apparaît nulle part dans l'interface.
+ * Il sert de séparateur dans la presse, pas dans une ligne de 290 px, et il
+ * tombe au mauvais endroit dès qu'une traduction s'allonge.
+ */
+test("aucun tiret cadratin dans les deux dictionnaires", () => {
+  const offenders: string[] = [];
+  for (const [lang, dict] of [["en", en], ["fr", fr]] as const) {
+    for (const [key, value] of Object.entries(dict)) {
+      const text = typeof value === "string" ? value : `${value.one} ${value.other}`;
+      if (text.includes("\u2014")) offenders.push(`${lang}/${key}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `tirets cadratins trouvés : ${offenders.join(", ")}`);
+});
+
+/**
+ * Les points de suspension sont un caractère, pas trois points. `...` se
+ * comporte mal en fin de ligne et n'est pas ce que le système rend.
+ */
+test("les points de suspension sont un seul caractère", () => {
+  const offenders: string[] = [];
+  for (const [lang, dict] of [["en", en], ["fr", fr]] as const) {
+    for (const [key, value] of Object.entries(dict)) {
+      const text = typeof value === "string" ? value : `${value.one} ${value.other}`;
+      if (text.includes("...")) offenders.push(`${lang}/${key}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `« ... » trouvés : ${offenders.join(", ")}`);
 });

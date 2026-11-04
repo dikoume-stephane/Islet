@@ -5,6 +5,43 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-04 (4) — Plus de tiret cadratin, et des conseils composés
+
+**Demande** — « n'utilise jamais de tiret cadratin dans l'interface » et « mets l'une
+des parties du conseil en marquage ».
+
+**Fait**
+- **43 tirets cadratins retirés** des deux dictionnaires, de `App.tsx` (info-bulle
+  météo), `Overlay.tsx` (titre de session), `Dock.tsx` (état vide) et `AboutTab`
+  (version inconnue). Les remplacements ne sont pas mécaniques : chaque phrase a été
+  refaite avec un point, un deux-points ou une parenthèse selon ce qu'elle raconte.
+  Un test échoue désormais si un `—` revient dans l'un des deux dictionnaires.
+- **`...` → `…`** : « Loading… », « Checking… », et les menus du dock. Le français
+  le faisait déjà ; l'anglais avait gardé trois points.
+- **Signe moins `−`** (U+2212) sur les boutons de zoom de l'Apparence, qui affichaient
+  un cadratin. Ajout des `aria-label` manquants sur ces deux boutons.
+- **Conseils d'Is en deux parties** : `TipMessage` porte `titleKey` + `detailKey`
+  au lieu d'une clé unique. Le titre (le fait) est en gras blanc, le détail (l'action)
+  en 11 px à 62 % de blanc.
+
+**Constat — la règle des 46 caractères était fausse**
+Le notch fait 290 px, dont 90 px partent en marges, mascotte, croix et gouttières :
+il reste **~200 px**, soit ~33 caractères à 12 px. Les conseils de 40 à 43 caractères
+étaient donc déjà tronqués, et le test les validait. Mesure refaite : la composition
+passe sur **deux lignes** (12 px gras / 11 px léger), ce qui tient dans la hauteur de
+36 px et laisse le titre intact quoi qu'il arrive.
+
+**Pourquoi ne pas avoir gardé une seule ligne** — à 200 px, « Mémoire à 96 % ·
+sauvegardez votre travail » (42 car.) se coupait avant « travail ». Réduire la copie
+à 33 caractères aurait donné des conseils robotiques. Deux lignes coûtent 1 px de
+gouttière et règlent le problème définitivement.
+
+**À faire ensuite**
+- Relire le rendu réel du notch sur Windows (le sandbox n'a pas de navigateur).
+- La suite de la Phase 3 : J2 Matière, puis J4, J3, J5, J6, J7.
+
+---
+
 ## 2026-11-04 (3) — J8 terminé : l'interface entière parle français et anglais
 
 **Fait**

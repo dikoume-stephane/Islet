@@ -2402,48 +2402,57 @@ img {
     }
 }
 
+/*
+ * A tip is two lines, not one sentence with a dash in it.
+ *
+ * The row is 290 px wide and shares that width with the mascot and the close
+ * button, which leaves ~200 px for text — about 33 characters at 12 px. A
+ * "fact · next step" line therefore truncated right where it mattered, so the
+ * two parts are stacked instead: the fact takes the bold line, the next step
+ * the lighter one. Weight and opacity carry the hierarchy; the severity colour
+ * stays on the dot, where it still means "how urgent" rather than "which word
+ * is important".
+ */
 .assistant-tip-message {
     flex: 1;
     min-width: 0;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
     text-align: left;
+}
+
+/* The fact: the one thing the eye must catch. */
+.assistant-tip-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.assistant-tip-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.75);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-
-.assistant-tip-close:hover {
-    background: rgba(255, 255, 255, 0.22);
-    color: #fff;
-}
-
-.assistant-tip-close:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.6);
-    outline-offset: 1px;
+/* The next step: present and readable, one step behind — 8:1 on the notch
+   background, so it clears AA for small text without competing with the fact. */
+.assistant-tip-detail {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.62);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Light mode: the notch stays dark, but keep the text contrast. */
-.light-mode .assistant-tip-message {
+.light-mode .assistant-tip-title {
     color: #fff;
+}
+
+.light-mode .assistant-tip-detail {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* --- Unread marker on the collapsed notch -------------------------------- */
