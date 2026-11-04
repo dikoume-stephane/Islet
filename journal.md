@@ -5,6 +5,46 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-04 (3) — J8 terminé : l'interface entière parle français et anglais
+
+**Fait**
+- **460 clés** dans `en.ts` et dans `fr.ts`, aucune dupliquée, aucun `{{placeholder}}`
+  orphelin. `fr.ts` reste typé sur `keyof typeof en` : une traduction oubliée ne compile pas.
+- Migrés dans ce lot : `NotchTab` (dont les six guides fournisseurs CalDAV et les comptes
+  CalDAV, ~70 clés), `DockTab`, `CalendarSyncPage` (état « 2 sources · 5 événements ·
+  sync. il y a 3 min »), `StatusWidgetConfig`, puis les fenêtres : `Calendar.tsx`,
+  `NotchCalendar`, `NotchClock`, `Dock.tsx` (menu contextuel), `Overlay.tsx`,
+  `WindowControls`, et les pastilles du centre de contrôle dans `App.tsx`.
+- Les libellés de widgets (`Weather`, `Battery`, `CPU`…) vivaient dans une **constante de
+  module** : ils sont devenus des `labelKey: MessageKey` résolus au rendu, sinon la
+  langue figée au chargement ne basculerait jamais.
+- Test de longueur : les 14 conseils restent **≤ 46 caractères** dans les deux langues
+  (max mesuré : 43) — `npm run test:assistant` → **40/40**.
+
+**Constats**
+- Deux pièges de traduction rencontrés, tous deux corrigés :
+  1. `timeAgo()` renvoyait une phrase anglaise déjà construite ; il renvoie maintenant une
+     clé (`{{count}} min ago` / `il y a {{count}} min`).
+  2. Une ligne d'état contient **deux pluriels** (« 2 sources · 3 événements ») alors que
+     le moteur ne pluralise que `params.count`. Solution : les groupes nominaux sont des
+     clés à part (`caldav.sources`, `caldav.events`), la phrase qui les assemble est une
+     seule clé (`caldav.summary`) — ce n'est pas de la concaténation de phrases.
+- Restent volontairement littérales : « Notch » (jamais traduit, c'est le nom de l'objet),
+  « Is » (nom de la mascotte), les noms propres d'applications et les crédits du pied de
+  page À propos.
+
+**Non vérifié**
+- Contrôle visuel dans l'application : le sandbox Linux ne peut pas lancer Tauri. L'aperçu
+  `/home/user/apercu-langue/index.html` est généré **depuis les dictionnaires réels**
+  (`.test-build/i18n.bundle.mjs`), donc il ne peut pas mentir sur le texte — mais pas sur
+  le rendu CSS.
+
+**À faire ensuite**
+- J2 (Matière / Liquid Glass), puis J4 (parité Nusa), J3 (personnage), J5, J6, J7.
+- Chaque nouvelle fonctionnalité arrive **bilingue du premier coup** (règle dans `AGENTS.md`).
+
+---
+
 ## 2026-11-04 (2) — `tauri dev` s'arrête en cours de route : c'était la RAM
 
 **Symptôme** — `bun run tauri dev` meurt pendant la compilation de `rustls` avec

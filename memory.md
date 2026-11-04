@@ -169,7 +169,7 @@ Tout est désactivé sous `prefers-reduced-motion` **sauf** le marqueur (statiqu
 - Le **nom** est un vrai réglage : champ dans Settings › Is et libellé de l'onglet latéral.
 - « Replay the Welcome » dans Settings › General (ne réinitialise rien).
 
-### Langues — socle livré 2026-11-04 (J8, partiel)
+### Langues — livré intégralement 2026-11-04 (J8 ✅)
 
 `src/i18n/` : `en.ts` (source des clés), `fr.ts` (typé dessus), `index.ts` (moteur).
 **Aucune dépendance** : deux dictionnaires plats, interpolation `{{}}`, pluriels `{one, other}`.
@@ -187,7 +187,20 @@ Tout est désactivé sous `prefers-reduced-motion` **sauf** le marqueur (statiqu
 - « notch » n'est pas traduit : c'est le nom de la fonctionnalité dans le produit.
 - Les fichiers `.ts` doivent garder des imports **sans extension** (résolution bundler) ; pour les tests Node, passer par un bundle esbuild.
 
-**Reste** : 8 onglets des Réglages, le dock, l'agenda, les surcouches (`todo.md` Bloc N, N10→N15).
+**État final : 460 clés, aucune chaîne visible en dur dans le JSX.** Couverts : les 11 onglets
+des Réglages, les fenêtres Notch / Dock / Agenda / Surcouche / Réglages, les écrans d'accueil,
+les widgets de barre d'état, le menu contextuel du dock, le centre de contrôle, les contrôles
+de fenêtre, et le catalogue d'Is. Reste seulement le texte généré côté Rust (messages de mise
+à jour et d'erreur) — voir `todo.md` N16.
+
+Deux schémas utiles, rencontrés en migrant :
+- **Un libellé dans une constante de module ne se traduit pas tout seul.** `WIDGET_DEFS`
+  portait `label: "Weather"` ; il porte maintenant `labelKey` et le composant appelle `t()`.
+  Toute constante de libellés doit stocker une **clé**, jamais une chaîne.
+- **Deux pluriels dans une même phrase.** Le moteur ne pluralise que `params.count` : on
+  compose avec des **groupes nominaux clés** (`caldav.sources`, `caldav.events`) assemblés
+  par une seule clé de phrase (`caldav.summary`). Ce n'est pas de la concaténation de
+  phrases ; l'ordre des mots reste dans une clé unique.
 
 Décisions DÉC-12 → DÉC-15 dans `ROADMAP.md` § 3.G : pas de bibliothèque (un `t()` maison + 2 dictionnaires plats), langue par défaut = celle de Windows, onglet Général → Langue, appliqué sans redémarrage.
 ⚠️ Le notch est étroit (290 px) : toute traduction doit être vérifiée là, pas seulement dans les réglages.

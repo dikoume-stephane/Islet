@@ -10,7 +10,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { MixerIcon, SpeakerIcon } from "./icons";
 import "./Overlay.css";
 import { initTheme } from "./theme";
-import { initI18n } from "./i18n";
+import { initI18n, useT } from "./i18n";
 
 // ─── App Volume Mixer ───────────────────────────────────────────────────────
 
@@ -154,6 +154,7 @@ function VolumeNotch({
   mixerExpanded: boolean;
   onMixerExpandedChange: (expanded: boolean) => void;
 }) {
+  const t = useT();
   const percentage = Math.round(volume * 100);
   const barRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -398,7 +399,7 @@ function VolumeNotch({
               e.stopPropagation();
               onMixerExpandedChange(!mixerExpanded);
             }}
-            title="App volume mixer"
+            title={t("overlay.mixerTitle")}
           >
             <span className="volume-notch-action-icon">
               <SpeakerIcon size={16} muted={isMuted} />

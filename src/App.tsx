@@ -2097,7 +2097,7 @@ function App() {
                           <WifiIcon enabled={wifiEnabled} connected={wifiConnected} />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Wi-Fi</span>
+                          <span className="cc-pill-title">{t("cc.wifi")}</span>
                           <span className="cc-pill-status">{wifiStatus === null ? '…' : !wifiEnabled ? 'Off' : wifiConnected ? 'Connected' : 'Not connected'}</span>
                         </div>
                       </div>
@@ -2111,7 +2111,7 @@ function App() {
                           <DockIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Dock Mode</span>
+                          <span className="cc-pill-title">{t("cc.dockMode")}</span>
                           <span className="cc-pill-status">{dockMode === 'fixed' ? 'Fixed' : dockMode === 'smart' ? 'Smart' : 'Peek'}</span>
                         </div>
                       </div>
@@ -2126,7 +2126,7 @@ function App() {
                           <BluetoothIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Bluetooth</span>
+                          <span className="cc-pill-title">{t("cc.bluetooth")}</span>
                           <span className="cc-pill-status">{bluetoothEnabled ? 'On' : 'Off'}</span>
                         </div>
                       </div>
@@ -2140,7 +2140,7 @@ function App() {
                           <NotchIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Notch Mode</span>
+                          <span className="cc-pill-title">{t("cc.notchMode")}</span>
                           <span className="cc-pill-status">{notchMode === 'fixed' ? 'Fixed' : notchMode === 'smart' ? 'Smart' : 'Peek'}</span>
                         </div>
                       </div>
@@ -2192,7 +2192,7 @@ function App() {
                       <div className="cc-classic-slider-row">
                         <div className="cc-classic-slider-label">
                           <VolumeLowIcon style={{ opacity: 0.5 }} />
-                          <span>Volume</span>
+                          <span>{t("cc.volume")}</span>
                         </div>
                         <div className="cc-classic-slider-track">
                           <input
@@ -2215,7 +2215,7 @@ function App() {
                       <div className="cc-classic-slider-row">
                         <div className="cc-classic-slider-label">
                           <BrightnessLowIcon />
-                          <span>Brightness</span>
+                          <span>{t("cc.brightness")}</span>
                         </div>
                         <div className="cc-classic-slider-track">
                           <input

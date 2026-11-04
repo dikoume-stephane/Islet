@@ -393,15 +393,15 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
 | **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
-| **J8 — Langues** 🟡 | 3.G — socle + Is + Général + accueil livrés ; reste les autres onglets | J1 |
+| **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |
 
-Ordre recommandé : ~~J1~~ ✅ → ~~J8 (socle)~~ ✅ → **J2 → J8 (reste des onglets) → J4 → J3 → J5 → J6 → J7**
+Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → **J2 → J4 → J3 → J5 → J6 → J7**
 (J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
 chaque écran livré avant lui est un écran à traduire plus tard).
 
 ---
 
-## 3.G — Langues (français / anglais) 🟡 socle livré 2026-11-04
+## 3.G — Langues (français / anglais) ✅ livré 2026-11-04
 
 > Demandé par l'utilisateur le 2026-11-04.
 >
@@ -456,18 +456,25 @@ Un utilisateur francophone — le mainteneur lui-même — lit donc une interfac
 - **Ne pas casser `islet-*`** : le choix de langue est un `localStorage` de plus
   (`islet-language`), pas un renommage.
 
-### 3.G.5 Jalons
+### 3.G.5 Jalons — tous livrés
 
-| Étape | Contenu | Effort |
+| Étape | Contenu | État |
 |---|---|---|
-| **G1** | Socle : `t()`, dictionnaires, `islet-language`, onglet Général | ~0,5 j |
-| **G2** | Catalogue d'Is (13 conseils + temps relatifs) | ~0,5 j |
-| **G3** | Réglages (11 onglets) | ~1,5 j |
-| **G4** | Notch + dock + composants + À propos | ~1 j |
-| **G5** | Dates et nombres via `Intl` | ~0,5 j |
+| **G1** | Socle : `t()`, deux dictionnaires plats, `islet-language`, onglet Général | ✅ `a6ce6e4` |
+| **G2** | Catalogue d'Is (13 conseils + temps relatifs, test de longueur ≤ 46 car.) | ✅ `a6ce6e4` |
+| **G3** | Réglages : Apparence, Superpositions, Processus, À propos, Notch, Dock, Agenda | ✅ |
+| **G4** | Notch, dock, agenda, overlays, contrôles de fenêtre, onboarding | ✅ |
+| **G5** | Dates et nombres via `Intl` (`formatDate`, `formatNumber`) | ✅ `a6ce6e4` |
 
-Total : **environ 4 jours**, découpable. G1 + G2 livrent déjà l'essentiel de la valeur
-perçue, puisque ce sont les textes que l'on lit tous les jours.
+**Bilan : 460 clés dans chaque dictionnaire, aucune chaîne visible en dur dans le JSX.**
+`fr.ts` est typé sur `keyof typeof en` : oublier une traduction est une erreur de
+compilation, pas une phrase anglaise au milieu du français. Les seules chaînes qui
+restent littérales sont celles qui ne se traduisent pas : « Notch », « Is », les noms
+propres d'applications et les crédits du pied de page À propos.
+
+> **Règle pour la suite** : toute fonctionnalité se livre **bilingue du premier coup**.
+> Ajouter un texte, c'est ajouter la clé dans `en.ts` *et* `fr.ts` dans le même commit ;
+> un écran à moitié traduit est un bug, pas une dette.
 
 ---
 

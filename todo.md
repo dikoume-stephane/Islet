@@ -161,7 +161,7 @@
   - `scripts/dev.ps1` — imprime RAM / disque / toolchain, limite la parallélisation (`-Jobs`, `-Clean`)
   - README : section « If the Rust build runs out of memory »
 
-## Bloc N — Langues FR / EN (J8) 🟡 socle livré 2026-11-04
+## Bloc N — Langues FR / EN (J8) ✅ livré 2026-11-04
 
 ### Socle ✅
 - [x] N1 — Moteur `src/i18n/` : `t()`, `translate()`, `useT()`, `useLanguage()`, `setLanguage()`
@@ -180,11 +180,15 @@
 - [x] N8 — `formatDate()` / `formatNumber()` (via `Intl`) disponibles pour la suite
 - [x] N9 — Règle permanente inscrite dans `AGENTS.md` : toute chaîne visible passe par `t()`
 
-### Reste à faire
-- [ ] N10 — Onglets **Apparence** et **Notch** (~80 chaînes)
-- [ ] N11 — Onglets **Dock**, **Surcouches**, **Processus**, **À propos** (~90 chaînes)
-- [ ] N12 — Fenêtre Dock (menu contextuel, recherche, aperçus) (~40 chaînes)
-- [ ] N13 — Agenda et synchronisation CalDAV (~25 chaînes)
-- [ ] N14 — Messages générés côté Rust (mises à jour, erreurs de diagnostic) : décider
+### Interface complète ✅
+- [x] N10 — Onglets **Apparence** et **Notch** (~60 chaînes, dont les guides fournisseurs CalDAV)
+- [x] N11 — Onglets **Dock**, **Surcouches**, **Processus**, **À propos** (~50 chaînes)
+- [x] N12 — Fenêtre Dock (menu contextuel, recherche, info-bulles) — 13 clés
+- [x] N13 — Agenda, notch-agenda, minuteur/chronomètre, sync CalDAV — 60 clés
+- [x] N14 — Notch : centre de contrôle, volume, luminosité, contrôles de fenêtre
+- [x] N15 — Widgets de barre d'état (`StatusWidgetConfig`) : libellés passés en clés
+
+### Reste (hors interface)
+- [ ] N16 — Messages générés côté Rust (mises à jour, erreurs de diagnostic) : décider
       s'ils remontent en clés résolues côté frontend ou restent en anglais
-- [ ] N15 — Contrôle visuel : chaque écran traduit relu **dans l'application**, pas seulement dans le dictionnaire
+- [ ] N17 — Contrôle visuel : chaque écran relu **dans l'application**, pas seulement dans le dictionnaire
