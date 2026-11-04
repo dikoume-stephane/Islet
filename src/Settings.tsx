@@ -20,18 +20,21 @@ import {
 } from "./settings/index";
 import type { SettingsTab } from "./settings/index";
 import { initTheme } from "./theme";
+import { initI18n, useT } from "./i18n";
+import type { MessageKey } from "./i18n/en";
 import "./Settings.css";
 
 const appWindow = getCurrentWebviewWindow();
 
-const TABS: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
-  { id: "general", label: "General", icon: Settings },
-  { id: "assistant", label: "Is", icon: Sparkles },
-  { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "notch", label: "Notch", icon: PanelTop },
-  { id: "dock", label: "Dock", icon: Monitor },
-  { id: "overlays", label: "Overlays", icon: Layers },
-  { id: "about", label: "About", icon: Info },
+/** The assistant tab has no fixed label: it shows the name the user chose. */
+const TABS: { id: SettingsTab; label: MessageKey | null; icon: typeof Settings }[] = [
+  { id: "general", label: "settings.tab.general", icon: Settings },
+  { id: "assistant", label: null, icon: Sparkles },
+  { id: "appearance", label: "settings.tab.appearance", icon: Palette },
+  { id: "notch", label: "settings.tab.notch", icon: PanelTop },
+  { id: "dock", label: "settings.tab.dock", icon: Monitor },
+  { id: "overlays", label: "settings.tab.overlays", icon: Layers },
+  { id: "about", label: "settings.tab.about", icon: Info },
 ];
 
 /**
@@ -52,9 +55,13 @@ function SettingsApp() {
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const settings = useSettings();
 
+  const t = useT();
+
   useEffect(() => {
     return initTheme();
   }, []);
+
+  useEffect(() => initI18n(), []);
 
   // First run? The flag lives in settings.json, not localStorage: the two
   // webviews do not reliably share storage, and this decision must be made
@@ -128,7 +135,7 @@ function SettingsApp() {
       <div className="settings-container" style={{ zoom: settings.scale }}>
         <div className="title-bar" data-tauri-drag-region>
           <span className="title-text" data-tauri-drag-region>
-            Settings
+            {t("settings.title")}
           </span>
           <WindowControls />
         </div>
@@ -141,7 +148,7 @@ function SettingsApp() {
       <div className="settings-container" style={{ zoom: settings.scale }}>
         <div className="title-bar" data-tauri-drag-region>
           <span className="title-text" data-tauri-drag-region>
-            Welcome to Islet
+            {t("settings.welcomeTitle")}
           </span>
           <WindowControls />
         </div>
@@ -154,7 +161,7 @@ function SettingsApp() {
     <div className="settings-container" style={{ zoom: settings.scale }}>
       <div className="title-bar" data-tauri-drag-region>
         <span className="title-text" data-tauri-drag-region>
-          Settings
+          {t("settings.title")}
         </span>
         <WindowControls />
       </div>
@@ -170,7 +177,7 @@ function SettingsApp() {
               <div className="sidebar-tab-icon">
                 <Icon size={14} strokeWidth={1.5} />
               </div>
-              <span>{id === "assistant" ? assistantName : label}</span>
+              <span>{label === null ? assistantName : t(label)}</span>
             </button>
           ))}
         </div>

@@ -172,6 +172,12 @@ So that a tip is not missed, Is signals it in three steps. On arrival, two rings
 | `islet-assistant-session-hours` | integer string | `"8"` | Hours of uptime before suggesting a break (2 to 16). |
 | `islet-assistant-cooldowns` | JSON string | `{}` | Internal. Last display time per tip id, so a tip does not repeat too soon. Safe to clear. |
 
+### Language
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `islet-language` | `"system"` / `"fr"` / `"en"` | `"system"` | Display language. `system` follows the Windows UI language: French if it starts with `fr`, English otherwise. Applies immediately everywhere — notch, dock, settings, and Is' tips — without a restart. |
+
 ### System
 
 | Key | Type | Default | Description |

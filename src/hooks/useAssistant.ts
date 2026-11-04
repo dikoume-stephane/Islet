@@ -8,6 +8,7 @@ import {
   type CooldownMap,
 } from "../lib/assistant";
 import type { SystemSignals } from "./useSystemSignals";
+import { getLanguage } from "../i18n";
 
 const COOLDOWNS_KEY = "islet-assistant-cooldowns";
 
@@ -114,7 +115,9 @@ export function useAssistant(signals: SystemSignals | null) {
     // Never replace a tip that is already being read.
     if (tipRef.current) return;
 
-    const next = pickTip(signals, readAssistantSettings(), cooldownsRef.current);
+    const next = pickTip(signals, readAssistantSettings(), cooldownsRef.current, {
+      lang: getLanguage(),
+    });
     if (!next) return;
 
     // Marked as seen as soon as it appears: if the user closes it quickly or the

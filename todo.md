@@ -161,14 +161,30 @@
   - `scripts/dev.ps1` — imprime RAM / disque / toolchain, limite la parallélisation (`-Jobs`, `-Clean`)
   - README : section « If the Rust build runs out of memory »
 
-## Bloc N — Langues FR / EN (J8)
+## Bloc N — Langues FR / EN (J8) 🟡 socle livré 2026-11-04
 
-> Cadré dans `ROADMAP.md` § 3.G. **À faire après J1 et J2**, sinon on traduit deux fois.
+### Socle ✅
+- [x] N1 — Moteur `src/i18n/` : `t()`, `translate()`, `useT()`, `useLanguage()`, `setLanguage()`
+  - **Aucune dépendance** : deux dictionnaires plats + interpolation `{{}}` + pluriels `{one, other}`
+  - L'anglais définit les clés ; `fr.ts` est typé dessus → clé oubliée = erreur de compilation
+  - `initI18n()` branché dans les 5 fenêtres (notch, réglages, dock, surcouche, agenda)
+  - Réactif : `useSyncExternalStore` + écoute de `settings-changed` / `settings-external-changed`
+- [x] N2 — Sélecteur dans **Général → Langue** (Suivre Windows / Français / English), appliqué sans redémarrage
+- [x] N3 — **Catalogue d'Is** : 14 conseils + `formatUptime` + `formatClock`
+  - `pickTip` ne construit plus de phrase : il renvoie une **clé + des paramètres**
+  - 40 tests, dont la longueur de chaque conseil **dans les deux langues** (≤ 46 car.)
+- [x] N4 — Interface du notch (Update Available, Low Battery, Charging, On Battery)
+- [x] N5 — Onglet **Is** (nom, catégories, seuils, valeurs temps réel) + onglet **Général**
+- [x] N6 — **Les 5 écrans d'accueil** (welcome, apparence, notch/dock, confidentialité, fin)
+- [x] N7 — Sidebar et titres de la fenêtre Réglages
+- [x] N8 — `formatDate()` / `formatNumber()` (via `Intl`) disponibles pour la suite
+- [x] N9 — Règle permanente inscrite dans `AGENTS.md` : toute chaîne visible passe par `t()`
 
-- [ ] N1 — Socle : `t()`, `src/i18n/fr.ts` + `en.ts`, `islet-language`, langue par défaut = celle de Windows
-- [ ] N2 — Onglet **Général → Langue** (Français / English / Suivre le système)
-- [ ] N3 — Catalogue d'Is : 13 conseils + `formatUptime` + `formatClock` (**priorité 1**, c'est le texte le plus lu)
-- [ ] N4 — Réglages : 11 onglets (~250 chaînes)
-- [ ] N5 — Notch, dock, composants, fenêtre À propos
-- [ ] N6 — Dates et nombres via `Intl.DateTimeFormat` / `Intl.NumberFormat` avec la langue active
-- [ ] N7 — Contrôle : chaque traduction vérifiée **dans le notch à 290 px**, pas seulement dans les réglages
+### Reste à faire
+- [ ] N10 — Onglets **Apparence** et **Notch** (~80 chaînes)
+- [ ] N11 — Onglets **Dock**, **Surcouches**, **Processus**, **À propos** (~90 chaînes)
+- [ ] N12 — Fenêtre Dock (menu contextuel, recherche, aperçus) (~40 chaînes)
+- [ ] N13 — Agenda et synchronisation CalDAV (~25 chaînes)
+- [ ] N14 — Messages générés côté Rust (mises à jour, erreurs de diagnostic) : décider
+      s'ils remontent en clés résolues côté frontend ou restent en anglais
+- [ ] N15 — Contrôle visuel : chaque écran traduit relu **dans l'application**, pas seulement dans le dictionnaire

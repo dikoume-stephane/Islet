@@ -393,19 +393,25 @@ Cible : **presets nommés** + réglages libres, sans casser `settings.json` exis
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
 | **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
-| **J8 — Langues** | 3.G (français / anglais) | J1, J2 (à faire après, pour ne pas traduire deux fois) |
+| **J8 — Langues** 🟡 | 3.G — socle + Is + Général + accueil livrés ; reste les autres onglets | J1 |
 
-Ordre recommandé : ~~J1~~ ✅ → **J2 → J8 → J4 → J3 → J5 → J6 → J7**
+Ordre recommandé : ~~J1~~ ✅ → ~~J8 (socle)~~ ✅ → **J2 → J8 (reste des onglets) → J4 → J3 → J5 → J6 → J7**
 (J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
 chaque écran livré avant lui est un écran à traduire plus tard).
 
 ---
 
-## 3.G — Langues (français / anglais)
+## 3.G — Langues (français / anglais) 🟡 socle livré 2026-11-04
 
-> Demandé par l'utilisateur le 2026-11-04. À traiter **après J1 et J2** : l'onboarding
-> et les thèmes ajoutent tous deux du texte, il vaut mieux les écrire directement
-> dans le système de traduction que de les reprendre ensuite.
+> Demandé par l'utilisateur le 2026-11-04.
+>
+> **Livré** (G1, G2, G3 + l'accueil) : socle `src/i18n/`, sélecteur dans Général,
+> les 14 conseils d'Is, l'interface du notch, l'onglet Is, l'onglet Général et
+> les 5 écrans d'accueil. Décision d'architecture : **pas de dépendance**, deux
+> dictionnaires plats, l'anglais définit le jeu de clés et le français est typé
+> dessus (une clé oubliée = erreur de compilation).
+> **Reste** (G4, G5) : les 8 autres onglets des Réglages, le dock, l'agenda et les
+> surcouches — voir `todo.md` Bloc N.
 
 ### 3.G.1 Le problème
 

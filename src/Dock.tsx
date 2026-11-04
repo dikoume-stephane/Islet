@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import './Dock.css';
 import { initTheme } from './theme';
+import { initI18n } from './i18n';
 import { useSettingsSync } from './hooks/useSettingsSync';
 
 interface AppInfo {
@@ -134,7 +135,12 @@ function WindowDots({ count }: { count: number }) {
 
 const Dock = memo(function Dock() {
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
   const [pinnedApps, setPinnedApps] = useState<AppInfo[]>([]);

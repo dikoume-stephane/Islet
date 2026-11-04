@@ -6,6 +6,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { UpdateCheckResult } from "./updater";
 import "./App.css";
 import { initTheme } from "./theme";
+import { initI18n, useT } from "./i18n";
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, VolumeLowIcon, VolumeHighIcon, MusicNoteIcon, AudioOutputIcon } from "./icons";
 import { CompactMediaPlayer } from "./CompactMediaPlayer";
 import { useWeather } from "./hooks/useWeather";
@@ -304,7 +305,12 @@ const TitleMarquee = ({ title }: { title: string }) => {
 
 function App() {
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
   const [time, setTime] = useState("");
@@ -330,6 +336,8 @@ function App() {
   // Is has something to say that the user has not looked at yet: the collapsed
   // notch carries a coloured outline until they acknowledge it.
   const isSignalling = assistantUnread !== null && assistantTip === null;
+
+  const t = useT();
 
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
@@ -1573,7 +1581,11 @@ function App() {
           className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isSignalling ? 'is-signalling' : ''}`}
           // The marker doubles as a tooltip: hovering the notch reads back the
           // message that was missed, without reopening anything.
-          title={isSignalling && assistantUnread ? assistantUnread.title : undefined}
+          title={
+            isSignalling && assistantUnread
+              ? t(assistantUnread.message.key, assistantUnread.message.params)
+              : undefined
+          }
           onMouseEnter={() => setIsNotchHovered(true)}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
@@ -1865,7 +1877,7 @@ function App() {
                             >
                               <GreenDownArrowIcon />
                               <span className="label" style={{ color: "#32D74B" }}>
-                                Update Available
+                                {t("notch.updateAvailable")}
                               </span>
                             </motion.div>
                           ) : (
@@ -1879,7 +1891,12 @@ function App() {
                               {updateAvailable && <GreenDownArrowIcon />}
                               <BatteryIcon charging={isCharging} level={batteryLevel} threshold={lowBatteryThreshold} />
                               <span className="label" style={{ color: showLowBatteryPulse ? "#FF453A" : "inherit" }}>
-                                {showLowBatteryPulse ? "Low Battery" : (isCharging ? "Charging" : "On Battery")} • {batteryLevel}%
+                                {showLowBatteryPulse
+                                  ? t("notch.lowBattery")
+                                  : isCharging
+                                    ? t("notch.charging")
+                                    : t("notch.onBattery")}{" "}
+                                • {batteryLevel}%
                               </span>
                             </motion.div>
                           )

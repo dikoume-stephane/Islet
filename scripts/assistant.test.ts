@@ -18,6 +18,7 @@ import {
   type AssistantSettings,
   type TipIcon,
 } from "../src/lib/assistant.ts";
+import { translate, type Language } from "../src/i18n/index.ts";
 
 // — Fixtures ---------------------------------------------------------------
 
@@ -68,12 +69,17 @@ const disk = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-const id = (s: ReturnType<typeof signals>, now = NOON) => pickTip(s, settings, {}, now)?.id ?? null;
+/** Render a tip the way the view does: key + params through the dictionary. */
+const render = (tip: { message: { key: Parameters<typeof translate>[1]; params: Record<string, string | number> } } | null, lang: Language = "en") =>
+  tip ? translate(lang, tip.message.key, tip.message.params) : "";
+
+const id = (s: ReturnType<typeof signals>, now = NOON) =>
+  pickTip(s, settings, {}, { now })?.id ?? null;
 
 // — Calme ----------------------------------------------------------------
 
 test("machine calme : aucun conseil", () => {
-  assert.equal(pickTip(signals(), settings, {}, NOON), null);
+  assert.equal(pickTip(signals(), settings, {}, { now: NOON }), null);
 });
 
 // — Batterie -------------------------------------------------------------
@@ -93,7 +99,8 @@ test("batterie faible : le temps restant enrichit le message", () => {
     {},
     NOON,
   );
-  assert.match(tip.title, /40 min/);
+  assert.match(render(tip), /40 min/);
+  assert.match(render(tip, "fr"), /40 min/);
 });
 
 test("autonomie : conseil seulement quand le pourcentage rassure mais l'horloge non", () => {
@@ -105,14 +112,14 @@ test("autonomie : conseil seulement quand le pourcentage rassure mais l'horloge 
 
 test("autonomie confortable : silence", () => {
   assert.equal(
-    pickTip(signals({ battery: battery({ percent: 55, on_ac: false, seconds_left: 18000 }) }), settings, {}, NOON),
+    pickTip(signals({ battery: battery({ percent: 55, on_ac: false, seconds_left: 18000 }) }), settings, {}, { now: NOON }),
     null,
   );
 });
 
 test("estimation sous 15 min ignorée (bruit de Windows)", () => {
   assert.equal(
-    pickTip(signals({ battery: battery({ percent: 55, on_ac: false, seconds_left: 480 }) }), settings, {}, NOON),
+    pickTip(signals({ battery: battery({ percent: 55, on_ac: false, seconds_left: 480 }) }), settings, {}, { now: NOON }),
     null,
   );
 });
@@ -143,7 +150,7 @@ test("disque sous le plancher d'espace libre : avertissement", () => {
 
 test("disque amovible ignoré", () => {
   const removable = disk({ mount: "E:", free_gb: 0.2, total_gb: 32, used_percent: 99, removable: true });
-  assert.equal(pickTip(signals({ disks: [removable] }), settings, {}, NOON), null);
+  assert.equal(pickTip(signals({ disks: [removable] }), settings, {}, { now: NOON }), null);
 });
 
 test("deux disques : le critique passe devant l'avertissement", () => {
@@ -188,15 +195,17 @@ test("entre 00 h et 04 h : tard dans la nuit", () => {
 });
 
 test("tard dans la nuit : l'heure est dans le message", () => {
-  const tip = pickTip(signals(), settings, {}, LAST_NIGHT);
-  assert.match(tip.title, /2:30/);
+  const tip = pickTip(signals(), settings, {}, { now: LAST_NIGHT });
+  assert.match(render(tip), /2:30/);
+  assert.match(render(tip, "fr"), /2:30/);
+  assert.match(render(tip, "fr"), /Il est/);
 });
 
 // — Interrupteurs et cooldowns -------------------------------------------
 
 test("assistant désactivé : rien", () => {
   const s = signals({ battery: battery({ percent: 3, on_ac: false }) });
-  assert.equal(pickTip(s, { ...settings, enabled: false }, {}, NOON), null);
+  assert.equal(pickTip(s, { ...settings, enabled: false }, {}, { now: NOON }), null);
 });
 
 test("catégorie batterie coupée : le disque prend la priorité", () => {
@@ -204,21 +213,21 @@ test("catégorie batterie coupée : le disque prend la priorité", () => {
     battery: battery({ percent: 3, on_ac: false }),
     disks: [disk({ free_gb: 1, used_percent: 99.8 })],
   });
-  assert.equal(pickTip(s, { ...settings, battery: false }, {}, NOON)?.id, "disk-critical:C:");
+  assert.equal(pickTip(s, { ...settings, battery: false }, {}, { now: NOON })?.id, "disk-critical:C:");
 });
 
 test("catégorie session coupée : pas de conseil nocturne", () => {
-  assert.equal(pickTip(signals(), { ...settings, session: false }, {}, LAST_NIGHT), null);
+  assert.equal(pickTip(signals(), { ...settings, session: false }, {}, { now: LAST_NIGHT }), null);
 });
 
 test("cooldown en cours : le conseil reste silencieux", () => {
   const s = signals({ battery: battery({ percent: 5, on_ac: false }) });
-  assert.equal(pickTip(s, settings, { "battery-critical": NOON - 60_000 }, NOON), null);
+  assert.equal(pickTip(s, settings, { "battery-critical": NOON - 60_000 }, { now: NOON }), null);
 });
 
 test("cooldown écoulé : le conseil revient", () => {
   const s = signals({ battery: battery({ percent: 5, on_ac: false }) });
-  assert.equal(pickTip(s, settings, { "battery-critical": NOON - 11 * 60_000 }, NOON)?.id, "battery-critical");
+  assert.equal(pickTip(s, settings, { "battery-critical": NOON - 11 * 60_000 }, { now: NOON })?.id, "battery-critical");
 });
 
 test("priorité : batterie critique avant disque critique", () => {
@@ -235,8 +244,16 @@ test("formatUptime : minutes seules sous une heure", () => {
   assert.equal(formatUptime(2400), "40 min");
 });
 
-test("formatUptime : heures et minutes", () => {
-  assert.equal(formatUptime(9720), "2 h 42");
+test("formatUptime : heures et minutes, en anglais", () => {
+  assert.equal(formatUptime(9720, "en"), "2h 42");
+});
+
+test("formatUptime : heures et minutes, en français", () => {
+  assert.equal(formatUptime(9720, "fr"), "2 h 42");
+});
+
+test("formatUptime : minutes seules, identiques dans les deux langues", () => {
+  assert.equal(formatUptime(2400, "fr"), formatUptime(2400, "en"));
 });
 
 test("formatUptime : arrondi à la minute inférieure", () => {
@@ -260,4 +277,82 @@ test("chaque icône de conseil a une catégorie", () => {
 test("les 4 catégories sont représentées", () => {
   const used = new Set(Object.values(TIP_CATEGORY));
   assert.equal(used.size, 4);
+});
+
+// — Traduction -------------------------------------------------------------
+
+test("une clé absente d'une langue retombe sur l'anglais, jamais sur du vide", () => {
+  // Garde-fou : le typage empêche déjà d'avoir une clé manquante, ce test
+  // couvre le cas où un dictionnaire serait chargé partiellement.
+  assert.ok(translate("fr", "tip.batteryFull").length > 0);
+  assert.ok(translate("en", "tip.batteryFull").length > 0);
+});
+
+test("les deux langues produisent un texte différent", () => {
+  assert.notEqual(translate("en", "tip.batteryFull"), translate("fr", "tip.batteryFull"));
+});
+
+test("interpolation : les valeurs remplacent les {{placeholders}}", () => {
+  assert.equal(
+    translate("en", "tip.batteryCritical", { percent: 8 }),
+    "Battery at 8% — plug in now",
+  );
+  assert.equal(
+    translate("fr", "tip.batteryCritical", { percent: 8 }),
+    "Batterie à 8 % — branchez maintenant",
+  );
+});
+
+test("pluriel : 1 jour et 6 jours dans les deux langues", () => {
+  assert.match(translate("en", "tip.restart", { count: 1 }), /^1 day without/);
+  assert.match(translate("en", "tip.restart", { count: 6 }), /^6 days without/);
+  assert.match(translate("fr", "tip.restart", { count: 1 }), /^1 jour sans/);
+  assert.match(translate("fr", "tip.restart", { count: 6 }), /^6 jours sans/);
+});
+
+test("aucun {{placeholder}} ne survit quand tous les paramètres sont fournis", () => {
+  const key = "tip.diskCritical";
+  const out = translate("fr", key, { mount: "C:", free: "350 MB" });
+  assert.doesNotMatch(out, /\{\{/);
+  assert.match(out, /C:/);
+});
+
+test("un paramètre manquant reste visible plutôt que de disparaître", () => {
+  // Choix assumé : un trou silencieux se découvre chez l'utilisateur.
+  assert.match(translate("en", "tip.batteryCritical", {}), /\{\{percent\}\}/);
+});
+
+test("les 14 clés de conseil existent dans les deux langues", () => {
+  // Paramètres réalistes : sans eux, les {{placeholders}} comptent dans la
+  // longueur et le test mesure du vide.
+  const cases: [string, Record<string, string | number>][] = [
+    ["tip.batteryCritical", { percent: 8 }],
+    ["tip.batteryLow", { percent: 18 }],
+    ["tip.batteryLowWithTime", { percent: 18, time: "40 min" }],
+    ["tip.batteryTime", { time: "1 h 40" }],
+    ["tip.batteryFull", {}],
+    ["tip.chargeReminder", { percent: 85 }],
+    ["tip.diskCritical", { mount: "C:", free: "350 MB" }],
+    ["tip.diskLow", { mount: "C:", free: "9 GB" }],
+    ["tip.memoryCritical", { percent: 96 }],
+    ["tip.memoryHigh", { percent: 92 }],
+    ["tip.cpuHigh", { percent: 95 }],
+    ["tip.restart", { count: 6 }],
+    ["tip.sessionLong", { hours: 9 }],
+    ["tip.lateNight", { time: "2:30" }],
+  ];
+
+  for (const [key, params] of cases) {
+    for (const lang of ["en", "fr"] as const) {
+      const out = translate(lang, key, params);
+      assert.ok(out.length > 0 && out !== key, `${lang} manque ${key}`);
+      assert.doesNotMatch(out, /\{\{/, `${key} (${lang}) laisse un placeholder vide`);
+      // Le notch fait 290 px : au-delà de ~46 caractères la ligne se tronque.
+      // Ce test a déjà attrapé deux traductions trop longues.
+      assert.ok(
+        out.length <= 46,
+        `${key} (${lang}) déborde du notch : ${out.length} car. — « ${out} »`,
+      );
+    }
+  }
 });

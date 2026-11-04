@@ -1,4 +1,6 @@
 import type { SystemSignals } from "../hooks/useSystemSignals";
+import type { Language, MessageParams } from "../i18n";
+import type { MessageKey } from "../i18n/en";
 
 /**
  * Is — tip engine.
@@ -24,13 +26,25 @@ export type TipIcon =
   | "session"
   | "late-night";
 
+/**
+ * What a tip says, as data rather than a sentence.
+ *
+ * The engine never builds English. It returns a dictionary key plus the values
+ * to interpolate, and the view translates at render time — so switching
+ * language re-renders the same tip correctly instead of pinning it to whatever
+ * language was active when it was picked.
+ */
+export interface TipMessage {
+  key: MessageKey;
+  params: MessageParams;
+}
+
 export interface AssistantTip {
   /** Stable key, also used as the cooldown key. */
   id: string;
   severity: TipSeverity;
   icon: TipIcon;
-  /** One line, shown in the notch. */
-  title: string;
+  message: TipMessage;
 }
 
 export interface AssistantSettings {
@@ -111,13 +125,23 @@ export type CooldownMap = Record<string, number>;
  * left, memory) → working hygiene (restart, long session, late night).
  * Only one tip at a time, so Is never floods the notch.
  */
+export interface PickOptions {
+  /** Clock, for tests. */
+  now?: number;
+  /** Language used to format durations (`2 h 42` vs `2h 42`). */
+  lang?: Language;
+}
+
 export function pickTip(
   signals: SystemSignals | null,
   settings: AssistantSettings,
   cooldowns: CooldownMap,
-  now: number = Date.now(),
+  options: PickOptions = {},
 ): AssistantTip | null {
   if (!signals || !settings.enabled) return null;
+
+  const now = options.now ?? Date.now();
+  const lang = options.lang ?? "en";
 
   const candidates: AssistantTip[] = [];
   const { battery, memory, disks, cpu_percent, uptime_secs } = signals;
@@ -127,7 +151,7 @@ export function pickTip(
   // makes the warning actionable ("40 min") instead of abstract ("18 %").
   const left = battery.seconds_left;
   const leftIsPlausible = left !== null && left > BATTERY_TIME_FLOOR_SECS;
-  const leftSuffix = leftIsPlausible ? ` — about ${formatUptime(left)} left` : "";
+  const leftText = leftIsPlausible ? formatUptime(left, lang) : "";
 
   if (settings.battery && battery.present && battery.percent !== null && !battery.charging) {
     if (battery.percent <= 10) {
@@ -135,14 +159,19 @@ export function pickTip(
         id: "battery-critical",
         severity: "critical",
         icon: "battery-critical",
-        title: `Battery at ${battery.percent}% — plug in now`,
+        message: { key: "tip.batteryCritical", params: { percent: battery.percent } },
       });
     } else if (battery.percent <= settings.lowBattery) {
       candidates.push({
         id: "battery-low",
         severity: "warn",
         icon: "battery-low",
-        title: `Battery at ${battery.percent}%${leftSuffix} — time to charge`,
+        message: leftIsPlausible
+          ? {
+              key: "tip.batteryLowWithTime",
+              params: { percent: battery.percent, time: leftText },
+            }
+          : { key: "tip.batteryLow", params: { percent: battery.percent } },
       });
     } else if (leftIsPlausible && left <= BATTERY_TIME_NOTICE_SECS) {
       // Still comfortably above the low threshold, but the clock is running:
@@ -151,7 +180,7 @@ export function pickTip(
         id: "battery-time",
         severity: "info",
         icon: "battery-time",
-        title: `About ${formatUptime(left)} of battery left`,
+        message: { key: "tip.batteryTime", params: { time: leftText } },
       });
     }
   }
@@ -162,14 +191,14 @@ export function pickTip(
         id: "battery-full",
         severity: "info",
         icon: "battery-full",
-        title: "Battery full — you can unplug",
+        message: { key: "tip.batteryFull", params: {} },
       });
     } else if (battery.percent >= settings.chargeLimit) {
       candidates.push({
         id: "charge-reminder",
         severity: "info",
         icon: "charge",
-        title: `Charged to ${battery.percent}% — you can unplug`,
+        message: { key: "tip.chargeReminder", params: { percent: battery.percent } },
       });
     }
   }
@@ -185,24 +214,26 @@ export function pickTip(
     for (const disk of disks) {
       if (disk.removable || disk.total_gb < 1) continue;
 
+      // Units only: the sentence around them lives in the dictionary, so
+      // French can phrase it its own way ("350 Mo restants").
       const freeText =
         disk.free_gb < 10
-          ? `${(disk.free_gb * 1024).toFixed(0)} MB left`
-          : `${disk.free_gb.toFixed(0)} GB left`;
+          ? `${(disk.free_gb * 1024).toFixed(0)} MB`
+          : `${disk.free_gb.toFixed(0)} GB`;
 
       if (disk.free_gb < DISK_CRITICAL_GB || disk.used_percent >= 97) {
         emergencies.push({
           id: `disk-critical:${disk.mount}`,
           severity: "critical",
           icon: "disk-critical",
-          title: `${disk.mount} almost out of space — ${freeText}`,
+          message: { key: "tip.diskCritical", params: { mount: disk.mount, free: freeText } },
         });
       } else if (disk.used_percent >= floor) {
         warnings.push({
           id: `disk-low:${disk.mount}`,
           severity: "warn",
           icon: "disk",
-          title: `${disk.mount} almost full — ${freeText}`,
+          message: { key: "tip.diskLow", params: { mount: disk.mount, free: freeText } },
         });
       }
     }
@@ -217,14 +248,14 @@ export function pickTip(
         id: "memory-critical",
         severity: "critical",
         icon: "memory",
-        title: `Memory nearly full (${Math.round(memory.load_percent)}%) — save your work`,
+        message: { key: "tip.memoryCritical", params: { percent: Math.round(memory.load_percent) } },
       });
     } else if (memory.load_percent >= 90) {
       candidates.push({
         id: "memory-high",
         severity: "warn",
         icon: "memory",
-        title: `Memory at ${Math.round(memory.load_percent)}% — close an app?`,
+        message: { key: "tip.memoryHigh", params: { percent: Math.round(memory.load_percent) } },
       });
     }
     if (cpu_percent >= 90) {
@@ -232,7 +263,7 @@ export function pickTip(
         id: "cpu-high",
         severity: "warn",
         icon: "cpu",
-        title: `CPU at ${cpu_percent}% — something is busy`,
+        message: { key: "tip.cpuHigh", params: { percent: cpu_percent } },
       });
     }
   }
@@ -251,7 +282,7 @@ export function pickTip(
         id: "restart",
         severity: "info",
         icon: "restart",
-        title: `${days} days without a restart — a reboot would help`,
+        message: { key: "tip.restart", params: { count: days } },
       });
     }
 
@@ -260,7 +291,7 @@ export function pickTip(
         id: "session-long",
         severity: "info",
         icon: "session",
-        title: `${Math.floor(hours)} h uptime — take a break?`,
+        message: { key: "tip.sessionLong", params: { hours: Math.floor(hours) } },
       });
     }
 
@@ -269,7 +300,7 @@ export function pickTip(
         id: "late-night",
         severity: "info",
         icon: "late-night",
-        title: `It's ${formatClock(now)} — time to wrap up?`,
+        message: { key: "tip.lateNight", params: { time: formatClock(now) } },
       });
     }
   }
@@ -286,12 +317,19 @@ export function pickTip(
   return eligible ?? null;
 }
 
-/** Format a duration in seconds for a short display (`7 h 42`, `18 min`). */
-export function formatUptime(seconds: number): string {
+/**
+ * Format a duration in seconds for a short display.
+ *
+ * English omits the space (`2h 42`), French keeps it (`2 h 42`) — a small
+ * difference, but a notch line that reads wrong is the first thing a French
+ * user notices. Minutes-only reads the same in both.
+ */
+export function formatUptime(seconds: number, lang: Language = "en"): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   if (h === 0) return `${m} min`;
-  return `${h} h ${String(m).padStart(2, "0")}`;
+  const padded = String(m).padStart(2, "0");
+  return lang === "fr" ? `${h} h ${padded}` : `${h}h ${padded}`;
 }
 
 /** Local wall-clock time as `1:07` — 24 h format, no locale surprises. */

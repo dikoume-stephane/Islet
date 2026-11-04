@@ -7,6 +7,7 @@ import { readAssistantSettings } from "../hooks/useAssistant";
 import type { AssistantSettings } from "../lib/assistant";
 import { formatUptime } from "../lib/assistant";
 import { useSystemSignals } from "../hooks/useSystemSignals";
+import { useT, useLanguage } from "../i18n";
 
 /**
  * Is settings.
@@ -111,6 +112,9 @@ export function AssistantTab() {
   const [config, setConfig] = useState<AssistantSettings>(() => readAssistantSettings());
   const [name, setName] = useState(() => localStorage.getItem("islet-assistant-name") || "Is");
   const signals = useSystemSignals();
+  const t = useT();
+  // Re-read the durations when the language changes ("2 h 42" vs "2h 42").
+  const lang = useLanguage();
 
   const commitName = (value: string) => {
     // Same rule as the welcome flow: never store an empty name.
@@ -129,36 +133,39 @@ export function AssistantTab() {
 
   return (
     <>
-      <div className="setting-group-label">Is — Assistant</div>
+      <div className="setting-group-label">{t("settings.assistant.group", { name })}</div>
       <div className="setting-group">
-        <SettingRow icon={Tag} label="Name" desc="What the notch calls your assistant">
+        <SettingRow icon={Tag} label={t("settings.assistant.name")} desc={t("settings.assistant.name.desc")}>
           <input
             className="assistant-name-input"
             value={name}
             maxLength={24}
             spellCheck={false}
             onChange={(e) => commitName(e.target.value)}
-            aria-label="Assistant name"
+            aria-label={t("settings.assistant.name")}
           />
         </SettingRow>
         <ToggleRow
           icon={Sparkles}
-          label="Enable Is"
-          desc="Short tips in the notch, plus a coloured outline that stays until you click the notch and read them"
+          label={t("settings.assistant.enable", { name })}
+          desc={t("settings.assistant.enable.desc")}
           checked={config.enabled}
           onChange={(v) => update("enabled", v)}
         />
       </div>
 
-      <div className="setting-group-label">What Is watches</div>
+      <div className="setting-group-label">{t("settings.assistant.watches", { name })}</div>
       <div className="setting-group">
         <ToggleRow
           icon={BatteryCharging}
-          label="Battery"
+          label={t("settings.assistant.battery")}
           desc={
             battery?.present
-              ? `Now: ${battery.percent ?? "?"} %${battery.charging ? " · charging" : ""}`
-              : "Low battery, charge reminder, full charge"
+              ? t("settings.assistant.battery.live", {
+                  percent: battery.percent ?? "?",
+                  charging: battery.charging ? ` · ${t("common.charing")}` : "",
+                })
+              : t("settings.assistant.battery.desc")
           }
           checked={config.battery}
           disabled={off}
@@ -166,27 +173,29 @@ export function AssistantTab() {
         />
         <ToggleRow
           icon={HardDrive}
-          label="Storage"
-          desc="Disk filling up, and drives about to run out of space"
+          label={t("settings.assistant.storage")}
+          desc={t("settings.assistant.storage.desc")}
           checked={config.storage}
           disabled={off}
           onChange={(v) => update("storage", v)}
         />
         <ToggleRow
           icon={Gauge}
-          label="Performance"
-          desc="Sustained CPU load and memory pressure"
+          label={t("settings.assistant.performance")}
+          desc={t("settings.assistant.performance.desc")}
           checked={config.performance}
           disabled={off}
           onChange={(v) => update("performance", v)}
         />
         <ToggleRow
           icon={Clock}
-          label="Session"
+          label={t("settings.assistant.session")}
           desc={
             signals
-              ? `Uptime now: ${formatUptime(signals.uptime_secs)}`
-              : "Long session, delayed restart and late nights"
+              ? t("settings.assistant.session.live", {
+                  uptime: formatUptime(signals.uptime_secs, lang),
+                })
+              : t("settings.assistant.session.desc")
           }
           checked={config.session}
           disabled={off}
@@ -194,12 +203,12 @@ export function AssistantTab() {
         />
       </div>
 
-      <div className="setting-group-label">Thresholds</div>
+      <div className="setting-group-label">{t("settings.assistant.thresholds")}</div>
       <div className="setting-group">
         <SliderRow
           icon={BatteryCharging}
-          label="Low battery warning"
-          desc="Warn when the battery drops to this level"
+          label={t("settings.assistant.lowBattery")}
+          desc={t("settings.assistant.lowBattery.desc")}
           value={config.lowBattery}
           min={5}
           max={50}
@@ -209,8 +218,8 @@ export function AssistantTab() {
         />
         <SliderRow
           icon={BatteryCharging}
-          label="Charge reminder"
-          desc="Suggest unplugging once the battery reaches this level"
+          label={t("settings.assistant.chargeLimit")}
+          desc={t("settings.assistant.chargeLimit.desc")}
           value={config.chargeLimit}
           min={60}
           max={100}
@@ -220,8 +229,8 @@ export function AssistantTab() {
         />
         <SliderRow
           icon={HardDrive}
-          label="Free space floor"
-          desc="Warn when a drive has less than this share free"
+          label={t("settings.assistant.freeSpaceFloor")}
+          desc={t("settings.assistant.freeSpaceFloor.desc")}
           value={config.freeSpaceFloor}
           min={5}
           max={25}
@@ -231,8 +240,8 @@ export function AssistantTab() {
         />
         <SliderRow
           icon={Clock}
-          label="Long session"
-          desc="Suggest a break after this many hours of uptime"
+          label={t("settings.assistant.sessionHours")}
+          desc={t("settings.assistant.sessionHours.desc")}
           value={config.sessionHours}
           min={2}
           max={16}
@@ -242,31 +251,31 @@ export function AssistantTab() {
         />
       </div>
 
-      <div className="setting-group-label">Right now</div>
+      <div className="setting-group-label">{t("settings.assistant.live")}</div>
       <div className="setting-group">
-        <SettingRow icon={Gauge} label="CPU" desc="Instantaneous load">
+        <SettingRow icon={Gauge} label={t("settings.assistant.cpu")} desc={t("settings.assistant.cpu.desc")}>
           <span className="assistant-readout">
-            {signals ? `${signals.cpu_percent} %` : "—"}
+            {signals ? `${signals.cpu_percent} %` : t("common.none")}
           </span>
         </SettingRow>
-        <SettingRow icon={Gauge} label="Memory" desc="Physical memory in use">
+        <SettingRow icon={Gauge} label={t("settings.assistant.memory")} desc={t("settings.assistant.memory.desc")}>
           <span className="assistant-readout">
-            {signals ? `${Math.round(signals.memory.load_percent)} %` : "—"}
+            {signals ? `${Math.round(signals.memory.load_percent)} %` : t("common.none")}
           </span>
         </SettingRow>
-        <SettingRow icon={Clock} label="Uptime" desc="Time since Windows started">
+        <SettingRow icon={Clock} label={t("settings.assistant.uptime")} desc={t("settings.assistant.uptime.desc")}>
           <span className="assistant-readout">
-            {signals ? formatUptime(signals.uptime_secs) : "—"}
+            {signals ? formatUptime(signals.uptime_secs, lang) : t("common.none")}
           </span>
         </SettingRow>
-        <SettingRow icon={HardDrive} label="Disks" desc="Fixed volumes and free space">
+        <SettingRow icon={HardDrive} label={t("settings.assistant.disks")} desc={t("settings.assistant.disks.desc")}>
           <span className="assistant-readout">
             {signals && signals.disks.some((d) => !d.removable)
               ? signals.disks
                   .filter((d) => !d.removable)
                   .map((d) => `${d.mount} ${d.free_gb.toFixed(0)}G`)
                   .join(" · ")
-              : "—"}
+              : t("common.none")}
           </span>
         </SettingRow>
       </div>

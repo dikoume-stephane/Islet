@@ -38,6 +38,47 @@ aucun `--locked` dans `scripts/release.ps1`.
 
 ---
 
+## 2026-11-04 (5) — J8 : le français arrive, et il devient impossible à oublier
+
+**Demande** — « j8, pour que tout ce qu'on fait ensuite suive la logique de deux langues ».
+Le point important n'était pas de traduire l'existant mais de rendre l'oubli **impossible**
+pour la suite.
+
+**Décision centrale — l'anglais définit les clés, le français est typé dessus.**
+`fr.ts` est déclaré `Record<keyof typeof en, string | {one; other}>`. Ajouter une clé dans
+`en.ts` sans la traduire ne produit pas un oubli discret : ça ne compile pas. C'est ce
+mécanisme, plus que la documentation, qui fera tenir les deux langues dans six mois.
+
+**Pas de bibliothèque.** `react-i18next` aurait apporté trois dépendances, un provider, un
+système de namespaces chargés à la demande et une syntaxe propre à apprendre, pour ~400 clés
+dans deux langues. Le moteur fait 150 lignes : un dictionnaire plat, `{{interpolation}}`,
+pluriels `{one, other}`, et `Intl` pour les dates et les nombres.
+
+**Le catalogue d'Is ne construit plus de phrases.** `pickTip()` renvoyait un `title` déjà
+rédigé en anglais : un conseil affiché au moment du basculement de langue serait resté
+figé dans l'ancienne. Il renvoie maintenant une **clé + des paramètres**, et la vue traduit
+au rendu. Effet secondaire bienvenu : les tests ne dépendent plus de l'anglais.
+
+**Deux traductions trop longues, trouvées avant l'utilisateur.** Le générateur d'aperçu
+mesure chaque conseil. `batteryLowWithTime` faisait 51 caractères en anglais et 56 en
+français pour un notch de 290 px, où la ligne se tronque vers 46. Les deux ont été
+raccourcies. Le test le vérifie désormais pour les 14 conseils, dans les deux langues.
+
+**Pièges rencontrés**
+- `node --test` **ignore `node_modules`** : le bundle de test doit être écrit ailleurs
+  (`.test-build/`, gitignoré). Trois tentatives avant de comprendre.
+- Node ESM exige des extensions explicites ; le code source garde des imports sans
+  extension (résolution bundler de Vite). D'où le passage par esbuild pour les tests,
+  au lieu de `--experimental-strip-types`.
+
+**Livré** — socle, sélecteur dans Général, 14 conseils, interface du notch, onglet Is,
+onglet Général, les 5 écrans d'accueil, sidebar et titres.
+**Reste** — 8 onglets des Réglages, le dock, l'agenda, les surcouches : `todo.md` N10→N15.
+
+**Validations** — `npm run build` ✅ · `npm run test:assistant` **40 tests** ✅.
+
+---
+
 ## 2026-11-04 (4) — J1 : l'accueil au premier démarrage
 
 **Fait** — `src/settings/Onboarding.tsx` + `Onboarding.css`, cinq étapes rendues dans la

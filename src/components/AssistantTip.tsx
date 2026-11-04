@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { AssistantTip, TipSeverity } from "../lib/assistant";
+import { useT } from "../i18n";
 
 /**
  * Is' tip, rendered in the notch.
@@ -30,6 +31,10 @@ interface AssistantTipViewProps {
 export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
   const accent = SEVERITY_COLOR[tip.severity];
   const reduceMotion = useReducedMotion();
+  // Translated at render, not at pick time: switching language while a tip is
+  // on screen re-reads it in the new language instead of leaving a relic.
+  const t = useT();
+  const message = t(tip.message.key, tip.message.params);
 
   return (
     <motion.div
@@ -55,15 +60,15 @@ export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
         <span className="assistant-tip-dot" />
       </span>
 
-      <span className="assistant-tip-message" title={tip.title}>
-        {tip.title}
+      <span className="assistant-tip-message" title={message}>
+        {message}
       </span>
 
       <button
         type="button"
         className="assistant-tip-close"
         onClick={onDismiss}
-        aria-label="Dismiss tip"
+        aria-label={t("tip.dismiss")}
       >
         <X size={11} strokeWidth={2.6} />
       </button>

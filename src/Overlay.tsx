@@ -10,6 +10,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { MixerIcon, SpeakerIcon } from "./icons";
 import "./Overlay.css";
 import { initTheme } from "./theme";
+import { initI18n } from "./i18n";
 
 // ─── App Volume Mixer ───────────────────────────────────────────────────────
 
@@ -545,7 +546,12 @@ function BrightnessNotch({
 
 function OverlayApp() {
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
   type Mode = 'idle' | 'volume' | 'brightness' | 'splash' | 'updating';

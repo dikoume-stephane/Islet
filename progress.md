@@ -29,7 +29,7 @@
 | L | IA optionnelle | 4 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
 | M | Outillage (skills) | 3 | 3 | ✅ Skills + outillage build | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 
-**Jalons** : ~~J1 accueil~~ ✅ → J2 thèmes → J8 langues → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
+**Jalons** : ~~J1 accueil~~ ✅ → ~~J8 langues (socle)~~ ✅ → J2 thèmes → J8 (reste des onglets) → J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA.
 ⚠️ Amendé le 2026-11-03 : **J3 (Is — signaux système)** a été attaqué avant J1, puis J1 a suivi le 2026-11-04. Restent pour Is : le personnage animé et les signaux orientés développement (git, ports, build).
 🆕 Ajouté le 2026-11-04 : **J8 langues FR/EN** (demande utilisateur), placé juste après J2 pour ne pas traduire deux fois.
 Détail complet dans `ROADMAP.md` § PHASE 3.

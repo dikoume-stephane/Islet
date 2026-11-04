@@ -17,6 +17,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { applyTheme } from "../theme";
+import { useT } from "../i18n";
 import "./Onboarding.css";
 
 /**
@@ -60,6 +61,7 @@ interface OnboardingProps {
 
 export function Onboarding({ onFinish }: OnboardingProps) {
   const reduceMotion = useReducedMotion();
+  const t = useT();
   const [stepIndex, setStepIndex] = useState(0);
   const step = STEPS[stepIndex];
 
@@ -151,18 +153,18 @@ export function Onboarding({ onFinish }: OnboardingProps) {
 
   const summary = useMemo(
     () => [
-      { label: "Assistant", value: name.trim() || "Is" },
+      { label: t("welcome.summary.assistant"), value: name.trim() || "Is" },
       {
-        label: "Theme",
+        label: t("welcome.summary.theme"),
         value:
           themeMode === "custom"
-            ? "Custom accent"
+            ? t("welcome.summary.customAccent")
             : themeMode.charAt(0).toUpperCase() + themeMode.slice(1),
       },
-      { label: "Notch", value: notchMode.charAt(0).toUpperCase() + notchMode.slice(1) },
-      { label: "Dock", value: dockEnabled ? "On" : "Off" },
+      { label: t("welcome.summary.notch"), value: notchMode.charAt(0).toUpperCase() + notchMode.slice(1) },
+      { label: t("welcome.summary.dock"), value: dockEnabled ? t("welcome.summary.on") : t("welcome.summary.off") },
     ],
-    [name, themeMode, notchMode, dockEnabled],
+    [name, themeMode, notchMode, dockEnabled, t],
   );
 
   return (
@@ -174,18 +176,13 @@ export function Onboarding({ onFinish }: OnboardingProps) {
               <div className="onboarding-hero">
                 <img src="/islet.png" alt="" draggable={false} />
               </div>
-              <h1 className="onboarding-title">Welcome to Islet</h1>
-              <p className="onboarding-lead">
-                A notch and a dock, on top of your screen. Two minutes to set it up the way you
-                work — and nothing is locked in afterwards.
-              </p>
+              <h1 className="onboarding-title">{t("welcome.title")}</h1>
+              <p className="onboarding-lead">{t("welcome.lead")}</p>
 
               <div className="onboarding-card">
                 <label className="onboarding-field">
-                  <span className="onboarding-field-label">What should I be called?</span>
-                  <span className="onboarding-field-hint">
-                    The little assistant that reads your PC and tells you about it.
-                  </span>
+                  <span className="onboarding-field-label">{t("welcome.name")}</span>
+                  <span className="onboarding-field-hint">{t("welcome.nameHint")}</span>
                   <input
                     className="onboarding-input"
                     value={name}
@@ -193,7 +190,7 @@ export function Onboarding({ onFinish }: OnboardingProps) {
                     spellCheck={false}
                     onChange={(e) => commitName(e.target.value)}
                     placeholder="Is"
-                    aria-label="Assistant name"
+                    aria-label={t("welcome.nameAria")}
                   />
                 </label>
                 <div className="onboarding-chips">
@@ -214,33 +211,30 @@ export function Onboarding({ onFinish }: OnboardingProps) {
 
           {step === "look" && (
             <>
-              <h1 className="onboarding-title">Choose a look</h1>
-              <p className="onboarding-lead">
-                The notch, the dock and Is all follow this. You can change it any time in
-                Settings › Appearance.
-              </p>
+              <h1 className="onboarding-title">{t("welcome.look")}</h1>
+              <p className="onboarding-lead">{t("welcome.lookLead")}</p>
 
               <div className="onboarding-themes">
                 <ThemeCard
                   icon={Moon}
-                  label="Dark"
-                  hint="The default. Blends into a dark wallpaper."
+                  label={t("welcome.theme.dark")}
+                  hint={t("welcome.theme.darkHint")}
                   active={themeMode === "dark"}
                   preview="dark"
                   onClick={() => pickTheme("dark")}
                 />
                 <ThemeCard
                   icon={Sun}
-                  label="Light"
-                  hint="Frosted white, readable on bright desktops."
+                  label={t("welcome.theme.light")}
+                  hint={t("welcome.theme.lightHint")}
                   active={themeMode === "light"}
                   preview="light"
                   onClick={() => pickTheme("light")}
                 />
                 <ThemeCard
                   icon={Palette}
-                  label="Custom"
-                  hint="Your own accent colour, darkened to stay readable."
+                  label={t("welcome.theme.custom")}
+                  hint={t("welcome.theme.customHint")}
                   active={themeMode === "custom"}
                   preview="custom"
                   accent={accent}
@@ -248,8 +242,8 @@ export function Onboarding({ onFinish }: OnboardingProps) {
                 />
                 <ThemeCard
                   icon={Wand2}
-                  label="Adaptive"
-                  hint="Follows the Windows accent colour automatically."
+                  label={t("welcome.theme.adaptive")}
+                  hint={t("welcome.theme.adaptiveHint")}
                   active={themeMode === "adaptive"}
                   preview="adaptive"
                   onClick={() => pickTheme("adaptive")}
@@ -258,7 +252,7 @@ export function Onboarding({ onFinish }: OnboardingProps) {
 
               {themeMode === "custom" && (
                 <div className="onboarding-card onboarding-card--tight">
-                  <span className="onboarding-field-label">Accent colour</span>
+                  <span className="onboarding-field-label">{t("welcome.accent")}</span>
                   <div className="onboarding-swatches">
                     {THEME_ACCENTS.map((hex) => (
                       <button
@@ -280,32 +274,29 @@ export function Onboarding({ onFinish }: OnboardingProps) {
 
           {step === "home" && (
             <>
-              <h1 className="onboarding-title">Where does it live?</h1>
-              <p className="onboarding-lead">
-                The notch hangs from the top of the screen. The dock replaces the Start menu strip
-                at the bottom. Both can run at once.
-              </p>
+              <h1 className="onboarding-title">{t("welcome.home")}</h1>
+              <p className="onboarding-lead">{t("welcome.homeLead")}</p>
 
-              <div className="setting-group-label">Top of the screen</div>
+              <div className="setting-group-label">{t("welcome.top")}</div>
               <div className="onboarding-choice-group">
                 {[
                   {
                     value: "fixed",
                     icon: PanelTop,
-                    label: "Fixed",
-                    hint: "Always visible. The classic notch.",
+                    label: t("welcome.notch.fixed"),
+                    hint: t("welcome.notch.fixedHint"),
                   },
                   {
                     value: "smart",
                     icon: Sparkles,
-                    label: "Smart",
-                    hint: "Hides itself until the mouse reaches the top edge.",
+                    label: t("welcome.notch.smart"),
+                    hint: t("welcome.notch.smartHint"),
                   },
                   {
                     value: "peek",
                     icon: Monitor,
-                    label: "Peek",
-                    hint: "Stays as a small pill, unfolds on hover.",
+                    label: t("welcome.notch.peek"),
+                    hint: t("welcome.notch.peekHint"),
                   },
                 ].map((option) => (
                   <button
@@ -324,7 +315,7 @@ export function Onboarding({ onFinish }: OnboardingProps) {
                 ))}
               </div>
 
-              <div className="setting-group-label">Bottom of the screen</div>
+              <div className="setting-group-label">{t("welcome.bottom")}</div>
               <button
                 type="button"
                 className={`onboarding-choice onboarding-choice--wide ${dockEnabled ? "is-active" : ""}`}
@@ -332,10 +323,8 @@ export function Onboarding({ onFinish }: OnboardingProps) {
               >
                 <HardDrive size={16} strokeWidth={1.6} />
                 <span className="onboarding-choice-text">
-                  <span className="onboarding-choice-label">Show the dock</span>
-                  <span className="onboarding-choice-hint">
-                    Your pinned apps, window previews and a search field, at the bottom edge.
-                  </span>
+                  <span className="onboarding-choice-label">{t("welcome.dock")}</span>
+                  <span className="onboarding-choice-hint">{t("welcome.dockHint")}</span>
                 </span>
                 <span className={`onboarding-toggle ${dockEnabled ? "is-on" : ""}`} aria-hidden>
                   <span className="onboarding-toggle-knob" />
@@ -346,33 +335,26 @@ export function Onboarding({ onFinish }: OnboardingProps) {
 
           {step === "privacy" && (
             <>
-              <h1 className="onboarding-title">What leaves your PC</h1>
-              <p className="onboarding-lead">
-                Almost nothing. Islet works offline; three things can reach the internet, and each
-                one is yours to decide.
-              </p>
+              <h1 className="onboarding-title">{t("welcome.privacy")}</h1>
+              <p className="onboarding-lead">{t("welcome.privacyLead")}</p>
 
               <div className="onboarding-card onboarding-card--tight">
                 <div className="onboarding-privacy-row">
                   <CloudOff size={15} strokeWidth={1.6} className="onboarding-privacy-icon" />
                   <span>
-                    <strong>Stays here.</strong> Battery, disks, memory, CPU, uptime, your windows,
-                    your settings, what Is tells you. None of it is sent anywhere, and there is no
-                    account.
+                    <strong>{t("welcome.privacy.local")}</strong> {t("welcome.privacy.localBody")}
                   </span>
                 </div>
                 <div className="onboarding-privacy-row">
                   <CloudOff size={15} strokeWidth={1.6} className="onboarding-privacy-icon" />
                   <span>
-                    <strong>Weather</strong> asks a public forecast service for one city — the name
-                    of it, nothing else. Off unless you set a city.
+                    <strong>{t("welcome.privacy.weather")}</strong> {t("welcome.privacy.weatherBody")}
                   </span>
                 </div>
                 <div className="onboarding-privacy-row">
                   <CloudOff size={15} strokeWidth={1.6} className="onboarding-privacy-icon" />
                   <span>
-                    <strong>Calendar sync</strong> only talks to the CalDAV server you configure
-                    yourself. Off by default.
+                    <strong>{t("welcome.privacy.calendar")}</strong> {t("welcome.privacy.calendarBody")}
                   </span>
                 </div>
               </div>
@@ -384,11 +366,8 @@ export function Onboarding({ onFinish }: OnboardingProps) {
               >
                 <Download size={16} strokeWidth={1.6} />
                 <span className="onboarding-choice-text">
-                  <span className="onboarding-choice-label">Check for updates automatically</span>
-                  <span className="onboarding-choice-hint">
-                    Contacts GitHub on startup and downloads new versions. Installing stays
-                    manual — you always get the prompt.
-                  </span>
+                  <span className="onboarding-choice-label">{t("welcome.updates")}</span>
+                  <span className="onboarding-choice-hint">{t("welcome.updatesHint")}</span>
                 </span>
                 <span className={`onboarding-toggle ${autoUpdate ? "is-on" : ""}`} aria-hidden>
                   <span className="onboarding-toggle-knob" />
@@ -402,11 +381,8 @@ export function Onboarding({ onFinish }: OnboardingProps) {
               <div className="onboarding-done-badge">
                 <Check size={22} strokeWidth={2.6} />
               </div>
-              <h1 className="onboarding-title">You're set</h1>
-              <p className="onboarding-lead">
-                Everything here is reversible: Settings › General has an entry to replay this
-                screen.
-              </p>
+              <h1 className="onboarding-title">{t("welcome.done")}</h1>
+              <p className="onboarding-lead">{t("welcome.doneLead")}</p>
 
               <div className="onboarding-card onboarding-card--tight">
                 <dl className="onboarding-summary">
@@ -419,10 +395,7 @@ export function Onboarding({ onFinish }: OnboardingProps) {
                 </dl>
               </div>
 
-              <p className="onboarding-footnote">
-                Next: hover the notch to open it, or right-click its icon in the tray for the same
-                Settings window you are looking at.
-              </p>
+              <p className="onboarding-footnote">{t("welcome.footnote")}</p>
             </>
           )}
         </motion.div>
@@ -439,14 +412,14 @@ export function Onboarding({ onFinish }: OnboardingProps) {
           {stepIndex > 0 && (
             <button type="button" className="onboarding-btn onboarding-btn--ghost" onClick={back}>
               <ArrowLeft size={13} strokeWidth={2.2} />
-              Back
+              {t("welcome.back")}
             </button>
           )}
           <button type="button" className="onboarding-btn onboarding-btn--ghost" onClick={finish}>
-            Skip
+            {t("welcome.skip")}
           </button>
           <button type="button" className="onboarding-btn onboarding-btn--primary" onClick={next}>
-            {stepIndex === STEPS.length - 1 ? "Start using Islet" : "Continue"}
+            {stepIndex === STEPS.length - 1 ? t("welcome.start") : t("welcome.continue")}
             <ArrowRight size={13} strokeWidth={2.2} />
           </button>
         </div>

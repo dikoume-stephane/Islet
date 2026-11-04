@@ -7,6 +7,7 @@ import { emit } from "@tauri-apps/api/event";
 import { Check, ChevronLeft, ChevronRight, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import { WindowControls } from "./components/WindowControls";
 import { initTheme } from "./theme";
+import { initI18n } from "./i18n";
 import { useCaldav, type CalEvent } from "./hooks/useCaldav";
 import "./Calendar.css";
 
@@ -87,6 +88,7 @@ function CalendarWindow() {
   const hour12 = localStorage.getItem("islet-time-format-24h") !== "true";
 
   useEffect(() => initTheme(), []);
+  useEffect(() => initI18n(), []);
 
   useEffect(() => {
     appWindow.setEffects({ effects: [Effect.Acrylic], state: EffectState.Active, color: [10, 10, 15, 20] }).catch(() => {});

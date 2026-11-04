@@ -169,14 +169,33 @@ Tout est désactivé sous `prefers-reduced-motion` **sauf** le marqueur (statiqu
 - Le **nom** est un vrai réglage : champ dans Settings › Is et libellé de l'onglet latéral.
 - « Replay the Welcome » dans Settings › General (ne réinitialise rien).
 
-### Langues (cadré 2026-11-04, non commencé)
+### Langues — socle livré 2026-11-04 (J8, partiel)
+
+`src/i18n/` : `en.ts` (source des clés), `fr.ts` (typé dessus), `index.ts` (moteur).
+**Aucune dépendance** : deux dictionnaires plats, interpolation `{{}}`, pluriels `{one, other}`.
+
+- **L'anglais définit le jeu de clés.** `fr.ts` est `Record<keyof typeof en, …>` : une clé oubliée en français est une **erreur de compilation**, pas un oubli de revue. C'est le mécanisme central — ne pas le contourner.
+- `t()` global (hors React) · `useT()` / `useLanguage()` dans les composants (via `useSyncExternalStore`) · `translate(lang, …)` pour les tests.
+- `initI18n()` dans les **5 fenêtres** (App, Settings, Dock, Overlay, Calendar). Réactif via `settings-changed` + `settings-external-changed`.
+- Réglage `islet-language` = `system` | `fr` | `en`, défaut `system` → `navigator.language`.
+- `formatDate()` / `formatNumber()` via `Intl`, jamais un format écrit à la main.
+
+**Règle permanente inscrite dans `AGENTS.md`** : toute chaîne visible passe par `t()`, dans les deux dictionnaires.
+**Pièges connus**
+- Le notch fait **290 px** : au-delà de ~46 caractères la ligne se tronque. Deux traductions ont déjà été raccourcies. Le test le vérifie.
+- Ne jamais concaténer deux clés pour former une phrase (ordre des mots).
+- « notch » n'est pas traduit : c'est le nom de la fonctionnalité dans le produit.
+- Les fichiers `.ts` doivent garder des imports **sans extension** (résolution bundler) ; pour les tests Node, passer par un bundle esbuild.
+
+**Reste** : 8 onglets des Réglages, le dock, l'agenda, les surcouches (`todo.md` Bloc N, N10→N15).
 
 Décisions DÉC-12 → DÉC-15 dans `ROADMAP.md` § 3.G : pas de bibliothèque (un `t()` maison + 2 dictionnaires plats), langue par défaut = celle de Windows, onglet Général → Langue, appliqué sans redémarrage.
 ⚠️ Le notch est étroit (290 px) : toute traduction doit être vérifiée là, pas seulement dans les réglages.
 
 ### Tests
 
-`bun run test:assistant` → `node --experimental-strip-types --test scripts/assistant.test.ts`. **31 tests, zéro dépendance ajoutée.** Node 22 charge le TypeScript directement ; le fichier doit être en `.ts` (le strip-types ne s'applique pas aux `.mjs`).
+`bun run test:assistant` → bundle esbuild puis `node --test`. **40 tests, zéro dépendance ajoutée** (esbuild est fourni par Vite).
+⚠️ `node --test` **ignore `node_modules`** : le bundle doit être écrit ailleurs (ici `.test-build/`, gitignoré). Node ESM exige aussi des extensions explicites, d'où le passage par esbuild plutôt que `--experimental-strip-types`.
 
 ### Skills installées
 
