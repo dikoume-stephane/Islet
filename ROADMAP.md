@@ -343,8 +343,15 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C6 | **Indicateurs clavier** | ❌ | Caps Lock / Verr Num / langue active — overlay bref, comme les overlays volume existants |
 | P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
 | P3-C8 | **Modes notch minimalistes** | Partiel | Ajouter la « pilule minimale » (temps seul, aucun module) |
+| P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C9 en détail** (livré 2026-11-05) : `src-tauri/src/clipboard.rs` mesure (fil de sondage 400 ms sur
+`GetClipboardSequenceNumber`), `src/lib/clipboard.ts` décide (ordre, épingles, recherche, aperçu) et
+`NotchClipboard.tsx` affiche. L'historique vit **en mémoire seule** ; deux formats d'exclusion Windows sont
+respectés pour ne pas enregistrer ce qu'un gestionnaire de mots de passe copie. Plafond 60 entrées non épinglées,
+texte tronqué à 20 000 caractères, « Vider l'historique » conserve les épinglés.
 
 ---
 

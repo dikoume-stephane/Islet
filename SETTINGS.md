@@ -82,6 +82,23 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-calendar-view` | `"day"` / `"week"` / `"month"` / `"agenda"` | `"month"` | Which view the notch calendar shows once a calendar source is connected. Set by the Day / Week / Month / Agenda switcher in the notch. |
 | `islet-music-mode-enabled` | `"true"` / `"false"` | `"true"` | Enable interactive music media widget. |
 | `islet-music-compact-notch` | `"true"` / `"false"` | `"true"` | Show compact music display (visualizer + artwork) in collapsed notch. |
+| `islet-clipboard-enabled` | `"true"` / `"false"` | `"true"` | Keep a clipboard history in the notch (Settings › Notch › Clipboard History). Turning it off stops the watcher, not just the panel. |
+| `islet-clipboard-paste` | `"true"` / `"false"` | `"false"` | Clicking an entry pastes it into the window you came from instead of only copying it. |
+
+### Clipboard History
+
+The history lives in memory only: nothing is written to disk, and the list is gone when Islet exits. Windows
+gives applications a way to opt out of clipboard monitoring, and Islet honours it: a password manager that
+marks its copy as private never reaches the history.
+
+| Action | Where |
+|--------|-------|
+| Open the panel | Hover the notch, scroll to the clipboard mode |
+| Copy an entry | Click it (or type in the search field and press Enter) |
+| Pin / unpin | The pin icon on the right of a row |
+| Remove one entry | The bin icon on the right of a row |
+| Clear everything | "Clear history" in the footer (pinned entries are kept) |
+| Stop recording temporarily | The pause button in the panel header |
 
 ### Calendar Sync (links and CalDAV)
 

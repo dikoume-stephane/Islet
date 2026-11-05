@@ -17,6 +17,7 @@ mod calendar_sync;
 mod ics;
 mod active_look;
 mod signals;
+mod clipboard;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -190,7 +191,16 @@ fn main() {
             calendar_sync::caldav_get_cache,
             ics::ics_add_link,
             ics::ics_remove_link,
-            ics::ics_detect
+            ics::ics_detect,
+            clipboard::clipboard_get_state,
+            clipboard::clipboard_remember_target,
+            clipboard::clipboard_copy,
+            clipboard::clipboard_paste,
+            clipboard::clipboard_toggle_pin,
+            clipboard::clipboard_remove,
+            clipboard::clipboard_clear,
+            clipboard::clipboard_set_recording,
+            clipboard::clipboard_is_recording
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());
@@ -225,6 +235,11 @@ fn main() {
 
             // Is: sample system signals (battery, disks, memory, uptime).
             signals::start_sampler(app.handle().clone());
+
+            // Clipboard history: watch the clipboard and keep it in memory.
+            // Recording can be turned off from the notch without stopping the
+            // thread, so toggling it is instant and reversible.
+            clipboard::start_watcher(app.handle().clone());
 
             let window = app.get_webview_window("main").unwrap();
             let dock_win = app.get_webview_window("dock").unwrap();

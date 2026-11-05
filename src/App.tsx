@@ -18,6 +18,7 @@ import { useAssistant } from "./hooks/useAssistant";
 import { AssistantTipView, SEVERITY_COLOR } from "./components/AssistantTip";
 import { tipPlainText } from "./lib/assistant";
 import { NotchCalendar } from "./components/NotchCalendar";
+import { NotchClipboard } from "./components/NotchClipboard";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
@@ -639,6 +640,11 @@ function App() {
   // Settings state
   const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("islet-weather-enabled") !== "false");
   const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("islet-calendar-enabled") !== "false");
+  // On by default: a clipboard history nobody finds in the settings is a
+  // feature nobody uses, and nothing here leaves the machine. The pause
+  // button sits in the panel header, one click away.
+  const [settingsClipboardEnabled, setSettingsClipboardEnabled] = useState(() => localStorage.getItem("islet-clipboard-enabled") !== "false");
+  const [settingsClipboardPaste, setSettingsClipboardPaste] = useState(() => localStorage.getItem("islet-clipboard-paste") === "true");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -672,6 +678,13 @@ function App() {
     return () => { unlisten.then(f => f()); };
   }, []);
 
+  // The watcher lives in Rust and runs for the lifetime of the process: the
+  // setting has to reach it, not just the React tree, or "off" would only mean
+  // "hidden" while the clipboard kept being read behind the user's back.
+  useEffect(() => {
+    invoke("clipboard_set_recording", { enabled: settingsClipboardEnabled }).catch(() => {});
+  }, [settingsClipboardEnabled]);
+
   useEffect(() => {
     if (!windowLabel) return;
 
@@ -686,6 +699,8 @@ function App() {
 
       setSettingsWeatherEnabled(getVal("islet-weather-enabled", "true") !== "false");
       setSettingsCalendarEnabled(getVal("islet-calendar-enabled", "true") !== "false");
+      setSettingsClipboardEnabled(getVal("islet-clipboard-enabled", "true") !== "false");
+      setSettingsClipboardPaste(getVal("islet-clipboard-paste", "false") === "true");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -813,6 +828,8 @@ function App() {
     {
       "islet-weather-enabled": setSettingsWeatherEnabled,
       "islet-calendar-enabled": setSettingsCalendarEnabled,
+      "islet-clipboard-enabled": setSettingsClipboardEnabled,
+      "islet-clipboard-paste": setSettingsClipboardPaste,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -874,7 +891,7 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'command-center' | 'status'>('status');
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -886,7 +903,14 @@ function App() {
 
   const handleWheel = (e: React.WheelEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('.calendar-grid') || target.closest('.timer-column') || target.closest('.cal-scroll')) {
+    if (
+      target.closest('.calendar-grid') ||
+      target.closest('.timer-column') ||
+      target.closest('.cal-scroll') ||
+      // A list that scrolls must scroll: switching mode on a wheel meant for
+      // sixty clipboard entries would make the panel unusable.
+      target.closest('.clipboard-panel')
+    ) {
       return;
     }
 
@@ -908,12 +932,13 @@ function App() {
     // Playing: command-center → music → status → calendar (active, near command-center)
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
-    const modes: ('command-center' | 'status' | 'music' | 'calendar')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'status', 'calendar']
-      : ['command-center', 'status', 'music', 'calendar'];
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'status', 'calendar', 'clipboard']
+      : ['command-center', 'status', 'music', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
+      if (m === 'clipboard' && !settingsClipboardEnabled) return false;
       return true;
     });
 
@@ -1038,6 +1063,12 @@ function App() {
       setIsletMode('status');
     }
   }, [productivityEnabled, isletMode]);
+
+  useEffect(() => {
+    if (!settingsClipboardEnabled && isletMode === 'clipboard') {
+      setIsletMode('status');
+    }
+  }, [settingsClipboardEnabled, isletMode]);
 
   useEffect(() => {
     if (!settingsMusicModeEnabled && isletMode === 'music') {
@@ -1497,6 +1528,7 @@ function App() {
 
   // Calculate width dynamically based on enabled features
   const getDynamicWidth = () => {
+    if (isletMode === 'clipboard') return 340;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1528,6 +1560,7 @@ function App() {
     if (!isExpanded || isHidden) {
       return isImpacted ? 28.9 : 44.2;
     }
+    if (isletMode === 'clipboard') return 384;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1543,6 +1576,7 @@ function App() {
   };
 
   const isCalendarMode = isletMode === 'calendar';
+  const isClipboardMode = isletMode === 'clipboard';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1587,7 +1621,13 @@ function App() {
               ? tipPlainText(assistantUnread.message, t)
               : undefined
           }
-          onMouseEnter={() => setIsNotchHovered(true)}
+          onMouseEnter={() => {
+            setIsNotchHovered(true);
+            // The notch takes focus the moment it opens; asking it later would
+            // answer "Islet". Hovering is the last instant the previous window
+            // is still the foreground one.
+            invoke("clipboard_remember_target").catch(() => {});
+          }}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
         initial={{ y: 250, width: 30.6, height: 44.2, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderBottomLeftRadius: 18, borderBottomRightRadius: 18, scaleX: 1, scaleY: 1, opacity: 0 }}
@@ -1600,8 +1640,8 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
@@ -1620,7 +1660,7 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
@@ -2235,6 +2275,26 @@ function App() {
                         <span className="cc-classic-percentage">{currentBrightness}%</span>
                       </div>
                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Clipboard history: same grammar as the calendar module. */}
+              <AnimatePresence>
+                {settingsClipboardEnabled && isClipboardMode && (
+                  <motion.div
+                    className="clipboard-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchClipboard
+                      pasteOnClick={settingsClipboardPaste}
+                      onClose={() => setIsletMode('status')}
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>

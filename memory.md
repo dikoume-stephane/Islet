@@ -1,7 +1,7 @@
 # 🧠 MEMORY — Contexte durable du projet Islet
 
 > Ce fichier est la **mémoire long terme** du travail : à relire en début de chaque session
-> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-04.
+> et à tenir à jour à chaque décision ou constat important. Dernière maj : 2026-11-05.
 
 ---
 
@@ -265,7 +265,9 @@ bureau blanc est à ~2,4:1. Les alphas sont calculés pour passer 4,5:1 sur fond
 
 ### Tests
 
-`bun run test` → `test:assistant` (44) + `test:theme` (20), bundle esbuild puis `node --test`. **64 tests, zéro dépendance ajoutée** (esbuild est fourni par Vite).
+`npm run test` → `test:assistant` (44) + `test:theme` (20) + `test:clipboard` (31),
+bundle esbuild puis `node --test`. **95 tests, zéro dépendance ajoutée** (esbuild est
+fourni par Vite).
 ⚠️ `node --test` **ignore `node_modules`** : le bundle doit être écrit ailleurs (ici `.test-build/`, gitignoré). Node ESM exige aussi des extensions explicites, d'où le passage par esbuild plutôt que `--experimental-strip-types`.
 
 ### Skills installées
@@ -273,3 +275,41 @@ bureau blanc est à ~2,4:1. Les alphas sont calculés pour passer 4,5:1 sur fond
 `.claude/skills/` (versionné, 644 Ko) — `web-design-guidelines`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-view-transitions`, `writing-guidelines`.
 Installation : `npx skills add vercel-labs/agent-skills --skill <nom> -a claude-code -y --copy`.
 ⚠️ Le registre `skills.sh` est **injoignable depuis le sandbox** (DNS restreint) → passer par GitHub. ⚠️ Les noms réels sont préfixés `vercel-`.
+
+---
+
+## 8. Presse-papier (J4, livré 2026-11-05)
+
+Demande : « le super presse-papier de Nusa ». Nusa 1.2 l'a livré sous la Shelf ; ici il a
+son propre mode de notch (`clipboard`), atteint à la molette comme le calendrier.
+
+**Répartition des rôles, à ne pas inverser :** Rust **mesure** (sondage
+`GetClipboardSequenceNumber` toutes les 400 ms, lecture `CF_UNICODETEXT`, id FNV-1a base36
+calculé côté Rust), TypeScript **décide** (`src/lib/clipboard.ts` : ordre, épingles,
+recherche accents-insensible, aperçu, temps relatif), React **affiche**. Le frontend ne
+recalcule jamais l'id : deux implémentations d'un même hash finissent par diverger.
+
+**Choix qui engagent la suite**
+- **Mémoire seule, aucun disque.** L'historique meurt avec le processus. Un presse-papier
+  contient des mots de passe ; l'écrire dans `%APPDATA%` serait une décision que personne
+  n'a demandée.
+- **Opt-out respecté.** `ExcludeClipboardContentFromMonitorProcessing` et
+  `CanIncludeInClipboardHistory == 0` : sans ça, l'outil est un keylogger. Ne jamais
+  retirer ce filtre pour « voir plus d'entrées ».
+- **Plafond 60 entrées non épinglées** (`MAX_ITEMS`), les épinglés ne sont **jamais**
+  évincés ; texte tronqué à 20 000 caractères (`MAX_TEXT_CHARS`) avec le nombre de
+  caractères masqués affiché.
+- **« Vider l'historique » conserve les épinglés** ; la pause arrête l'enregistrement sans
+  vider la liste.
+- **Fenêtre cible du collage** : `GetForegroundWindow()` sur le survol du notch
+  (`clipboard_remember_target`) + repli sur la dernière fenêtre **d'un autre processus**
+  échantillonnée par le veilleur (`LAST_FOREIGN`). Le notch prend le focus dès qu'il
+  s'ouvre : demander la cible à ce moment-là répondrait « Islet ».
+- **Le réglage pilote Rust**, pas seulement l'affichage : `clipboard_set_recording` est
+  appelé à chaque changement de `islet-clipboard-enabled`, sinon « désactivé » ne
+  voudrait dire que « caché ».
+- **La molette dans la liste ne change pas de mode** : `.clipboard-panel` est exclu de
+  `handleWheel`, comme `.calendar-grid`.
+
+⚠️ **Pas de toolchain Rust dans le sandbox** : `clipboard.rs` n'a pas été compilé ici.
+La syntaxe a été relue, pas vérifiée par `cargo`.

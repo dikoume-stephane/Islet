@@ -234,6 +234,10 @@ function SettingsApp() {
               replaceNotchModes={settings.replaceNotchModesByMonitor}
               calendarEnabled={settings.calendarEnabled}
               toggleCalendar={settings.toggleCalendar}
+              clipboardEnabled={settings.clipboardEnabled}
+              toggleClipboard={settings.toggleClipboard}
+              clipboardPaste={settings.clipboardPaste}
+              toggleClipboardPaste={settings.toggleClipboardPaste}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

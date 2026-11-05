@@ -52,7 +52,9 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 ¹ uniquement les mentions légales volontaires : section Credits du README + descriptions `Cargo.toml`. Hors fichiers de pilotage qui documentent l'ancien nom.
 
 ## En cours
-- *(aucune tâche agent active — le rebranding sandbox est terminé)*
+- **J4 — Parité Nusa** : le presse-papier (P3-C9) est livré et testé côté TypeScript
+  (95 tests). Reste la validation Rust sur Windows, puis paroles LRCLIB, file shelf,
+  indicateurs clavier et pilule minimale.
 
 ¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 

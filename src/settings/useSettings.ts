@@ -21,6 +21,8 @@ export function useSettings() {
   const [autostart, setAutostart] = useState(false);
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [calendarEnabled, setCalendarEnabled] = useState(true);
+  const [clipboardEnabled, setClipboardEnabled] = useState(true);
+  const [clipboardPaste, setClipboardPaste] = useState(false);
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
@@ -152,6 +154,8 @@ export function useSettings() {
 
       apply(getVal("islet-weather-enabled"), setWeatherEnabled, readBool);
       apply(getVal("islet-calendar-enabled"), setCalendarEnabled, readBool);
+      apply(getVal("islet-clipboard-enabled"), setClipboardEnabled, readBool);
+      apply(getVal("islet-clipboard-paste"), setClipboardPaste, readBool);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -270,6 +274,8 @@ export function useSettings() {
     "islet-dock-mixed-reorder": setDockMixedReorder,
     "islet-weather-enabled": setWeatherEnabled,
     "islet-calendar-enabled": setCalendarEnabled,
+    "islet-clipboard-enabled": setClipboardEnabled,
+    "islet-clipboard-paste": setClipboardPaste,
     "islet-timer-enabled": setTimerEnabled,
     "islet-timer-sound-enabled": setTimerSoundEnabled,
     "islet-stopwatch-enabled": setStopwatchEnabled,
@@ -424,6 +430,18 @@ export function useSettings() {
     const next = !calendarEnabled;
     setCalendarEnabled(next);
     saveSetting("islet-calendar-enabled", String(next));
+  };
+
+  const toggleClipboard = () => {
+    const next = !clipboardEnabled;
+    setClipboardEnabled(next);
+    saveSetting("islet-clipboard-enabled", String(next));
+  };
+
+  const toggleClipboardPaste = () => {
+    const next = !clipboardPaste;
+    setClipboardPaste(next);
+    saveSetting("islet-clipboard-paste", String(next));
   };
 
   const toggleTimerEnabled = () => {
@@ -862,6 +880,10 @@ export function useSettings() {
     setNotchModeValue,
     calendarEnabled,
     toggleCalendar,
+    clipboardEnabled,
+    toggleClipboard,
+    clipboardPaste,
+    toggleClipboardPaste,
     timerEnabled,
     toggleTimerEnabled,
     timerSoundEnabled,

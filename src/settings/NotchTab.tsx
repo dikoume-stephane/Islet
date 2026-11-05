@@ -15,6 +15,7 @@ import {
   Hourglass,
   Timer,
   BellRing,
+  ClipboardList,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -37,6 +38,10 @@ interface NotchTabProps {
   replaceNotchModes: (next: Record<string, string>) => void;
   calendarEnabled: boolean;
   toggleCalendar: () => void;
+  clipboardEnabled: boolean;
+  toggleClipboard: () => void;
+  clipboardPaste: boolean;
+  toggleClipboardPaste: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -83,6 +88,10 @@ export function NotchTab({
   replaceNotchModes,
   calendarEnabled,
   toggleCalendar,
+  clipboardEnabled,
+  toggleClipboard,
+  clipboardPaste,
+  toggleClipboardPaste,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -208,6 +217,22 @@ export function NotchTab({
             onClick={onOpenCalendarSync}
           >
             <ChevronRight size={14} strokeWidth={1.5} />
+          </SettingRow>
+        )}
+
+        <SettingRow icon={ClipboardList} label={t("clip.settings.enable")} desc={t("clip.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={clipboardEnabled} onChange={toggleClipboard} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {clipboardEnabled && (
+          <SettingRow icon={ClipboardList} label={t("clip.settings.paste")} desc={t("clip.settings.paste.desc")}>
+            <label className="toggle-switch">
+              <input type="checkbox" checked={clipboardPaste} onChange={toggleClipboardPaste} />
+              <span className="slider"></span>
+            </label>
           </SettingRow>
         )}
 

@@ -5,6 +5,49 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (1) — J4 : le presse-papier de Nusa
+
+**Fait**
+- `src/lib/clipboard.ts` : toute la logique qui se teste sans Windows (plafond 60, épingles
+  inévincables, recherche accents-insensible, aperçu à 96 caractères, temps relatif,
+  tailles, typographie). **31 tests** dans `scripts/clipboard.test.ts`, branchés dans
+  `npm run test`.
+- `src-tauri/src/clipboard.rs` : veilleur (400 ms sur `GetClipboardSequenceNumber`),
+  lecture `CF_UNICODETEXT`, refus des copies marquées privées par un gestionnaire de mots
+  de passe, id FNV-1a base36 calculé côté Rust, 9 commandes, 2 événements.
+- `src/hooks/useClipboard.ts` et `src/components/NotchClipboard.tsx` : panneau du notch,
+  recherche auto-focus, sections Épinglés / Récents, `Entrée` copie le premier résultat,
+  `Échap` ferme, flash « Copié » doublé d'une annonce `aria-live`.
+- Câblage `App.tsx` : mode `clipboard` dans le cycle de molette, 340 × 384, rayon bas 28,
+  rayon identique à l'agenda, retour à `status` à la sortie du survol et quand le réglage
+  passe à off.
+- Réglages : onglet Notch (`islet-clipboard-enabled`, `islet-clipboard-paste`),
+  `useSettings` complété, `SETTINGS.md` documenté.
+- Aperçu statique `/home/user/apercu-presse-papier/` (port 8100) : mêmes règles CSS que
+  `App.css`, trois surfaces (onyx, liquid, frost clair), FR/EN, recherche et épinglage
+  réels sur des données d'exemple.
+
+**Constats**
+- Le notch prend le focus dès qu'il s'ouvre : demander `GetForegroundWindow` à ce
+  moment-là répond « Islet ». La cible du collage est donc mémorisée au survol **et**
+  échantillonnée en continu par le veilleur, qui ne retient que les fenêtres d'un autre
+  processus.
+- « Désactivé » doit atteindre Rust, pas seulement React : le réglage appelle
+  `clipboard_set_recording`, sinon le presse-papier continuerait d'être lu en silence.
+- La molette servait à changer de mode ; sans exclure `.clipboard-panel`, une liste de
+  soixante entrées aurait été impossible à faire défiler.
+
+**Bloqué**
+- Pas de toolchain Rust dans le sandbox : `clipboard.rs` est relu, pas compilé. Le
+  collage réel (Ctrl+V simulé, restauration de fenêtre) demande un essai Windows.
+
+**À faire ensuite**
+- Compiler sur Windows, essayer un collage dans Notepad, vérifier qu'un gestionnaire de
+  mots de passe (Bitwarden, KeePass) n'apparaît pas dans la liste.
+- Poursuivre J4 : paroles LRCLIB, file shelf, indicateurs clavier, pilule minimale.
+
+---
+
 ## 2026-11-04 (5) — J2 Matière : huit presets, dont Liquid Glass
 
 **Fait**

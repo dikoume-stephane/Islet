@@ -2486,3 +2486,307 @@ img {
         opacity: 0.5;
     }
 }
+
+/* - Clipboard panel ------------------------------------------------------
+ * Same grammar as the calendar module: no border of its own, one header, a
+ * scrolling body. The notch already draws the surface, so the panel only
+ * arranges rows inside it.
+ */
+
+.clipboard-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 8px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.clip-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.clip-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--islet-text, #fff);
+}
+
+.clip-count {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+.clip-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+}
+
+.clip-header-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.clip-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.clip-action:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.clip-action:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.clip-action.is-pinned {
+    color: #ffd60a;
+}
+
+/* Search field: the notch is 340 px wide here, so the field is a single row
+   with no label above it. The label is the placeholder plus aria-label. */
+.clip-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 7px 0 6px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    flex-shrink: 0;
+}
+
+.clip-search input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 11px;
+}
+
+.clip-search input::placeholder {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.clip-search:focus-within {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.clip-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+}
+
+.clip-section {
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    margin: 4px 2px 3px;
+}
+
+.clip-rows {
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.clip-row {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    border-radius: 7px;
+}
+
+.clip-row:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+}
+
+/* The row itself is the copy button; pin and delete sit beside it so a click
+   in the panel never has two meanings. */
+.clip-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 5px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.clip-main:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: -2px;
+}
+
+.clip-preview {
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* "Copied" replaces the preview in place: no toast, no layout shift. */
+.clip-main--flash .clip-preview {
+    color: #32d74b;
+}
+
+.clip-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9.5px;
+    line-height: 1.2;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clip-dot {
+    opacity: 0.5;
+}
+
+.clip-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.clip-row:hover .clip-actions,
+.clip-row:focus-within .clip-actions {
+    opacity: 1;
+}
+
+/* Touch and keyboard users never hover: the actions must stay reachable. */
+@media (hover: none) {
+    .clip-actions { opacity: 1; }
+}
+
+.clip-empty {
+    margin: 14px 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.clip-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 5px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.clip-privacy {
+    flex: 1;
+    min-width: 0;
+    font-size: 9px;
+    line-height: 1.3;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clip-clear {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    font: inherit;
+    font-size: 9.5px;
+    cursor: pointer;
+}
+
+.clip-clear:hover {
+    color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.clip-clear:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+/* The panel is absolutely placed under the 36 px notch bar, exactly like the
+   calendar module: it fills the body and scrolls inside itself. */
+.clipboard-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+/* Announced by screen readers only. */
+.clip-announce {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

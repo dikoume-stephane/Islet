@@ -103,6 +103,17 @@
 - [ ] I9 — Contrôle visuel des huit presets sur Windows (le sandbox n'a pas de navigateur)
 
 ## Bloc J — Parité Nusa (J4, J6)
+
+### J0 — Historique du presse-papier (P3-C9) ✅ livré 2026-11-05
+- [x] J0a — `src/lib/clipboard.ts` : logique pure (plafond 60, épingles inévincables, recherche accents-insensible, aperçu, temps relatif, tailles) — **31 tests**
+- [x] J0b — `scripts/clipboard.test.ts` + `npm run test:clipboard`, branché dans `npm run test`
+- [x] J0c — `src-tauri/src/clipboard.rs` : sondage `GetClipboardSequenceNumber` (400 ms), `CF_UNICODETEXT`, opt-out `ExcludeClipboardContentFromMonitorProcessing` + `CanIncludeInClipboardHistory`, id FNV-1a côté Rust
+- [x] J0d — 9 commandes Tauri (`get_state`, `remember_target`, `copy`, `paste`, `toggle_pin`, `remove`, `clear`, `set_recording`, `is_recording`) + événements `clipboard-changed` / `clipboard-recording`
+- [x] J0e — `useClipboard` + `NotchClipboard` : recherche auto-focus, sections épinglés/récents, `Entrée` copie le premier résultat, `Échap` ferme, flash « Copié » annoncé en `aria-live`
+- [x] J0f — Câblage notch : mode `clipboard` (molette), largeur 340 / hauteur 384, rayon bas 28, molette libre dans la liste
+- [x] J0g — Réglages onglet Notch (`islet-clipboard-enabled`, `islet-clipboard-paste`) + section `SETTINGS.md`
+- [ ] J0h — **À vérifier sur Windows** : compilation Rust (pas de toolchain dans le sandbox) et collage réel dans la fenêtre précédente
+
 - [ ] J1 — Paroles synchronisées LRCLIB (ligne courante, clic = seek, décalage ±, cache)
 - [ ] J2 — Chronomètre + minuteur libre (en plus du Pomodoro)
 - [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
