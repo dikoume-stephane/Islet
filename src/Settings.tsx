@@ -240,6 +240,8 @@ function SettingsApp() {
               toggleClipboardPaste={settings.toggleClipboardPaste}
               lyricsEnabled={settings.lyricsEnabled}
               toggleLyrics={settings.toggleLyrics}
+              shelfEnabled={settings.shelfEnabled}
+              toggleShelf={settings.toggleShelf}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

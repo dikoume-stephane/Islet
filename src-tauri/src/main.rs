@@ -19,6 +19,7 @@ mod active_look;
 mod signals;
 mod clipboard;
 mod lyrics;
+mod shelf;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -204,7 +205,11 @@ fn main() {
             clipboard::clipboard_is_recording,
             lyrics::lyrics_fetch,
             lyrics::lyrics_clear_cache,
-            lyrics::lyrics_cache_count
+            lyrics::lyrics_cache_count,
+            shelf::shelf_list,
+            shelf::shelf_add,
+            shelf::shelf_remove,
+            shelf::shelf_clear
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());

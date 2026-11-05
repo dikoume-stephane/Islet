@@ -124,7 +124,13 @@
 - [ ] J2 — Chronomètre + minuteur libre (en plus du Pomodoro)
 - [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
 - [ ] J4 — Pilule minimale (temps seul)
-- [ ] J5 — File shelf (glisser-déposer, persistance)
+- [x] J5 — **File shelf** ✅ livré 2026-11-05
+  - [x] J5a — `src/lib/shelf.ts` : nature par extension, unités SI traduites, dédoublonnage insensible à la casse, plafond 24, ordre (manquants en bas), chemins abrégés — **41 tests**
+  - [x] J5b — `src-tauri/src/shelf.rs` : `shelf_list` / `_add` / `_remove` / `_clear`, persistance `shelf.json`, existence et taille revérifiées à chaque lecture
+  - [x] J5c — `tauri.conf.json` : `dragDropEnabled: true` sur la fenêtre principale (indispensable pour recevoir de vrais chemins)
+  - [x] J5d — `useShelf` + `NotchShelf` : écoute des dépôts, mode de notch 340 × 300, ouverture automatique après un dépôt, ouverture/révélation via `plugin-opener`, compteur de fichiers manquants
+  - [ ] J5e — **Glisser-vers-l'extérieur** : `tauri_plugin_drag::init()` + `startDrag`, à faire et à tester sur Windows
+  - [ ] J5f — **À vérifier sur Windows** : le notch ne doit pas devenir une cible de dépôt sur tout l'écran
 - [ ] J6 — Suivi d'hydratation + rappels
 - [ ] J7 — To-do du jour avec échéances et rappels
 

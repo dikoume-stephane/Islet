@@ -21,6 +21,9 @@ import { NotchCalendar } from "./components/NotchCalendar";
 import { NotchClipboard } from "./components/NotchClipboard";
 import { NotchLyrics } from "./components/NotchLyrics";
 import { useLyrics } from "./hooks/useLyrics";
+import { useShelf } from "./hooks/useShelf";
+import { NotchShelf } from "./components/NotchShelf";
+import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
@@ -651,6 +654,9 @@ function App() {
   // to a server. Nothing leaves the machine until someone turns it on in
   // Settings › Notch, and the panel says so when it is off.
   const [settingsLyricsEnabled, setSettingsLyricsEnabled] = useState(() => localStorage.getItem("islet-lyrics-enabled") === "true");
+  // On by default: dropping a file has to work before the feature is
+  // discovered. Nothing is copied, so the floor is a list of paths.
+  const [settingsShelfEnabled, setSettingsShelfEnabled] = useState(() => localStorage.getItem("islet-shelf-enabled") !== "false");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -708,6 +714,7 @@ function App() {
       setSettingsClipboardEnabled(getVal("islet-clipboard-enabled", "true") !== "false");
       setSettingsClipboardPaste(getVal("islet-clipboard-paste", "false") === "true");
       setSettingsLyricsEnabled(getVal("islet-lyrics-enabled", "false") === "true");
+      setSettingsShelfEnabled(getVal("islet-shelf-enabled", "true") !== "false");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -838,6 +845,7 @@ function App() {
       "islet-clipboard-enabled": setSettingsClipboardEnabled,
       "islet-clipboard-paste": setSettingsClipboardPaste,
       "islet-lyrics-enabled": setSettingsLyricsEnabled,
+      "islet-shelf-enabled": setSettingsShelfEnabled,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -900,7 +908,7 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'command-center' | 'status'>('status');
   // Lyrics for the track that is playing. The hook is called unconditionally:
   // it does nothing (and asks nothing) while the setting is off.
   const lyrics = useLyrics({
@@ -917,6 +925,10 @@ function App() {
   });
   const language = useLanguage();
   const lyricsDecimalSeparator = language === "fr" ? "," : ".";
+
+  // The shelf: files dropped on the notch, kept as paths. The hook owns the
+  // drop listener, so a disabled shelf is not even a window that accepts files.
+  const shelf = useShelf({ enabled: settingsShelfEnabled });
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -935,7 +947,8 @@ function App() {
       // A list that scrolls must scroll: switching mode on a wheel meant for
       // sixty clipboard entries would make the panel unusable.
       target.closest('.clipboard-panel') ||
-      target.closest('.lyrics-panel')
+      target.closest('.lyrics-panel') ||
+      target.closest('.shelf-panel')
     ) {
       return;
     }
@@ -959,14 +972,15 @@ function App() {
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
     // Lyrics sit next to the music mode: same subject, one notch width apart.
-    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'lyrics', 'status', 'calendar', 'clipboard']
-      : ['command-center', 'status', 'music', 'lyrics', 'calendar', 'clipboard'];
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'lyrics', 'status', 'calendar', 'shelf', 'clipboard']
+      : ['command-center', 'status', 'music', 'lyrics', 'shelf', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
       if (m === 'clipboard' && !settingsClipboardEnabled) return false;
       if (m === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) return false;
+      if (m === 'shelf' && !settingsShelfEnabled) return false;
       return true;
     });
 
@@ -1099,6 +1113,24 @@ function App() {
       setIsletMode('status');
     }
   }, [settingsClipboardEnabled, isletMode]);
+
+  // A finished drop opens the shelf: the gesture was "put this somewhere I can
+  // reach", and a silent list update somewhere off screen answers neither half.
+  const shelfFlashRef = useRef(0);
+  useEffect(() => {
+    if (shelf.flash === 0 || shelf.flash === shelfFlashRef.current) return;
+    shelfFlashRef.current = shelf.flash;
+    if (!settingsShelfEnabled) return;
+    setIsletMode('shelf');
+    if (notchMode === 'peek') triggerEventPeek(4000);
+  }, [shelf.flash, settingsShelfEnabled, notchMode, triggerEventPeek]);
+
+  // A disabled shelf must not keep a panel open, nor keep swallowing drops.
+  useEffect(() => {
+    if (!settingsShelfEnabled && isletMode === 'shelf') {
+      setIsletMode('status');
+    }
+  }, [settingsShelfEnabled, isletMode]);
 
   // Lyrics have no subject once the track is gone.
   useEffect(() => {
@@ -1567,6 +1599,7 @@ function App() {
   const getDynamicWidth = () => {
     if (isletMode === 'clipboard') return 340;
     if (isletMode === 'lyrics') return 340;
+    if (isletMode === 'shelf') return 340;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1600,6 +1633,7 @@ function App() {
     }
     if (isletMode === 'clipboard') return 384;
     if (isletMode === 'lyrics') return 320;
+    if (isletMode === 'shelf') return 300;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1617,6 +1651,7 @@ function App() {
   const isCalendarMode = isletMode === 'calendar';
   const isClipboardMode = isletMode === 'clipboard';
   const isLyricsMode = isletMode === 'lyrics';
+  const isShelfMode = isletMode === 'shelf';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1680,8 +1715,8 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
@@ -1700,7 +1735,7 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
@@ -2358,6 +2393,28 @@ function App() {
                       durationMs={mediaInfo.duration_ms ?? 0}
                       decimalSeparator={lyricsDecimalSeparator}
                       onSeek={(positionMs) => invoke("media_seek", { positionMs }).catch(() => {})}
+                      onClose={() => setIsletMode('status')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Shelf: the files dropped on the notch. */}
+              <AnimatePresence>
+                {isShelfMode && (
+                  <motion.div
+                    className="shelf-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchShelf
+                      shelf={shelf}
+                      onOpen={(path) => openPath(path).catch(() => {})}
+                      onReveal={(path) => revealItemInDir(path).catch(() => {})}
                       onClose={() => setIsletMode('status')}
                     />
                   </motion.div>

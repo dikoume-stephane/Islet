@@ -5,6 +5,43 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (3) — J4 : l'étagère à fichiers
+
+**Fait**
+- `src/lib/shelf.ts` : nature d'un fichier par extension, unités de taille traduisibles, dédoublonnage
+  insensible à la casse, plafond de 24, ordre qui repousse les fichiers manquants en bas, chemins
+  abrégés. **41 tests** (`npm run test:shelf`).
+- `src-tauri/src/shelf.rs` : `shelf_list`, `shelf_add`, `shelf_remove`, `shelf_clear`, persistance
+  `shelf.json`, `missing` et `size` recalculés à chaque lecture.
+- `tauri.conf.json` : `dragDropEnabled: true` sur la fenêtre principale. C'était la condition pour
+  recevoir de vrais chemins ; `false` ne livre que des objets `File` sans chemin exploitable.
+- `useShelf` : écoute `onDragDropEvent`, insertion optimiste puis liste autoritaire, écouteur
+  enregistré **seulement** quand le réglage est actif.
+- `NotchShelf` : mode de notch 340 × 300, icône par nature, taille lisible, ouverture au clic,
+  révélation dans l'Explorateur, retrait, compteur ambre des fichiers manquants, état vide qui
+  explique le geste.
+- Un dépôt terminé ouvre le panneau de lui-même ; en mode `peek`, il déclenche aussi un peek.
+- Réglages : `islet-shelf-enabled` (actif par défaut) dans l'onglet Notch.
+
+**Constats**
+- Le dock réordonne ses icônes avec `framer-motion Reorder`, donc en événements pointeur : activer le
+  gestionnaire de dépôt OLE sur la fenêtre principale ne le casse pas. Le dock vit de toute façon dans
+  sa propre fenêtre.
+- `openPath` et `revealItemInDir` sont déjà fournis par `@tauri-apps/plugin-opener`, dont
+  `tauri_plugin_opener::init()` est enregistré : aucune commande Rust n'est nécessaire pour ouvrir.
+- Le glisser-vers-l'extérieur aurait demandé `tauri_plugin_drag::init()`, impossible à compiler ici.
+  Je ne l'ai pas écrit plutôt que de risquer une compilation cassée chez l'utilisateur.
+
+**Bloqué**
+- Pas de toolchain Rust dans le sandbox : `shelf.rs` est relu, pas compilé.
+
+**À faire ensuite**
+- Sur Windows : vérifier qu'un dépôt sur le notch fonctionne et que le reste de l'écran n'est pas
+  devenu une cible de dépôt.
+- J4 : chrono/minuteur libre (P3-C3), hydratation, to-do, indicateurs clavier, pilule minimale.
+
+---
+
 ## 2026-11-05 (2) — J4 : les paroles synchronisées
 
 **Fait**

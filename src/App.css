@@ -3100,3 +3100,299 @@ img {
         transition: none;
     }
 }
+
+/* - Shelf panel -----------------------------------------------------------
+ * The files you dropped on the notch. A row is a shortcut: icon, name, size,
+ * one click to open, Explorer and a bin on hover.
+ */
+
+.shelf-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.shelf-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 6px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.shelf-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+
+.shelf-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--islet-text, #fff);
+}
+
+.shelf-count {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+/* Missing files, as a small amber counter that is also the button to clean up. */
+.shelf-prune {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.shelf-prune:hover {
+    background: rgba(255, 214, 10, 0.26);
+}
+
+.shelf-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shelf-action:hover:not(:disabled) {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.shelf-action:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.shelf-action:focus-visible,
+.shelf-main:focus-visible,
+.shelf-prune:focus-visible,
+.shelf-clear:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.shelf-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+}
+
+.shelf-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.shelf-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 7px;
+}
+
+.shelf-row:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+}
+
+.shelf-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.shelf-main:disabled {
+    cursor: default;
+}
+
+/* The icon carries the kind: a column of identical glyphs would be a list of
+   filenames, which is what the Explorer already does. */
+.shelf-icon {
+    flex-shrink: 0;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.shelf-row:hover .shelf-icon {
+    color: var(--islet-accent, #007aff);
+}
+
+.shelf-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.shelf-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shelf-meta {
+    font-size: 9.5px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* A missing file stays visible, struck through and dimmed: it is information,
+   not a bug to hide. */
+.shelf-row.is-missing .shelf-name {
+    text-decoration: line-through;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.shelf-row.is-missing .shelf-icon {
+    color: #ffd60a;
+    opacity: 0.7;
+}
+
+.shelf-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.shelf-row:hover .shelf-actions,
+.shelf-row:focus-within .shelf-actions {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .shelf-actions { opacity: 1; }
+}
+
+.shelf-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin: 16px 10px;
+    padding: 14px 10px;
+    border: 1px dashed var(--islet-border, rgba(255, 255, 255, 0.14));
+    border-radius: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+    text-align: center;
+}
+
+.shelf-empty-title {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+}
+
+.shelf-empty-hint {
+    font-size: 10px;
+    line-height: 1.45;
+    max-width: 220px;
+}
+
+.shelf-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.shelf-note {
+    flex: 1;
+    min-width: 0;
+    font-size: 9px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shelf-clear {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    font: inherit;
+    font-size: 9.5px;
+    cursor: pointer;
+}
+
+.shelf-clear:hover {
+    color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+/* Drop feedback: the notch itself says "yes, here". Drawn on the panel border
+   rather than on the panel content, so it works with an empty shelf too. */
+.shelf-panel.is-dropping {
+    outline: 1.5px dashed var(--islet-accent, #007aff);
+    outline-offset: -4px;
+    border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shelf-actions,
+    .shelf-action {
+        transition: none;
+    }
+}

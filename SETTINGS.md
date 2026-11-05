@@ -86,6 +86,22 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-clipboard-paste` | `"true"` / `"false"` | `"false"` | Clicking an entry pastes it into the window you came from instead of only copying it. |
 | `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
 | `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
+| `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
+
+### Shelf
+
+Drop a file on the notch and it stays one click away. The shelf stores **paths, not copies**: a 4 GB video
+costs one line of JSON, and deleting the original is reported as "Missing" rather than hidden. Entries live in
+`%APPDATA%\com.2DS.islet\shelf.json` and are capped at 24, the oldest leaving first.
+
+| Action | Where |
+|--------|-------|
+| Add | Drag one or more files onto the notch |
+| Open | Click the row |
+| Show in Explorer | The folder icon on the right of a row |
+| Remove one | The bin icon |
+| Clean up missing files | The amber counter in the header, when there is one |
+| Empty the shelf | "Clear" in the footer (the files themselves are untouched) |
 
 ### Synced Lyrics
 

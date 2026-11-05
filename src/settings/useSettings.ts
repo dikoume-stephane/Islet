@@ -25,6 +25,7 @@ export function useSettings() {
   const [clipboardPaste, setClipboardPaste] = useState(false);
   // Off by default: the only feature that talks to a server.
   const [lyricsEnabled, setLyricsEnabled] = useState(false);
+  const [shelfEnabled, setShelfEnabled] = useState(true);
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
@@ -159,6 +160,7 @@ export function useSettings() {
       apply(getVal("islet-clipboard-enabled"), setClipboardEnabled, readBool);
       apply(getVal("islet-clipboard-paste"), setClipboardPaste, readBool);
       apply(getVal("islet-lyrics-enabled"), setLyricsEnabled, readBool);
+      apply(getVal("islet-shelf-enabled"), setShelfEnabled, readBool);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -280,6 +282,7 @@ export function useSettings() {
     "islet-clipboard-enabled": setClipboardEnabled,
     "islet-clipboard-paste": setClipboardPaste,
     "islet-lyrics-enabled": setLyricsEnabled,
+    "islet-shelf-enabled": setShelfEnabled,
     "islet-timer-enabled": setTimerEnabled,
     "islet-timer-sound-enabled": setTimerSoundEnabled,
     "islet-stopwatch-enabled": setStopwatchEnabled,
@@ -452,6 +455,12 @@ export function useSettings() {
     const next = !lyricsEnabled;
     setLyricsEnabled(next);
     saveSetting("islet-lyrics-enabled", String(next));
+  };
+
+  const toggleShelf = () => {
+    const next = !shelfEnabled;
+    setShelfEnabled(next);
+    saveSetting("islet-shelf-enabled", String(next));
   };
 
   const toggleTimerEnabled = () => {
@@ -896,6 +905,8 @@ export function useSettings() {
     toggleClipboardPaste,
     lyricsEnabled,
     toggleLyrics,
+    shelfEnabled,
+    toggleShelf,
     timerEnabled,
     toggleTimerEnabled,
     timerSoundEnabled,

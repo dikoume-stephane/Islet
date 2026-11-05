@@ -17,6 +17,7 @@ import {
   BellRing,
   ClipboardList,
   Mic2,
+  Layers,
   Trash2,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
@@ -48,6 +49,8 @@ interface NotchTabProps {
   toggleClipboardPaste: () => void;
   lyricsEnabled: boolean;
   toggleLyrics: () => void;
+  shelfEnabled: boolean;
+  toggleShelf: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -100,6 +103,8 @@ export function NotchTab({
   toggleClipboardPaste,
   lyricsEnabled,
   toggleLyrics,
+  shelfEnabled,
+  toggleShelf,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -313,6 +318,17 @@ export function NotchTab({
 
       <div className="setting-group-label">{t("notch.weather")}</div>
       <div className="setting-group">
+        <SettingRow icon={Layers} label={t("shelf.settings.enable")} desc={t("shelf.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={shelfEnabled} onChange={toggleShelf} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {shelfEnabled && (
+          <SettingRow icon={Layers} label={t("shelf.note")} desc={t("shelf.settings.note")} divider={false} />
+        )}
+
         <SettingRow icon={Mic2} label={t("lyrics.settings.enable")} desc={t("lyrics.settings.enable.desc")}>
           <label className="toggle-switch">
             <input type="checkbox" checked={lyricsEnabled} onChange={toggleLyrics} />

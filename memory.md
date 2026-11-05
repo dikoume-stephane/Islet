@@ -336,3 +336,23 @@ La syntaxe a été relue, pas vérifiée par `cargo`.
   reprend la main pendant qu'on lit est pire qu'un panneau figé.
 - `MediaInfo` n'expose pas l'album : on n'en envoie pas. Inventer un champ donnerait une fausse impression de
   précision sur l'appariement LRCLIB.
+
+---
+
+## 10. Étagère (J4 / P3-C2, livré 2026-11-05)
+
+`src/lib/shelf.ts` décide · `src-tauri/src/shelf.rs` persiste et vérifie · `NotchShelf.tsx` affiche.
+
+- **Des chemins, jamais des copies.** Déposer une vidéo de 4 Go doit coûter une ligne de JSON. Un fichier
+  supprimé s'affiche **barré et marqué manquant** : c'est une information, pas un bug à cacher.
+- **`dragDropEnabled: true` sur la fenêtre principale** est la seule façon d'obtenir de vrais chemins sur
+  Windows ; `false` ne donne que des objets `File` sans chemin. À vérifier sur Windows : le notch ne doit pas
+  devenir une cible de dépôt sur tout l'écran (le crochet souris force `ignore_cursor_events` hors notch,
+  ce qui devrait suffire).
+- **`missing` et `size` sont recalculés à chaque lecture**, jamais stockés : un fichier peut disparaître
+  pendant que l'app est fermée.
+- **Plafond 24, plus récent en premier**, dédoublonnage insensible à la casse et aux séparateurs (Windows).
+  Redéposer un fichier le remonte au lieu d'en créer un second.
+- **Glisser-vers-l'extérieur non livré** : nécessite `tauri_plugin_drag::init()` côté Rust, que je ne peux pas
+  compiler ici. Le plugin est déjà dans `Cargo.toml` et `package.json`, la sortie est un ajout propre.
+- `shelf.json` vit à côté de `settings.json`, dans `%APPDATA%\com.2DS.islet\`.
