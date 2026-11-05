@@ -5,6 +5,33 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (4) — J4 : chrono et minuteur libre
+
+**Fait**
+- `src/lib/clock.ts` : modèle du minuteur (cible absolue, pause, reprise, jauge), du chronomètre
+  (départ, tours) et relecture validée du stockage. **47 tests** (`npm run test:clock`).
+- `useCountdown` : l'intervalle ne sert qu'à redessiner, l'état rangé est une cible. Relu du
+  `localStorage` au montage : un minuteur en cours survit à un redémarrage.
+- `useStopwatch` : même ancrage, tours persistés, `clearLaps` en plus.
+- `NotchClock` : jauge de progression, « Se termine à 14:32 », état « Temps écoulé », raccourcis
+  1/3/5/10/25/50, liste complète des tours avec écarts et meilleur/pire, effacement des tours.
+- Notch compact : un minuteur en pause reste affiché au lieu de rendre la place à l'horloge.
+- Le bouton principal est inerte sans minuteur : ce sont les raccourcis et la saisie libre qui en créent un.
+
+**Constats**
+- L'ancien décompte était un `setInterval` de 1000 ms qui retirait une seconde. Il dérivait et
+  s'arrêtait à la mise en veille. Le remplacer par une cible absolue supprime les deux défauts d'un coup
+  et rend la persistance triviale.
+- `formatCountdown(Number.NaN)` rendait `NaN:NaN` : trouvé par un test, pas à l'œil. Garde ajoutée.
+- Un ex æquo de meilleur tour (deux tours identiques) est départagé par le premier arrivé ; c'est
+  verrouillé par un test pour que la règle ne bouge pas par accident.
+
+**À faire ensuite**
+- Sur Windows : lancer un minuteur, mettre le PC en veille deux minutes, vérifier le réveil.
+- J4 : hydratation (P3-C4), to-do (P3-C5), indicateurs clavier (P3-C6), pilule minimale (P3-C8).
+
+---
+
 ## 2026-11-05 (3) — J4 : l'étagère à fichiers
 
 **Fait**

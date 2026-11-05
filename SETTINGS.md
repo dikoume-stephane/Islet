@@ -87,6 +87,16 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
 | `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
 | `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
+| `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
+| `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Timer and stopwatch
+
+The countdown stores **when it must ring**, not how much time is left: close Islet for ten minutes mid-timer
+and it comes back with the ten minutes gone. The stopwatch works the same way, so a running watch keeps
+measuring real time across a restart. Both live in `localStorage` and are **read back with suspicion**: a
+target more than a day old, a start date in the future, or unreadable JSON resets the clock instead of
+showing `NaN`. Pausing freezes the exact remainder, resuming re-aims the target.
 
 ### Shelf
 

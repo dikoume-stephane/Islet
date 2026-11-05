@@ -25,6 +25,7 @@ import { useShelf } from "./hooks/useShelf";
 import { NotchShelf } from "./components/NotchShelf";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
+import { useCountdown } from "./hooks/useCountdown";
 import { useStopwatch } from "./hooks/useStopwatch";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
 import {
@@ -996,62 +997,44 @@ function App() {
 
 
   // Timer state
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isCompactTimerVisible, setIsCompactTimerVisible] = useState(false);
-  const [isTimerFinished, setIsTimerFinished] = useState(false);
-  const timerIntervalRef = useRef<any>(null);
 
-  const formatTimerTime = (totalSeconds: number) => {
-    const mins = Math.floor(Math.abs(totalSeconds) / 60);
-    const secs = Math.abs(totalSeconds) % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Le minuteur range une cible absolue et la relit du stockage : il survit à la
+  // veille comme au redémarrage, là où un compteur qui retire une seconde par
+  // seconde finit toujours par dériver.
+  const countdown = useCountdown();
+  const timerSeconds = countdown.remainingSeconds;
+  const isTimerRunning = countdown.running;
+  const isTimerFinished = countdown.finished;
+  const formatTimerTime = countdown.format;
 
   const startTimerSeconds = (seconds: number) => {
     // Unlock audio on this click so the chime can play later.
     getTimerChimeCtx();
-    setTimerSeconds(seconds);
-    setIsTimerRunning(true);
-    setIsTimerFinished(false);
+    countdown.start(seconds);
   };
 
   const toggleTimer = () => {
-    if (!isTimerRunning) getTimerChimeCtx();
-    setIsTimerRunning(!isTimerRunning);
+    if (!countdown.running) getTimerChimeCtx();
+    countdown.toggle();
   };
-  const resetTimer = () => {
-    setIsTimerRunning(false);
-    setTimerSeconds(0);
-    setIsTimerFinished(false);
-  };
+
+  const resetTimer = countdown.reset;
 
   const stopwatch = useStopwatch();
 
   useEffect(() => {
     if (!settingsTimerEnabled) resetTimer();
-  }, [settingsTimerEnabled]);
+  }, [settingsTimerEnabled, resetTimer]);
 
   useEffect(() => {
     if (!settingsStopwatchEnabled) stopwatch.reset();
-  }, [settingsStopwatchEnabled]);
-
-  useEffect(() => {
-    if (isTimerRunning && timerSeconds > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        setTimerSeconds(s => s - 1);
-      }, 1000);
-    } else if (isTimerRunning && timerSeconds === 0) {
-      setIsTimerRunning(false);
-      setIsTimerFinished(true);
-    }
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, [isTimerRunning, timerSeconds === 0]);
+  }, [settingsStopwatchEnabled, stopwatch.reset]);
 
   // On finish: chime, and peek the notch.
-  const prevTimerFinishedRef = useRef(false);
+  // Le témoin part de l'état restauré : un minuteur retrouvé déjà terminé au
+  // démarrage ne sonne pas, il s'affiche simplement terminé.
+  const prevTimerFinishedRef = useRef(isTimerFinished);
   useEffect(() => {
     if (isTimerFinished && !prevTimerFinishedRef.current) {
       if (settingsTimerSoundEnabled) playTimerChime();
@@ -2068,7 +2051,7 @@ function App() {
                             <div className="time-center">
                               <div className="time-flip-container" onClick={toggleCalendarMode}>
                                 <AnimatePresence initial={false}>
-                                  {isCompactTimerVisible || isTimerFinished ? (
+                                  {isCompactTimerVisible || isTimerFinished || countdown.paused ? (
                                     <motion.span
                                       key="timer"
                                       className={`time compact-timer ${isTimerFinished ? 'timer-finished' : ''}`}
@@ -2077,7 +2060,7 @@ function App() {
                                       exit={{ rotateX: 90, opacity: 0 }}
                                       transition={{ type: "spring", stiffness: 600, damping: 30 }}
                                     >
-                                      {isTimerRunning || isTimerFinished
+                                      {isTimerRunning || isTimerFinished || countdown.paused
                                         ? formatTimerTime(timerSeconds)
                                         : <StopwatchReadout base={stopwatch.base} startedAt={stopwatch.startedAt} precise={false} />}
                                     </motion.span>
@@ -2445,11 +2428,15 @@ function App() {
                         solo={!settingsCalendarEnabled}
                         timerSeconds={timerSeconds}
                         isTimerRunning={isTimerRunning}
+                        isTimerFinished={isTimerFinished}
+                        timerEndsAt={countdown.endsAt}
+                        timerProgress={countdown.progress}
                         formatTimerTime={formatTimerTime}
                         onStartTimer={startTimerSeconds}
                         onToggleTimer={toggleTimer}
                         onResetTimer={resetTimer}
                         stopwatch={stopwatch}
+                        onClearLaps={stopwatch.clearLaps}
                       />
                     )}
                   </motion.div>

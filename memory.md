@@ -356,3 +356,25 @@ La syntaxe a été relue, pas vérifiée par `cargo`.
 - **Glisser-vers-l'extérieur non livré** : nécessite `tauri_plugin_drag::init()` côté Rust, que je ne peux pas
   compiler ici. Le plugin est déjà dans `Cargo.toml` et `package.json`, la sortie est un ajout propre.
 - `shelf.json` vit à côté de `settings.json`, dans `%APPDATA%\com.2DS.islet\`.
+
+---
+
+## 11. Minuteur et chronomètre (J4 / P3-C3, livré 2026-11-05)
+
+`src/lib/clock.ts` porte le modèle · `useCountdown` et `useStopwatch` le persistent · `NotchClock` l'affiche.
+
+- **Le minuteur ne se compte pas à rebours.** Il range `endsAt` et compare à l'heure qu'il est. Un
+  `setInterval` qui retire une seconde par seconde dérive dès que la machine dort ; une soustraction
+  reste juste. Conséquence offerte : le minuteur survit à une fermeture de l'app.
+- **Le chronomètre garde un départ, jamais un total.** Même raison. Un chrono lancé continue donc de
+  mesurer le temps réel après un redémarrage, ce qui est le comportement attendu.
+- **Ce qui est relu est relu avec méfiance** (`decodeTimer`, `decodeStopwatch`) : cible de plus d'un jour,
+  départ dans le futur lointain, tours non numériques, JSON abîmé : on repart à zéro, on n'affiche jamais
+  `NaN`.
+- **Pause = reste gelé** (`heldMs`), reprise = nouvelle cible. La pause exacte au millième est testée.
+- **Tours** : temps intermédiaires, écarts signés au tour précédent, meilleur et pire marqués seulement à
+  partir de trois tours, et jamais quand tous les tours sont identiques (sinon le marquage ne dit rien).
+- **Le témoin de sonnerie part de l'état restauré** : un minuteur retrouvé déjà terminé au démarrage ne
+  sonne pas, il s'affiche terminé.
+- Clés : `islet-timer-state`, `islet-stopwatch-state` (JSON avec numéro de version dans le champ `v`). Pas de migration :
+  ces clés n'existaient pas avant.

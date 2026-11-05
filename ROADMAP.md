@@ -337,7 +337,7 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 |---|---|---|---|
 | P3-C1 | **Lecteur + paroles synchronisées** | ✅ (J4) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ± 5 s par pas de 250 ms, cache local. **Opt-in** : rien ne sort tant que le réglage est off |
 | P3-C2 | **File shelf** | ✅ (J4) | Dépôt de fichiers sur le notch, liste persistante de **chemins** (aucune copie), ouverture en un clic, révélation dans l'Explorateur, fichiers disparus signalés. Glisser-vers-l'extérieur à faire |
-| P3-C3 | **Chronomètre + minuteur** | Pomodoro ✅ | Chronomètre (tourne, tours) et minuteur libre en plus du Pomodoro |
+| P3-C3 | **Chronomètre + minuteur** | ✅ (J4) | Chronomètre (tours, meilleur/pire) et minuteur libre en plus du Pomodoro, tous deux ancrés sur une **cible absolue** : justes après une veille ou un redémarrage |
 | P3-C4 | **Suivi d'hydratation** | ❌ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours |
 | P3-C5 | **To-do du jour** | ❌ | Tâches avec heure d'échéance, rappel via le notch, report au lendemain |
 | P3-C6 | **Indicateurs clavier** | ❌ | Caps Lock / Verr Num / langue active — overlay bref, comme les overlays volume existants |
@@ -346,6 +346,16 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C3 en détail** (livré 2026-11-05) : `src/lib/clock.ts` porte le modèle (cible absolue, pause, tours,
+relecture méfiante du stockage), `useCountdown` et `useStopwatch` le tiennent à jour et le persistent,
+`NotchClock.tsx` l'affiche. **47 tests**.
+
+Le point qui compte : le minuteur **ne se compte pas à rebours**. Il range l'heure à laquelle il doit
+sonner et compare. Un `setInterval` qui retire une seconde par seconde dérive dès que la machine dort ;
+une soustraction reste juste. C'est aussi ce qui permet de retrouver un minuteur en cours après un
+redémarrage : l'état vit dans `localStorage`, avec validation (cible périmée depuis plus d'un jour,
+horloge qui recule, JSON abîmé : on repart à zéro plutôt que d'afficher `NaN`).
 
 **P3-C2 en détail** (livré 2026-11-05) : `src/lib/shelf.ts` décide (nature du fichier par extension, unités de
 taille, ordre, dédoublonnage, plafond de 24, chemins abrégés), `src-tauri/src/shelf.rs` persiste (`shelf.json`) et

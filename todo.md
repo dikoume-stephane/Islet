@@ -121,7 +121,13 @@
   - [x] J1d — `NotchLyrics` : mode de notch dédié (340 × 320, rayon bas 28), ligne courante en gras + hairline de progression, clic = seek, `Échap` ferme, squelettes de chargement, états vide / erreur / instrumental
   - [x] J1e — Réglages : `islet-lyrics-enabled` (off par défaut) + note de confidentialité + cache effaçable dans l'onglet Notch
   - [ ] J1f — **À vérifier sur Windows** : compilation Rust et rendu réel sur une piste dont les paroles dérivent
-- [ ] J2 — Chronomètre + minuteur libre (en plus du Pomodoro)
+- [x] J2 — **Chronomètre + minuteur libre** ✅ livré 2026-11-05
+  - [x] J2a — `src/lib/clock.ts` : cible absolue, pause/reprise au millième, tours (temps intermédiaires, écarts, meilleur/pire), relecture validée du stockage — **47 tests**
+  - [x] J2b — `useCountdown` : horloge à 250 ms pour redessiner, `localStorage`, décompte qui reste juste après une veille ou un redémarrage
+  - [x] J2c — `useStopwatch` : même ancrage, chronomètre relu au montage, tours persistés, `clearLaps`
+  - [x] J2d — `NotchClock` : jauge de progression, heure de fin, état « temps écoulé », raccourcis 1/3/5/10/25/50, liste complète des tours avec meilleur et pire, effacement des tours
+  - [x] J2e — Notch compact : un minuteur en pause reste affiché au lieu de rendre la place à l'horloge
+  - [ ] J2f — **À vérifier sur Windows** : lancer un minuteur, mettre le PC en veille deux minutes, vérifier que le décompte a bien avancé de deux minutes au réveil
 - [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
 - [ ] J4 — Pilule minimale (temps seul)
 - [x] J5 — **File shelf** ✅ livré 2026-11-05
