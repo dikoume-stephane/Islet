@@ -52,9 +52,10 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 ¹ uniquement les mentions légales volontaires : section Credits du README + descriptions `Cargo.toml`. Hors fichiers de pilotage qui documentent l'ancien nom.
 
 ## En cours
-- **J4 — Parité Nusa** : le presse-papier (P3-C9) est livré et testé côté TypeScript
-  (95 tests). Reste la validation Rust sur Windows, puis paroles LRCLIB, file shelf,
-  indicateurs clavier et pilule minimale.
+- **J4 — Parité Nusa** : presse-papier (P3-C9) **et** paroles synchronisées (P3-C1) livrés,
+  155 tests TypeScript au vert. Reste la validation Rust sur Windows, puis file shelf (P3-C2),
+  chrono/minuteur (P3-C3), hydratation (P3-C4), to-do (P3-C5), indicateurs clavier (P3-C6)
+  et pilule minimale (P3-C8).
 
 ¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 

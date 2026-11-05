@@ -5,6 +5,45 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (2) — J4 : les paroles synchronisées
+
+**Fait**
+- `src/lib/lyrics.ts` : parseur LRC complet (centièmes, millièmes, heures, `mm:ss:xx`, étiquettes
+  `[ar:]`, `[offset:]`, plusieurs horodatages par ligne, doublons), ligne courante par recherche
+  binaire, cible de seek, progression de ligne, clamp et formatage du décalage, lecture défensive
+  des réponses LRCLIB. **60 tests**, `npm run test:lyrics`, branchés dans `npm run test`.
+- `src-tauri/src/lyrics.rs` : `lyrics_fetch` (8 s de délai, User-Agent honnête), cache disque
+  `lyrics/*.json` avec élagage au-delà de 400 fichiers, refus net si `islet-lyrics-enabled` n'est
+  pas `"true"`, `lyrics_clear_cache`, `lyrics_cache_count`.
+- `useLyrics` : une requête par morceau, **seulement quand le panneau est ouvert**, position
+  extrapolée toutes les 250 ms, décalage persisté dans `islet-lyrics-offset`.
+- `NotchLyrics` : mode de notch dédié (340 × 320), ligne courante en gras avec un hairline qui se
+  remplit, clic pour se déplacer, `Échap` ferme, squelettes de chargement, états « pas de paroles »,
+  erreur avec bouton Réessayer, instrumental, texte non synchronisé.
+- Réglages : `islet-lyrics-enabled` (off par défaut) dans l'onglet Notch, note de confidentialité,
+  compteur de cache et bouton de purge.
+- Réparation du sandbox en début de tour : HEAD revenu sur `3e3af78` par `git reset --mixed` après
+  contrôle des empreintes, `npm install`, aperçu 8099 reconstruit et resservi.
+
+**Constats**
+- Le corps brut de LRCLIB traverse Rust sans être reparsé : le seul parseur est celui qui est testé.
+- `[00:12:40]` est ambigu. Interprété comme `mm:ss:xx` quand le premier champ vaut zéro, `h:mm:ss`
+  sinon : c'est le seul arbitrage tenable sur un format que personne ne normalise.
+- `MediaInfo` n'expose pas l'album : on n'en envoie pas. Un champ inventé donnerait une fausse
+  impression de précision dans l'appariement.
+- Le hook de paroles a d'abord été placé avant `isletMode` et `isLyricsMode` : zone morte temporelle,
+  build vert mais plantage à l'exécution. Déplacé après la déclaration du mode.
+
+**Bloqué**
+- Toujours pas de toolchain Rust dans le sandbox : `lyrics.rs` est relu, pas compilé.
+
+**À faire ensuite**
+- Sur Windows : compiler, jouer une piste connue, vérifier le décalage et le seek au clic.
+- Poursuivre J4 : file shelf (P3-C2), chrono/minuteur libre (P3-C3), hydratation, to-do,
+  indicateurs clavier, pilule minimale.
+
+---
+
 ## 2026-11-05 (1) — J4 : le presse-papier de Nusa
 
 **Fait**

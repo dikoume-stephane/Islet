@@ -6,7 +6,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { UpdateCheckResult } from "./updater";
 import "./App.css";
 import { initTheme } from "./theme";
-import { initI18n, useT } from "./i18n";
+import { initI18n, useLanguage, useT } from "./i18n";
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, VolumeLowIcon, VolumeHighIcon, MusicNoteIcon, AudioOutputIcon } from "./icons";
 import { CompactMediaPlayer } from "./CompactMediaPlayer";
 import { useWeather } from "./hooks/useWeather";
@@ -19,6 +19,8 @@ import { AssistantTipView, SEVERITY_COLOR } from "./components/AssistantTip";
 import { tipPlainText } from "./lib/assistant";
 import { NotchCalendar } from "./components/NotchCalendar";
 import { NotchClipboard } from "./components/NotchClipboard";
+import { NotchLyrics } from "./components/NotchLyrics";
+import { useLyrics } from "./hooks/useLyrics";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useStopwatch } from "./hooks/useStopwatch";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
@@ -645,6 +647,10 @@ function App() {
   // button sits in the panel header, one click away.
   const [settingsClipboardEnabled, setSettingsClipboardEnabled] = useState(() => localStorage.getItem("islet-clipboard-enabled") !== "false");
   const [settingsClipboardPaste, setSettingsClipboardPaste] = useState(() => localStorage.getItem("islet-clipboard-paste") === "true");
+  // Off by default, and deliberately so: this is the first feature that talks
+  // to a server. Nothing leaves the machine until someone turns it on in
+  // Settings › Notch, and the panel says so when it is off.
+  const [settingsLyricsEnabled, setSettingsLyricsEnabled] = useState(() => localStorage.getItem("islet-lyrics-enabled") === "true");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -701,6 +707,7 @@ function App() {
       setSettingsCalendarEnabled(getVal("islet-calendar-enabled", "true") !== "false");
       setSettingsClipboardEnabled(getVal("islet-clipboard-enabled", "true") !== "false");
       setSettingsClipboardPaste(getVal("islet-clipboard-paste", "false") === "true");
+      setSettingsLyricsEnabled(getVal("islet-lyrics-enabled", "false") === "true");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -830,6 +837,7 @@ function App() {
       "islet-calendar-enabled": setSettingsCalendarEnabled,
       "islet-clipboard-enabled": setSettingsClipboardEnabled,
       "islet-clipboard-paste": setSettingsClipboardPaste,
+      "islet-lyrics-enabled": setSettingsLyricsEnabled,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -864,6 +872,7 @@ function App() {
     [windowLabel]
   );
 
+
   // Side effects: dock-enabled (skip first render — startup code handles initial state)
   useEffect(() => {
     if (windowLabel !== 'main') return;
@@ -891,7 +900,23 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'command-center' | 'status'>('status');
+  // Lyrics for the track that is playing. The hook is called unconditionally:
+  // it does nothing (and asks nothing) while the setting is off.
+  const lyrics = useLyrics({
+    enabled: settingsLyricsEnabled,
+    visible: isletMode === 'lyrics',
+    title: mediaInfo.title,
+    artist: mediaInfo.artist,
+    // No album field: Windows' media session does not expose one, and inventing
+    // it would only make LRCLIB's matching look more precise than it is.
+    durationMs: mediaInfo.duration_ms ?? 0,
+    positionMs: mediaInfo.position_ms ?? 0,
+    positionUpdatedAt: mediaInfo.position_updated_at ?? 0,
+    isPlaying,
+  });
+  const language = useLanguage();
+  const lyricsDecimalSeparator = language === "fr" ? "," : ".";
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -909,7 +934,8 @@ function App() {
       target.closest('.cal-scroll') ||
       // A list that scrolls must scroll: switching mode on a wheel meant for
       // sixty clipboard entries would make the panel unusable.
-      target.closest('.clipboard-panel')
+      target.closest('.clipboard-panel') ||
+      target.closest('.lyrics-panel')
     ) {
       return;
     }
@@ -932,13 +958,15 @@ function App() {
     // Playing: command-center → music → status → calendar (active, near command-center)
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
-    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'status', 'calendar', 'clipboard']
-      : ['command-center', 'status', 'music', 'calendar', 'clipboard'];
+    // Lyrics sit next to the music mode: same subject, one notch width apart.
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'lyrics', 'status', 'calendar', 'clipboard']
+      : ['command-center', 'status', 'music', 'lyrics', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
       if (m === 'clipboard' && !settingsClipboardEnabled) return false;
+      if (m === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) return false;
       return true;
     });
 
@@ -1034,7 +1062,9 @@ function App() {
     }
 
     // Only auto-switch if music mode is enabled
-    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && isletMode !== 'calendar' && (isNewTrackWhilePlaying || justStartedPlaying)) {
+    // Reading the lyrics is an explicit act: a new track must not pull the
+    // panel back to the player while someone is following the words.
+    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && isletMode !== 'calendar' && isletMode !== 'lyrics' && (isNewTrackWhilePlaying || justStartedPlaying)) {
       // Switch if compact notch display is enabled OR we are hovered
       if (settingsMusicCompactNotch || isHovered) {
         manualMusicRef.current = false;
@@ -1069,6 +1099,13 @@ function App() {
       setIsletMode('status');
     }
   }, [settingsClipboardEnabled, isletMode]);
+
+  // Lyrics have no subject once the track is gone.
+  useEffect(() => {
+    if (isletMode === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) {
+      setIsletMode('status');
+    }
+  }, [settingsLyricsEnabled, mediaInfo.has_media, isletMode]);
 
   useEffect(() => {
     if (!settingsMusicModeEnabled && isletMode === 'music') {
@@ -1529,6 +1566,7 @@ function App() {
   // Calculate width dynamically based on enabled features
   const getDynamicWidth = () => {
     if (isletMode === 'clipboard') return 340;
+    if (isletMode === 'lyrics') return 340;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1561,6 +1599,7 @@ function App() {
       return isImpacted ? 28.9 : 44.2;
     }
     if (isletMode === 'clipboard') return 384;
+    if (isletMode === 'lyrics') return 320;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1577,6 +1616,7 @@ function App() {
 
   const isCalendarMode = isletMode === 'calendar';
   const isClipboardMode = isletMode === 'clipboard';
+  const isLyricsMode = isletMode === 'lyrics';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1640,8 +1680,8 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode || isClipboardMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode || isClipboardMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
@@ -1660,7 +1700,7 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
@@ -2293,6 +2333,31 @@ function App() {
                   >
                     <NotchClipboard
                       pasteOnClick={settingsClipboardPaste}
+                      onClose={() => setIsletMode('status')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Lyrics: same frame as the clipboard, one module away from the player. */}
+              <AnimatePresence>
+                {isLyricsMode && (
+                  <motion.div
+                    className="lyrics-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchLyrics
+                      lyrics={lyrics}
+                      title={mediaInfo.title}
+                      artist={mediaInfo.artist}
+                      durationMs={mediaInfo.duration_ms ?? 0}
+                      decimalSeparator={lyricsDecimalSeparator}
+                      onSeek={(positionMs) => invoke("media_seek", { positionMs }).catch(() => {})}
                       onClose={() => setIsletMode('status')}
                     />
                   </motion.div>

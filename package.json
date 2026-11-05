@@ -12,8 +12,9 @@
     "bump": "bun scripts/bump-version.mjs",
     "test:assistant": "node_modules/.bin/esbuild scripts/assistant.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/assistant.test.mjs --log-level=error && node --test .test-build/assistant.test.mjs",
     "test:theme": "node_modules/.bin/esbuild scripts/theme.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/theme.test.mjs --log-level=error && node --test .test-build/theme.test.mjs",
-    "test": "npm run test:assistant && npm run test:theme && npm run test:clipboard",
-    "test:clipboard": "node_modules/.bin/esbuild scripts/clipboard.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/clipboard.test.mjs --log-level=error && node --test .test-build/clipboard.test.mjs"
+    "test": "npm run test:assistant && npm run test:theme && npm run test:clipboard && npm run test:lyrics",
+    "test:clipboard": "node_modules/.bin/esbuild scripts/clipboard.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/clipboard.test.mjs --log-level=error && node --test .test-build/clipboard.test.mjs",
+    "test:lyrics": "node_modules/.bin/esbuild scripts/lyrics.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/lyrics.test.mjs --log-level=error && node --test .test-build/lyrics.test.mjs"
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",

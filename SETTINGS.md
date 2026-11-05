@@ -84,6 +84,19 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-music-compact-notch` | `"true"` / `"false"` | `"true"` | Show compact music display (visualizer + artwork) in collapsed notch. |
 | `islet-clipboard-enabled` | `"true"` / `"false"` | `"true"` | Keep a clipboard history in the notch (Settings › Notch › Clipboard History). Turning it off stops the watcher, not just the panel. |
 | `islet-clipboard-paste` | `"true"` / `"false"` | `"false"` | Clicking an entry pastes it into the window you came from instead of only copying it. |
+| `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
+| `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
+
+### Synced Lyrics
+
+Off by default. When on, opening the lyrics panel of the track that is playing sends the title, artist and
+duration to [LRCLIB](https://lrclib.net), a free public lyrics database that needs no account and no key. The
+answer is kept on disk under the app config folder, so a track you play again is served without a request.
+Only the track you actually open the panel for is looked up; skipping through a playlist sends nothing.
+
+In the panel: the current line is highlighted and follows playback, a line clicked seeks to it, and the ±
+buttons shift the lyrics by 0.25 s (up to 5 s either way) for rips whose timestamps drift. The value is
+remembered. Settings › Notch shows how many tracks are cached and can clear them.
 
 ### Clipboard History
 

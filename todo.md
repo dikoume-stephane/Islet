@@ -114,7 +114,13 @@
 - [x] J0g — Réglages onglet Notch (`islet-clipboard-enabled`, `islet-clipboard-paste`) + section `SETTINGS.md`
 - [ ] J0h — **À vérifier sur Windows** : compilation Rust (pas de toolchain dans le sandbox) et collage réel dans la fenêtre précédente
 
-- [ ] J1 — Paroles synchronisées LRCLIB (ligne courante, clic = seek, décalage ±, cache)
+- [x] J1 — **Paroles synchronisées LRCLIB** ✅ livré 2026-11-05
+  - [x] J1a — `src/lib/lyrics.ts` : parseur LRC (`mm:ss.xx`, `hh:mm:ss`, `mm:ss:xx`, étiquettes, `[offset:]`, doublons), `lineAt` par recherche binaire, `seekTarget`, `lineProgress`, `parseLrclib`, `formatOffset` — **60 tests**
+  - [x] J1b — `src-tauri/src/lyrics.rs` : `lyrics_fetch` (LRCLIB, 8 s de délai), cache disque `lyrics/*.json` plafonné à 400 fichiers, refus si `islet-lyrics-enabled` n'est pas `"true"`, `lyrics_clear_cache`, `lyrics_cache_count`
+  - [x] J1c — `useLyrics` : une requête par morceau, **seulement quand le panneau est ouvert**, position extrapolée à 250 ms, décalage persisté
+  - [x] J1d — `NotchLyrics` : mode de notch dédié (340 × 320, rayon bas 28), ligne courante en gras + hairline de progression, clic = seek, `Échap` ferme, squelettes de chargement, états vide / erreur / instrumental
+  - [x] J1e — Réglages : `islet-lyrics-enabled` (off par défaut) + note de confidentialité + cache effaçable dans l'onglet Notch
+  - [ ] J1f — **À vérifier sur Windows** : compilation Rust et rendu réel sur une piste dont les paroles dérivent
 - [ ] J2 — Chronomètre + minuteur libre (en plus du Pomodoro)
 - [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
 - [ ] J4 — Pilule minimale (temps seul)

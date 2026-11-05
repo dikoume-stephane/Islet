@@ -2790,3 +2790,313 @@ img {
     white-space: nowrap;
     border: 0;
 }
+
+/* - Lyrics panel ----------------------------------------------------------
+ * Same frame as the clipboard: absolutely placed under the notch bar, one
+ * header, one scrolling body, one footer. The words get the room.
+ */
+
+.lyrics-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.lyrics-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 6px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.lyr-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+
+/* Two lines of context in the space of one: the title carries the weight, the
+   artist sits underneath at 9.5 px. */
+.lyr-track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.2;
+}
+
+.lyr-track-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-track-artist {
+    font-size: 9.5px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lyr-action:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.lyr-action:focus-visible,
+.lyr-line:focus-visible,
+.lyr-retry:focus-visible,
+.lyr-offset-value:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.lyr-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+    /* A mask instead of a hard edge: lines leave through a fade, which reads as
+       "there is more" rather than as a cropped list. */
+    mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+
+.lyr-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 0;
+}
+
+/* One line is a button: clicking it seeks. It is padded rather than spaced so
+   the tap target is the row, not the glyphs. */
+.lyr-line {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.lyr-line:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+/* Past lines are read, not gone: dimmer, never invisible. */
+.lyr-line.is-past {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.3));
+}
+
+/* The line being sung. Weight and size carry it, not a colour wash: a coloured
+   block behind moving text is unreadable behind a translucent notch. */
+.lyr-line.is-current {
+    color: var(--islet-text, #fff);
+    font-weight: 700;
+    font-size: 13px;
+    transform: translateX(2px);
+}
+
+.lyr-line-text {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Hairline under the current line, filled across its own duration. */
+.lyr-line-progress {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 2px;
+    height: 1.5px;
+    border-radius: 1px;
+    background: var(--islet-accent, #007aff);
+    opacity: 0.65;
+    transform-origin: left center;
+    transition: transform 0.25s linear;
+}
+
+.lyr-plain {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 6px 2px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.lyr-plain-block {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.lyr-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 18px 4px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.lyr-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+    border-radius: 7px;
+    background: transparent;
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 10.5px;
+    cursor: pointer;
+}
+
+.lyr-retry:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+}
+
+/* Loading: bars roughly the shape of lyrics, never a spinner. A spinner in a
+   44 px tall panel means nothing; text-shaped placeholders say "words coming". */
+.lyr-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 14px 4px;
+}
+
+.lyr-skeleton-line {
+    height: 9px;
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        var(--islet-group-bg, rgba(255, 255, 255, 0.06)) 0%,
+        rgba(255, 255, 255, 0.12) 50%,
+        var(--islet-group-bg, rgba(255, 255, 255, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    animation: lyr-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes lyr-shimmer {
+    0% { background-position: 120% 0; }
+    100% { background-position: -20% 0; }
+}
+
+.lyr-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.lyr-source {
+    flex: 1;
+    min-width: 0;
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-offset {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+/* The value is also the reset button: the number is the control people reach
+   for when it is wrong, so it does the obvious thing. */
+.lyr-offset-value {
+    min-width: 38px;
+    padding: 2px 4px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.7));
+    font: inherit;
+    font-size: 9.5px;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+
+.lyr-offset-value:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.lyr-offset-value.is-zero {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+}
+
+.lyr-offset-hint {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+    margin-left: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lyr-skeleton-line {
+        animation: none;
+    }
+
+    .lyr-line,
+    .lyr-line-progress {
+        transition: none;
+    }
+}

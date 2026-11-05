@@ -313,3 +313,26 @@ recalcule jamais l'id : deux implémentations d'un même hash finissent par dive
 
 ⚠️ **Pas de toolchain Rust dans le sandbox** : `clipboard.rs` n'a pas été compilé ici.
 La syntaxe a été relue, pas vérifiée par `cargo`.
+
+---
+
+## 9. Paroles synchronisées (J4 / P3-C1, livré 2026-11-05)
+
+`src/lib/lyrics.ts` décide · `src-tauri/src/lyrics.rs` transporte · `NotchLyrics.tsx` affiche.
+
+- **Le corps brut de LRCLIB traverse Rust sans être reparsé** : un seul parseur, celui qui a 60 tests. Deux
+  parseurs finissent toujours par diverger.
+- **Opt-in vérifié deux fois** : le réglage est off par défaut, et `lyrics_fetch` relit `islet-lyrics-enabled`
+  côté Rust avant d'émettre la moindre requête. Un bug du frontend ne peut pas transformer l'app en mouchard.
+- **La requête attend que le panneau soit ouvert** (`visible`). Activer le réglage arme la fonction ; ouvrir
+  le panneau la déclenche. Un morceau qu'on n'ouvre jamais ne laisse aucune trace.
+- **Les « pas de paroles » ne sont pas mis en cache** : LRCLIB s'enrichit tous les jours, un 404 mémorisé
+  rendrait la réponse future inatteignable. Le cache (400 fichiers max, élagage par date) ne garde que des succès.
+- **Le décalage est une préférence globale** (`islet-lyrics-offset`, ±5 s par pas de 250 ms), pas une donnée du
+  fichier : le déplacer ne peut rien corrompre.
+- **`[00:12:40]` est interprété comme `mm:ss:xx`** quand le premier champ vaut zéro, comme `h:mm:ss` sinon.
+  C'est le seul arbitrage possible sur un format ambigu, il est commenté dans `parseTimestamp`.
+- **Le défilement suit la lecture sauf si l'utilisateur vient de faire défiler** (4 s de répit). Un panneau qui
+  reprend la main pendant qu'on lit est pire qu'un panneau figé.
+- `MediaInfo` n'expose pas l'album : on n'en envoie pas. Inventer un champ donnerait une fausse impression de
+  précision sur l'appariement LRCLIB.

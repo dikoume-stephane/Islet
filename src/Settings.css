@@ -1495,3 +1495,33 @@ input:checked + .slider:before {
     transform: none;
   }
 }
+
+/* Small inline action that lives inside a SettingRow, next to a toggle.
+   Same shape as the CalDAV chips so the settings window has one button
+   vocabulary rather than three. */
+.settings-inline-btn {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+  border-radius: 999px;
+  color: var(--islet-text-muted, rgba(255, 255, 255, 0.7));
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-inline-btn:hover:not(:disabled) {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.1));
+  color: var(--islet-text, #fff);
+}
+
+.settings-inline-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settings-inline-btn:focus-visible {
+  outline: 2px solid var(--islet-accent, #007aff);
+  outline-offset: 2px;
+}

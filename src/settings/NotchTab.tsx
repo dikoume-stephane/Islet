@@ -16,6 +16,8 @@ import {
   Timer,
   BellRing,
   ClipboardList,
+  Mic2,
+  Trash2,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -24,6 +26,8 @@ import { StatusWidgetConfig } from "../components/StatusWidgetConfig";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 import { usePerMonitor } from "./usePerMonitor";
 import { useT } from "../i18n";
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface NotchTabProps {
   notchMode: string;
@@ -42,6 +46,8 @@ interface NotchTabProps {
   toggleClipboard: () => void;
   clipboardPaste: boolean;
   toggleClipboardPaste: () => void;
+  lyricsEnabled: boolean;
+  toggleLyrics: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -92,6 +98,8 @@ export function NotchTab({
   toggleClipboard,
   clipboardPaste,
   toggleClipboardPaste,
+  lyricsEnabled,
+  toggleLyrics,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -305,6 +313,15 @@ export function NotchTab({
 
       <div className="setting-group-label">{t("notch.weather")}</div>
       <div className="setting-group">
+        <SettingRow icon={Mic2} label={t("lyrics.settings.enable")} desc={t("lyrics.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={lyricsEnabled} onChange={toggleLyrics} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {lyricsEnabled && <LyricsCacheRow />}
+
         <SettingRow icon={CloudSun} label={t("notch.weather.status")} desc={cityName || t("notch.weather.auto")}>
           <div className="weather-controls">
             <div className="unit-toggle-minimal" onClick={toggleTempUnit}>
@@ -377,5 +394,57 @@ export function NotchTab({
         <StatusWidgetConfig value={statusWidgets} onChange={handleWidgetsChange} hasBattery={hasBattery} />
       </div>
     </>
+  );
+}
+
+/**
+ * Lyrics cache: how much is on disk, and one button to take it away.
+ *
+ * Kept as its own component rather than three more props: the count is a fact
+ * about the file system, not a user preference, so it is read here and never
+ * round-trips through `useSettings`. The privacy line sits underneath because
+ * this is the only feature in the app that talks to a server.
+ */
+function LyricsCacheRow() {
+  const t = useT();
+  const [count, setCount] = useState<number | null>(null);
+  const [cleared, setCleared] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    invoke<number>("lyrics_cache_count")
+      .then((value) => alive && setCount(value))
+      .catch(() => alive && setCount(null));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const clear = () => {
+    invoke<number>("lyrics_clear_cache")
+      .then(() => {
+        setCount(0);
+        setCleared(true);
+        window.setTimeout(() => setCleared(false), 2000);
+      })
+      .catch(() => {});
+  };
+
+  return (
+    <SettingRow
+      icon={Trash2}
+      label={t("lyrics.settings.cache")}
+      desc={
+        cleared
+          ? t("lyrics.settings.cache.cleared")
+          : count === null
+            ? t("lyrics.settings.privacy")
+            : t("lyrics.settings.cache.desc", { count })
+      }
+    >
+      <button type="button" className="settings-inline-btn" onClick={clear} disabled={!count}>
+        {t("lyrics.settings.cache.clear")}
+      </button>
+    </SettingRow>
   );
 }

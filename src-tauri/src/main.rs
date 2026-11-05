@@ -18,6 +18,7 @@ mod ics;
 mod active_look;
 mod signals;
 mod clipboard;
+mod lyrics;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -200,7 +201,10 @@ fn main() {
             clipboard::clipboard_remove,
             clipboard::clipboard_clear,
             clipboard::clipboard_set_recording,
-            clipboard::clipboard_is_recording
+            clipboard::clipboard_is_recording,
+            lyrics::lyrics_fetch,
+            lyrics::lyrics_clear_cache,
+            lyrics::lyrics_cache_count
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());

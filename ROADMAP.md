@@ -335,7 +335,7 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 
 | ID | Fonction | État Islet | À faire |
 |---|---|---|---|
-| P3-C1 | **Lecteur + paroles synchronisées** | Lecteur ✅ (SMTC) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ±, cache local |
+| P3-C1 | **Lecteur + paroles synchronisées** | ✅ (J4) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ± 5 s par pas de 250 ms, cache local. **Opt-in** : rien ne sort tant que le réglage est off |
 | P3-C2 | **File shelf** | ❌ | Glisser-déposer des fichiers sur le notch, liste persistante, glisser-vers-l'extérieur |
 | P3-C3 | **Chronomètre + minuteur** | Pomodoro ✅ | Chronomètre (tourne, tours) et minuteur libre en plus du Pomodoro |
 | P3-C4 | **Suivi d'hydratation** | ❌ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours |
@@ -346,6 +346,12 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C1 en détail** (livré 2026-11-05) : `src/lib/lyrics.ts` décide (parseur LRC, ligne courante par recherche
+binaire, décalage, cible de seek), `src-tauri/src/lyrics.rs` transporte (LRCLIB, cache disque plafonné à 400
+morceaux, refus si le réglage est off), `NotchLyrics.tsx` affiche (défilement qui suit la lecture sans jamais
+reprendre la main sur un utilisateur qui remonte). 60 tests. Le corps brut de LRCLIB traverse Rust sans être
+reparsé : un seul parseur, celui qui est testé.
 
 **P3-C9 en détail** (livré 2026-11-05) : `src-tauri/src/clipboard.rs` mesure (fil de sondage 400 ms sur
 `GetClipboardSequenceNumber`), `src/lib/clipboard.ts` décide (ordre, épingles, recherche, aperçu) et

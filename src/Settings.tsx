@@ -238,6 +238,8 @@ function SettingsApp() {
               toggleClipboard={settings.toggleClipboard}
               clipboardPaste={settings.clipboardPaste}
               toggleClipboardPaste={settings.toggleClipboardPaste}
+              lyricsEnabled={settings.lyricsEnabled}
+              toggleLyrics={settings.toggleLyrics}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}
