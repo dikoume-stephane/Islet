@@ -19,6 +19,7 @@ import {
   Mic2,
   Layers,
   Trash2,
+  ListTodo,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -51,6 +52,8 @@ interface NotchTabProps {
   toggleLyrics: () => void;
   shelfEnabled: boolean;
   toggleShelf: () => void;
+  todoEnabled: boolean;
+  toggleTodo: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -105,6 +108,8 @@ export function NotchTab({
   toggleLyrics,
   shelfEnabled,
   toggleShelf,
+  todoEnabled,
+  toggleTodo,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -328,6 +333,15 @@ export function NotchTab({
         {shelfEnabled && (
           <SettingRow icon={Layers} label={t("shelf.note")} desc={t("shelf.settings.note")} divider={false} />
         )}
+
+        <SettingRow icon={ListTodo} label={t("todo.settings.enable")} desc={t("todo.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={todoEnabled} onChange={toggleTodo} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {todoEnabled && <SettingRow icon={ListTodo} label={t("todo.settings.note")} divider={false} />}
 
         <SettingRow icon={Mic2} label={t("lyrics.settings.enable")} desc={t("lyrics.settings.enable.desc")}>
           <label className="toggle-switch">

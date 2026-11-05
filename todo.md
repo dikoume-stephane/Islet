@@ -137,8 +137,14 @@
   - [x] J5d — `useShelf` + `NotchShelf` : écoute des dépôts, mode de notch 340 × 300, ouverture automatique après un dépôt, ouverture/révélation via `plugin-opener`, compteur de fichiers manquants
   - [ ] J5e — **Glisser-vers-l'extérieur** : `tauri_plugin_drag::init()` + `startDrag`, à faire et à tester sur Windows
   - [ ] J5f — **À vérifier sur Windows** : le notch ne doit pas devenir une cible de dépôt sur tout l'écran
-- [ ] J6 — Suivi d'hydratation + rappels
-- [ ] J7 — To-do du jour avec échéances et rappels
+- [ ] J6 — Suivi d'hydratation + rappels — **écarté à la demande de l'utilisateur le 2026-11-05**
+- [x] J7 — **To-do du jour** ✅ livré 2026-11-05
+  - [x] J7a — `src/lib/todo.ts` : saisie d'une heure (« 9 », « 9h30 », « 14:30 », « demain 9h »), retard, sections, prochaine échéance, rappels, report au lendemain, relecture tolérante des tâches — **40 tests**
+  - [x] J7b — `src-tauri/src/todo.rs` : `todo_list` / `_add` / `_toggle` / `_set_due` / `_remove` / `_clear_done`, fichier `todos.json`, plafond 200 qui oublie d'abord les tâches faites les plus anciennes
+  - [x] J7c — `useTodos` : backend autoritaire après chaque commande, rien n'est lu ni écrit quand le réglage est coupé
+  - [x] J7d — `NotchTodos` : ajout en deux champs, sections retard / aujourd'hui / à venir / terminées, coche, report, suppression, état vide explicatif
+  - [x] J7e — Rappel : une échéance atteinte ouvre le panneau une fois (fenêtre d'une heure, pas de son) et ne se répète jamais dans la session
+  - [ ] J7f — **À vérifier sur Windows** : compiler `todo.rs` (pas de toolchain ici), créer une tâche à une heure proche et voir le notch s'ouvrir tout seul
 
 ## Bloc K — Assistant « Is » (J3, J5)
 

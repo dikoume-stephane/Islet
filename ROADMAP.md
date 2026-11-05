@@ -338,14 +338,24 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C1 | **Lecteur + paroles synchronisées** | ✅ (J4) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ± 5 s par pas de 250 ms, cache local. **Opt-in** : rien ne sort tant que le réglage est off |
 | P3-C2 | **File shelf** | ✅ (J4) | Dépôt de fichiers sur le notch, liste persistante de **chemins** (aucune copie), ouverture en un clic, révélation dans l'Explorateur, fichiers disparus signalés. Glisser-vers-l'extérieur à faire |
 | P3-C3 | **Chronomètre + minuteur** | ✅ (J4) | Chronomètre (tours, meilleur/pire) et minuteur libre en plus du Pomodoro, tous deux ancrés sur une **cible absolue** : justes après une veille ou un redémarrage |
-| P3-C4 | **Suivi d'hydratation** | ❌ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours |
-| P3-C5 | **To-do du jour** | ❌ | Tâches avec heure d'échéance, rappel via le notch, report au lendemain |
+| P3-C4 | **Suivi d'hydratation** | ⏭️ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours. **Écarté à la demande** le 2026-11-05, à reprendre si besoin |
+| P3-C5 | **To-do du jour** | ✅ (J4) | Tâches avec heure d'échéance en langage naturel, rappel via le notch, report au lendemain, sections retard/aujourd'hui/à venir |
 | P3-C6 | **Indicateurs clavier** | ❌ | Caps Lock / Verr Num / langue active — overlay bref, comme les overlays volume existants |
 | P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
 | P3-C8 | **Modes notch minimalistes** | Partiel | Ajouter la « pilule minimale » (temps seul, aucun module) |
 | P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C5 en détail** (livré 2026-11-05) : `src/lib/todo.ts` décide (saisie d'une heure, retard, sections,
+rappel, report), `src-tauri/src/todo.rs` garde le fichier (`todos.json`, à côté de `settings.json`),
+`NotchTodos.tsx` affiche. **40 tests**.
+
+Trois choix à retenir. **Une échéance est un instant** : « 9h30 » devient un horodatage à la saisie, donc
+le retard se calcule par comparaison et survit à un redémarrage. **Une heure déjà passée veut dire
+demain** : taper « 9 » à 10 h ne crée pas une tâche immédiatement en retard. **Le retard est un état,
+pas une erreur** : la tâche remonte en tête avec une pastille ambre et un bouton « reporter à demain »,
+rien ne disparaît tout seul.
 
 **P3-C3 en détail** (livré 2026-11-05) : `src/lib/clock.ts` porte le modèle (cible absolue, pause, tours,
 relecture méfiante du stockage), `useCountdown` et `useStopwatch` le tiennent à jour et le persistent,

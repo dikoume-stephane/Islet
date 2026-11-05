@@ -5,6 +5,36 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (5) — J4 : la to-do du jour
+
+**Fait**
+- `src/lib/todo.ts` : saisie d'une heure en langage naturel, retard, sections, prochaine échéance,
+  rappels, report au lendemain, relecture tolérante. **40 tests** (`npm run test:todo`).
+- `src-tauri/src/todo.rs` : six commandes, fichier `todos.json`, plafond de 200 qui oublie d'abord les
+  tâches faites les plus anciennes, titres nettoyés et bornés des deux côtés.
+- `useTodos` : le backend renvoie la liste entière après chaque commande, jamais un différentiel. Rien
+  n'est lu ni écrit quand le réglage est coupé.
+- `NotchTodos` : ajout en deux champs (intitulé, heure), sections retard / aujourd'hui / à venir /
+  terminées, coche, report, suppression, état vide qui explique le geste.
+- Rappel : une échéance atteinte ouvre le panneau une fois, dans une fenêtre d'une heure, sans son.
+- Réglage `islet-todo-enabled` (actif par défaut) dans l'onglet Notch.
+
+**Constats**
+- Le test a attrapé deux vrais trous avant l'écran : « 14h » n'était pas reconnu (la regex exigeait deux
+  chiffres après le `h`) et « demain demain » passait pour une heure valide.
+- Une échéance illisible dans le fichier ne fait pas perdre la tâche : on garde le titre, on oublie
+  l'heure. Perdre une tâche pour un champ de date abîmé serait pire que perdre la date.
+- L'hydratation (P3-C4) a été écartée à la demande de l'utilisateur, avant ce chantier.
+
+**Bloqué**
+- Toujours pas de toolchain Rust : `todo.rs` est relu, pas compilé.
+
+**À faire ensuite**
+- Sur Windows : compiler, créer une tâche dans deux minutes, voir le notch s'ouvrir seul.
+- J4 : indicateurs clavier (P3-C6), pilule minimale (P3-C8).
+
+---
+
 ## 2026-11-05 (4) — J4 : chrono et minuteur libre
 
 **Fait**

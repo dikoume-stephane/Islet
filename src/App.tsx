@@ -23,6 +23,9 @@ import { NotchLyrics } from "./components/NotchLyrics";
 import { useLyrics } from "./hooks/useLyrics";
 import { useShelf } from "./hooks/useShelf";
 import { NotchShelf } from "./components/NotchShelf";
+import { useTodos } from "./hooks/useTodos";
+import { NotchTodos } from "./components/NotchTodos";
+import { pendingReminders } from "./lib/todo";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useCountdown } from "./hooks/useCountdown";
@@ -658,6 +661,9 @@ function App() {
   // On by default: dropping a file has to work before the feature is
   // discovered. Nothing is copied, so the floor is a list of paths.
   const [settingsShelfEnabled, setSettingsShelfEnabled] = useState(() => localStorage.getItem("islet-shelf-enabled") !== "false");
+  // Les tâches du jour : actives par défaut, comme l'étagère. Rien ne sort de
+  // la machine, et une liste vide n'apprend rien à personne.
+  const [settingsTodoEnabled, setSettingsTodoEnabled] = useState(() => localStorage.getItem("islet-todo-enabled") !== "false");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -716,6 +722,7 @@ function App() {
       setSettingsClipboardPaste(getVal("islet-clipboard-paste", "false") === "true");
       setSettingsLyricsEnabled(getVal("islet-lyrics-enabled", "false") === "true");
       setSettingsShelfEnabled(getVal("islet-shelf-enabled", "true") !== "false");
+      setSettingsTodoEnabled(getVal("islet-todo-enabled", "true") !== "false");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -847,6 +854,7 @@ function App() {
       "islet-clipboard-paste": setSettingsClipboardPaste,
       "islet-lyrics-enabled": setSettingsLyricsEnabled,
       "islet-shelf-enabled": setSettingsShelfEnabled,
+      "islet-todo-enabled": setSettingsTodoEnabled,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -909,7 +917,7 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos' | 'command-center' | 'status'>('status');
   // Lyrics for the track that is playing. The hook is called unconditionally:
   // it does nothing (and asks nothing) while the setting is off.
   const lyrics = useLyrics({
@@ -930,6 +938,8 @@ function App() {
   // The shelf: files dropped on the notch, kept as paths. The hook owns the
   // drop listener, so a disabled shelf is not even a window that accepts files.
   const shelf = useShelf({ enabled: settingsShelfEnabled });
+  // Les tâches du jour : lues du fichier une fois, puis tenues par le backend.
+  const todos = useTodos({ enabled: settingsTodoEnabled });
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -949,7 +959,8 @@ function App() {
       // sixty clipboard entries would make the panel unusable.
       target.closest('.clipboard-panel') ||
       target.closest('.lyrics-panel') ||
-      target.closest('.shelf-panel')
+      target.closest('.shelf-panel') ||
+      target.closest('.todo-panel')
     ) {
       return;
     }
@@ -973,15 +984,16 @@ function App() {
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
     // Lyrics sit next to the music mode: same subject, one notch width apart.
-    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'lyrics', 'status', 'calendar', 'shelf', 'clipboard']
-      : ['command-center', 'status', 'music', 'lyrics', 'shelf', 'calendar', 'clipboard'];
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'lyrics', 'status', 'todos', 'calendar', 'shelf', 'clipboard']
+      : ['command-center', 'status', 'music', 'lyrics', 'todos', 'shelf', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
       if (m === 'clipboard' && !settingsClipboardEnabled) return false;
       if (m === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) return false;
       if (m === 'shelf' && !settingsShelfEnabled) return false;
+      if (m === 'todos' && !settingsTodoEnabled) return false;
       return true;
     });
 
@@ -1114,6 +1126,31 @@ function App() {
       setIsletMode('status');
     }
   }, [settingsShelfEnabled, isletMode]);
+
+  // Le rappel d'une tâche : une seule fois par tâche, jamais pour une échéance
+  // d'hier soir, et sans son. Le notch est déjà à l'écran, c'est lui le rappel.
+  const remindedTodosRef = useRef<string[]>([]);
+  useEffect(() => {
+    if (!settingsTodoEnabled) return;
+    const check = () => {
+      const due = pendingReminders(todos.tasks, Date.now(), remindedTodosRef.current);
+      if (due.length === 0) return;
+      // Plafonné : ce témoin n'a pas à grandir pendant des jours.
+      remindedTodosRef.current = [...remindedTodosRef.current, ...due.map((task) => task.id)].slice(-200);
+      setIsletMode('todos');
+      if (notchMode === 'peek') triggerEventPeek(6000);
+    };
+    check();
+    const id = setInterval(check, 20_000);
+    return () => clearInterval(id);
+  }, [settingsTodoEnabled, todos.tasks, notchMode, triggerEventPeek]);
+
+  // Un panneau qu'on vient d'éteindre ne doit pas rester ouvert.
+  useEffect(() => {
+    if (!settingsTodoEnabled && isletMode === 'todos') {
+      setIsletMode('status');
+    }
+  }, [settingsTodoEnabled, isletMode]);
 
   // Lyrics have no subject once the track is gone.
   useEffect(() => {
@@ -1583,6 +1620,7 @@ function App() {
     if (isletMode === 'clipboard') return 340;
     if (isletMode === 'lyrics') return 340;
     if (isletMode === 'shelf') return 340;
+    if (isletMode === 'todos') return 350;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1617,6 +1655,7 @@ function App() {
     if (isletMode === 'clipboard') return 384;
     if (isletMode === 'lyrics') return 320;
     if (isletMode === 'shelf') return 300;
+    if (isletMode === 'todos') return 340;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1635,6 +1674,7 @@ function App() {
   const isClipboardMode = isletMode === 'clipboard';
   const isLyricsMode = isletMode === 'lyrics';
   const isShelfMode = isletMode === 'shelf';
+  const isTodosMode = isletMode === 'todos';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1698,8 +1738,8 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
@@ -1718,7 +1758,7 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'todos' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
@@ -2400,6 +2440,23 @@ function App() {
                       onReveal={(path) => revealItemInDir(path).catch(() => {})}
                       onClose={() => setIsletMode('status')}
                     />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* To-do du jour : les tâches, leur heure, et rien d'autre. */}
+              <AnimatePresence>
+                {isTodosMode && (
+                  <motion.div
+                    className="todo-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchTodos todos={todos} onClose={() => setIsletMode('status')} />
                   </motion.div>
                 )}
               </AnimatePresence>

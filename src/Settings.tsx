@@ -242,6 +242,8 @@ function SettingsApp() {
               toggleLyrics={settings.toggleLyrics}
               shelfEnabled={settings.shelfEnabled}
               toggleShelf={settings.toggleShelf}
+              todoEnabled={settings.todoEnabled}
+              toggleTodo={settings.toggleTodo}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

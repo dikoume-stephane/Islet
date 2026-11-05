@@ -378,3 +378,24 @@ La syntaxe a été relue, pas vérifiée par `cargo`.
   sonne pas, il s'affiche terminé.
 - Clés : `islet-timer-state`, `islet-stopwatch-state` (JSON avec numéro de version dans le champ `v`). Pas de migration :
   ces clés n'existaient pas avant.
+
+---
+
+## 12. To-do du jour (J4 / P3-C5, livré 2026-11-05)
+
+`src/lib/todo.ts` décide · `src-tauri/src/todo.rs` garde le fichier · `NotchTodos.tsx` affiche.
+
+- **Une échéance est un instant, pas un texte.** « 9h30 » est converti à la saisie, donc le retard se
+  calcule par comparaison et survit à un redémarrage. Formats acceptés : `9`, `9h`, `9h30`, `9:30`,
+  `demain`, `demain 9h`, `9h demain`, vide pour aucune heure.
+- **Une heure déjà passée veut dire demain.** Taper « 9 » à 10 h crée la tâche de demain 9 h. C'est la
+  seule règle qui ne piège personne, et elle est testée à la minute près.
+- **Le retard est un état, pas une erreur.** Section « En retard » en tête, pastille ambre, bouton
+  « reporter à demain » (même heure, demain) par tâche et pour toutes. Rien ne disparaît tout seul.
+- **Sans heure, une tâche est une tâche du jour.** C'est le sens de « to-do du jour ».
+- **Le rappel est visuel.** Fenêtre d'une heure (`REMINDER_WINDOW_MS`), une annonce par tâche et par
+  session, pas de son : le notch est déjà à l'écran. Le témoin des annonces est un `ref` plafonné à 200.
+- **Données dans un fichier, pas un réglage** : `%APPDATA%\com.2DS.islet\todos.json`. Plafond 200, qui
+  oublie d'abord les tâches faites les plus anciennes (`prune`).
+- Réglage `islet-todo-enabled`, **actif par défaut** (rien ne sort de la machine).
+- ⚠️ `todo.rs` n'est **pas compilé** ici : pas de toolchain Rust dans le sandbox.

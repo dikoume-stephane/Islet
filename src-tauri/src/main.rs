@@ -20,6 +20,7 @@ mod signals;
 mod clipboard;
 mod lyrics;
 mod shelf;
+mod todo;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -209,7 +210,13 @@ fn main() {
             shelf::shelf_list,
             shelf::shelf_add,
             shelf::shelf_remove,
-            shelf::shelf_clear
+            shelf::shelf_clear,
+            todo::todo_list,
+            todo::todo_add,
+            todo::todo_toggle,
+            todo::todo_set_due,
+            todo::todo_remove,
+            todo::todo_clear_done
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());

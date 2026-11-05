@@ -87,8 +87,27 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
 | `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
 | `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
+| `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Today's tasks
+
+A task list with an optional due time. Titles and due times are stored in
+`%APPDATA%\com.2DS.islet\todos.json`, next to `settings.json`: it is your data, so it is a file you can
+read and back up, not a webview cache.
+
+| Gesture | Where |
+|---------|-------|
+| Add | The field at the top; the second field takes a time (`9`, `9h30`, `14:30`, `demain 9h`) |
+| Done / not done | The checkbox, or the title |
+| Move to tomorrow | The clock icon on a row, keeping the time of day |
+| Delete | The bin icon on a row |
+| Empty the finished ones | "Clear" in the Done section |
+
+**A due time already past means tomorrow**: typing `9` at 10 in the morning schedules tomorrow at 9, not a
+task that is late before it exists. When a due time is reached, the notch opens on the list once and shows
+it. There is no sound: the notch is the reminder, and it is already on screen.
 
 ### Timer and stopwatch
 
