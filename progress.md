@@ -1,14 +1,14 @@
 # 📊 PROGRESS — Phase 1 : Rebranding Nectar → Islet
 
-**Dernière mise à jour :** 2026-11-02 (par l'agent)
-**État global :** ✅ **Phase 1 mergée (PR #1). Phase 2 démarrée : finitions visuelles livrées (icône, favicons, attribution)**
+**Dernière mise à jour :** 2026-11-04 (par l'agent)
+**État global :** ✅ **Phases 1 et 2 mergées (PR #1 et #2). Phase 3 en cours : accueil (J1), signaux d'Is, langues FR/EN (J8) et matières (J2) livrés**
 
 ## Tableau de bord
 
 | Bloc | Périmètre | Tâches | Faites | État | Avancement |
 |---|---|---|---|---|---|
 | 0 | Préparation & analyse | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
-| DÉC | Décisions utilisateur | 6 | 6 | ✅ Tranchées (DÉC-5 = différé volontairement) | ▓▓▓▓▓▓▓▓▓▓ 100 % |
+| DÉC | Décisions utilisateur | 6 | 6 | ✅ Tranchées (DÉC-5 résolue le 2026-11-02) | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | A | Identité visuelle | 7 | 6 | ✅ Fait — **assets officiels intégrés** (A8 → Phase 2) | ▓▓▓▓▓▓▓▓▓▓ 100 %¹ |
 | B | Manifests & config | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | C | Frontend | 5 | 5 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
@@ -17,6 +17,24 @@
 | F | Documentation | 4 | 4 | ✅ Terminé | ▓▓▓▓▓▓▓▓▓▓ 100 % |
 | G | Validation | 6 | 5 | 🟡 G1/G2/G3/G5/G6 ✅ · G4 partiel (exe ✅, NSIS ⏳) | ▓▓▓▓▓▓▓▓░░ 83 % |
 | **Total** | | **44** | **38** | | **≈ 90 %** |
+
+## Phase 3 — Fonctionnalités (cadrée le 2026-11-03)
+
+| Bloc | Périmètre | Tâches | Faites | État | Avancement |
+|---|---|---|---|---|---|
+| H | Onboarding premier démarrage | 10 | 9 | ✅ Livré (J1) — validation Windows restante | ▓▓▓▓▓▓▓▓▓░ 90 % |
+| I | Moteur de thèmes + Liquid Glass | 9 | 8 | ✅ Livré (J2), contrôle visuel Windows restant | ▓▓▓▓▓▓▓▓▓░ 90 % |
+| J | Parité Nusa (paroles, shelf, eau, to-do…) | 7 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| K | Assistant « Is » | 18 | 15 | 🟡 Signaux, conseils, signal d'attention livrés · personnage à venir | ▓▓▓▓▓▓▓▓░░ 83 % |
+| L | IA optionnelle | 4 | 0 | 📋 Cadré | ░░░░░░░░░░ 0 % |
+| M | Outillage (skills) | 3 | 3 | ✅ Skills + outillage build | ▓▓▓▓▓▓▓▓▓▓ 100 % |
+| N | Langues FR / EN (J8) | 17 | 17 | ✅ Interface entière bilingue, 460 clés | ▓▓▓▓▓▓▓▓▓▓ 100 % |
+
+**Jalons** : ~~J1 accueil~~ ✅ → ~~J8 langues~~ ✅ → ~~J2 thèmes~~ ✅ → **J4 parité → J3 personnage → J5 dev → J6 confort → J7 IA**.
+⚠️ Amendé le 2026-11-03 : **J3 (Is — signaux système)** a été attaqué avant J1, puis J1 a suivi le 2026-11-04. Restent pour Is : le personnage animé et les signaux orientés développement (git, ports, build).
+✅ 2026-11-04 : **J8 langues FR/EN terminé** — 460 clés par dictionnaire, aucun texte en dur.
+Toute fonctionnalité livrée désormais arrive bilingue du premier coup.
+Détail complet dans `ROADMAP.md` § PHASE 3.
 
 ## Métriques clés
 
@@ -34,7 +52,10 @@
 ¹ uniquement les mentions légales volontaires : section Credits du README + descriptions `Cargo.toml`. Hors fichiers de pilotage qui documentent l'ancien nom.
 
 ## En cours
-- *(aucune tâche agent active — le rebranding sandbox est terminé)*
+- **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
+  chrono/minuteur libre (P3-C3), to-do du jour (P3-C5) et indicateurs clavier (P3-C6) livrés,
+  **302 tests** TypeScript au vert. L'hydratation (P3-C4) a été écartée à la demande. Reste la
+  validation Rust sur Windows, puis la pilule minimale (P3-C8).
 
 ¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 

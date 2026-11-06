@@ -82,6 +82,92 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-calendar-view` | `"day"` / `"week"` / `"month"` / `"agenda"` | `"month"` | Which view the notch calendar shows once a calendar source is connected. Set by the Day / Week / Month / Agenda switcher in the notch. |
 | `islet-music-mode-enabled` | `"true"` / `"false"` | `"true"` | Enable interactive music media widget. |
 | `islet-music-compact-notch` | `"true"` / `"false"` | `"true"` | Show compact music display (visualizer + artwork) in collapsed notch. |
+| `islet-clipboard-enabled` | `"true"` / `"false"` | `"true"` | Keep a clipboard history in the notch (Settings › Notch › Clipboard History). Turning it off stops the watcher, not just the panel. |
+| `islet-clipboard-paste` | `"true"` / `"false"` | `"false"` | Clicking an entry pastes it into the window you came from instead of only copying it. |
+| `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
+| `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
+| `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
+| `islet-keyboard-indicators-enabled` | `"true"` / `"false"` | `"true"` | Show a brief overlay when Caps Lock, Num Lock, Scroll Lock or the input language changes. Off means the backend reads nothing. |
+| `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
+| `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
+| `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Keyboard indicators
+
+Press Caps Lock and a small pill appears at the bottom of the screen for about a second: `Verr Maj`,
+`Verr Num`, and the input language. Only the indicator that just changed is highlighted, because three
+lights moving at once say nothing.
+
+The keys are **never swallowed**: Windows still toggles Caps Lock itself, Islet only reports it. The
+language is read from the foreground window's keyboard layout and reported as a short code (`FR`, `EN`,
+`DE`); an unknown language is left out rather than shown as a hexadecimal number.
+
+### Today's tasks
+
+A task list with an optional due time. Titles and due times are stored in
+`%APPDATA%\com.2DS.islet\todos.json`, next to `settings.json`: it is your data, so it is a file you can
+read and back up, not a webview cache.
+
+| Gesture | Where |
+|---------|-------|
+| Add | The field at the top; the second field takes a time (`9`, `9h30`, `14:30`, `demain 9h`) |
+| Done / not done | The checkbox, or the title |
+| Move to tomorrow | The clock icon on a row, keeping the time of day |
+| Delete | The bin icon on a row |
+| Empty the finished ones | "Clear" in the Done section |
+
+**A due time already past means tomorrow**: typing `9` at 10 in the morning schedules tomorrow at 9, not a
+task that is late before it exists. When a due time is reached, the notch opens on the list once and shows
+it. There is no sound: the notch is the reminder, and it is already on screen.
+
+### Timer and stopwatch
+
+The countdown stores **when it must ring**, not how much time is left: close Islet for ten minutes mid-timer
+and it comes back with the ten minutes gone. The stopwatch works the same way, so a running watch keeps
+measuring real time across a restart. Both live in `localStorage` and are **read back with suspicion**: a
+target more than a day old, a start date in the future, or unreadable JSON resets the clock instead of
+showing `NaN`. Pausing freezes the exact remainder, resuming re-aims the target.
+
+### Shelf
+
+Drop a file on the notch and it stays one click away. The shelf stores **paths, not copies**: a 4 GB video
+costs one line of JSON, and deleting the original is reported as "Missing" rather than hidden. Entries live in
+`%APPDATA%\com.2DS.islet\shelf.json` and are capped at 24, the oldest leaving first.
+
+| Action | Where |
+|--------|-------|
+| Add | Drag one or more files onto the notch |
+| Open | Click the row |
+| Show in Explorer | The folder icon on the right of a row |
+| Remove one | The bin icon |
+| Clean up missing files | The amber counter in the header, when there is one |
+| Empty the shelf | "Clear" in the footer (the files themselves are untouched) |
+
+### Synced Lyrics
+
+Off by default. When on, opening the lyrics panel of the track that is playing sends the title, artist and
+duration to [LRCLIB](https://lrclib.net), a free public lyrics database that needs no account and no key. The
+answer is kept on disk under the app config folder, so a track you play again is served without a request.
+Only the track you actually open the panel for is looked up; skipping through a playlist sends nothing.
+
+In the panel: the current line is highlighted and follows playback, a line clicked seeks to it, and the ±
+buttons shift the lyrics by 0.25 s (up to 5 s either way) for rips whose timestamps drift. The value is
+remembered. Settings › Notch shows how many tracks are cached and can clear them.
+
+### Clipboard History
+
+The history lives in memory only: nothing is written to disk, and the list is gone when Islet exits. Windows
+gives applications a way to opt out of clipboard monitoring, and Islet honours it: a password manager that
+marks its copy as private never reaches the history.
+
+| Action | Where |
+|--------|-------|
+| Open the panel | Hover the notch, scroll to the clipboard mode |
+| Copy an entry | Click it (or type in the search field and press Enter) |
+| Pin / unpin | The pin icon on the right of a row |
+| Remove one entry | The bin icon on the right of a row |
+| Clear everything | "Clear history" in the footer (pinned entries are kept) |
+| Stop recording temporarily | The pause button in the panel header |
 
 ### Calendar Sync (links and CalDAV)
 
@@ -131,9 +217,9 @@ Removing a link or disconnecting the account deletes its stored secret and cache
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `islet-theme-mode` | `"dark"` / `"light"` / `"custom"` / `"adaptive"` | `"dark"` | Theme mode. **dark** = dark translucent. **light** = light translucent. **custom** = user-picked color. **adaptive** = follows Windows system accent color. |
+| `islet-theme-mode` | preset id: `"onyx"` · `"liquid"` · `"frost-light"` · `"aurora"` · `"nord"` · `"paper"` · `"neon"` · `"bento"`, plus `"custom"` / `"adaptive"` | `"dark"` (resolves to `onyx`) | Theme preset. Legacy `"dark"` and `"light"` still resolve to `onyx` and `frost-light`, so no migration pass was needed. **custom** = user-picked colour, **adaptive** = follows the Windows accent. Presets also set the material (blur strength, rim, sheen). |
 | `islet-theme-color` | hex string | `"#007aff"` | Custom theme color (used in `custom` and `adaptive` modes). |
-| `islet-theme-opacity` | float string | `"0.80"` | Background opacity (0.1 to 1.0). |
+| `islet-theme-opacity` | float string | `"0.80"` | Opacity slider (0.1 to 1.0). It scales the preset's own alpha: at the neutral 0.8 a preset renders exactly as defined, so switching preset never silently changes the slider. Floor 0.35. |
 | `islet-theme-saturation` | float string | `"0.50"` | Color saturation for custom/adaptive themes (0.0 to 1.0). |
 | `islet-theme-brightness` | float string | `"0.15"` | Background brightness for custom/adaptive themes (0.0 to 1.0). |
 | `islet-corners-enabled` | `"true"` / `"false"` | `"false"` | Render rounded screen corner overlays on top edges. |
@@ -150,6 +236,33 @@ Example:
   "islet-status-widgets": "{\"left\":[\"cpu\",\"ram\"],\"right\":[\"battery\",\"net\"]}"
 }
 ```
+
+### Is (assistant)
+
+Is watches the machine and shows one short tip at a time in the notch — battery, charge reminder, disk space, memory/CPU pressure and long sessions. It reads only local Windows counters (`GetSystemPowerStatus`, `GlobalMemoryStatusEx`, `GetDriveTypeW`/`GetDiskFreeSpaceExW`, `GetSystemTimes`, `GetTickCount64`), sampled every 30 seconds. Nothing leaves the machine and no account is needed. Tips never interrupt: they respect a per-tip cooldown (10 min for a critical battery, up to 12 h for a disk).
+
+So that a tip is not missed, Is signals it in three steps. On arrival, two rings bloom out of the mascot and the row flashes once in its severity colour. While the tip is up (10 s for information, 12 s for a warning, 15 s for a critical one), the severity dot keeps a slow heartbeat. When the window closes, the tip does not vanish silently: the collapsed notch keeps a thin outline in the severity colour, carrying the message as a tooltip, until the notch is clicked. Under `prefers-reduced-motion`, the rings and the heartbeat are dropped and the outline stays static.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `islet-assistant-name` | string | `"Is"` | What the assistant is called. Set by the welcome flow, editable in Settings › Is; also used as the sidebar label of that tab. Empty values fall back to `"Is"`. |
+| `islet-onboarded` | `"true"` | — | Written when the welcome flow ends. Its absence on a fresh install is what triggers the first-run screen. Installs that predate the flow are marked automatically at startup (any non-empty `settings.json` counts as already welcomed), so upgrading never re-opens it. Clear the key (or delete `settings.json`) to see the flow again, or use Settings › General › Replay the Welcome. |
+| `islet-assistant-enabled` | `"true"` / `"false"` | `"true"` | Master switch. When `"false"`, Is is silent and the classic low-battery pulse takes over again. |
+| `islet-assistant-battery` | `"true"` / `"false"` | `"true"` | Low battery, critical battery, charge reminder and "battery full" tips. While this is on, the legacy `islet-low-battery-threshold` pulse is suppressed to avoid two messages for the same fact. |
+| `islet-assistant-storage` | `"true"` / `"false"` | `"true"` | Warn when a fixed drive has less than `islet-assistant-free-space-floor` percent free. Removable drives are ignored. |
+| `islet-assistant-performance` | `"true"` / `"false"` | `"true"` | Warn on sustained memory (≥ 90 %) or CPU (≥ 90 %) load. |
+| `islet-assistant-session` | `"true"` / `"false"` | `"true"` | Suggest a break once Windows uptime passes `islet-assistant-session-hours`. |
+| `islet-assistant-low-battery` | integer string | `"20"` | Battery percentage that triggers the low-battery tip (5 to 50). |
+| `islet-assistant-charge-limit` | integer string | `"80"` | While charging, suggest unplugging once the battery reaches this level (60 to 100). `100` gives a single "battery full" tip. |
+| `islet-assistant-free-space-floor` | integer string | `"10"` | Minimum free space, in percent, before warning about a drive (5 to 25). |
+| `islet-assistant-session-hours` | integer string | `"8"` | Hours of uptime before suggesting a break (2 to 16). |
+| `islet-assistant-cooldowns` | JSON string | `{}` | Internal. Last display time per tip id, so a tip does not repeat too soon. Safe to clear. |
+
+### Language
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `islet-language` | `"system"` / `"fr"` / `"en"` | `"system"` | Display language. `system` follows the Windows UI language: French if it starts with `fr`, English otherwise. Applies immediately everywhere — notch, dock, settings, and Is' tips — without a restart. |
 
 ### System
 

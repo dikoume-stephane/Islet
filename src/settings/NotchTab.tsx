@@ -15,6 +15,11 @@ import {
   Hourglass,
   Timer,
   BellRing,
+  ClipboardList,
+  Mic2,
+  Layers,
+  Trash2,
+  ListTodo,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -22,6 +27,9 @@ import { useCaldav } from "../hooks/useCaldav";
 import { StatusWidgetConfig } from "../components/StatusWidgetConfig";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 import { usePerMonitor } from "./usePerMonitor";
+import { useT } from "../i18n";
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface NotchTabProps {
   notchMode: string;
@@ -36,6 +44,16 @@ interface NotchTabProps {
   replaceNotchModes: (next: Record<string, string>) => void;
   calendarEnabled: boolean;
   toggleCalendar: () => void;
+  clipboardEnabled: boolean;
+  toggleClipboard: () => void;
+  clipboardPaste: boolean;
+  toggleClipboardPaste: () => void;
+  lyricsEnabled: boolean;
+  toggleLyrics: () => void;
+  shelfEnabled: boolean;
+  toggleShelf: () => void;
+  todoEnabled: boolean;
+  toggleTodo: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -82,6 +100,16 @@ export function NotchTab({
   replaceNotchModes,
   calendarEnabled,
   toggleCalendar,
+  clipboardEnabled,
+  toggleClipboard,
+  clipboardPaste,
+  toggleClipboardPaste,
+  lyricsEnabled,
+  toggleLyrics,
+  shelfEnabled,
+  toggleShelf,
+  todoEnabled,
+  toggleTodo,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -114,6 +142,7 @@ export function NotchTab({
   hasBattery,
   onOpenCalendarSync,
 }: NotchTabProps) {
+  const t = useT();
   const caldav = useCaldav();
   const sources = (caldav.account ? 1 : 0) + caldav.links.length;
   const perMonitor = usePerMonitor(notchMode, notchModeByMonitor, replaceNotchModes, monitors);
@@ -124,47 +153,47 @@ export function NotchTab({
       <div className="setting-group-label">Notch</div>
       <div className="setting-group">
         {!showPerMonitor && (
-          <SettingRow icon={PanelTop} label="Notch Behavior" desc="Choose how the notch appears">
+          <SettingRow icon={PanelTop} label={t("notch.behavior")} desc={t("notch.behavior.desc")}>
             <Dropdown
               value={notchMode}
               onChange={setNotchModeValue}
               options={[
-                { value: "fixed", label: "Fixed" },
-                { value: "smart", label: "Smart" },
-                { value: "peek", label: "Peek" },
+                { value: "fixed", label: t("common.mode.fixed") },
+                { value: "smart", label: t("common.mode.smart") },
+                { value: "peek", label: t("common.mode.peek") },
               ]}
             />
           </SettingRow>
         )}
 
-        <SettingRow icon={MonitorCheck} label="Show On" desc="Choose which monitor(s) display the notch">
+        <SettingRow icon={MonitorCheck} label={t("common.showOn")} desc={t("common.showOn.desc", { target: "notch" })}>
           <Dropdown
             value={notchMonitorMode}
             onChange={(v) => setNotchMonitorModeValue(v as MonitorMode)}
             options={[
-              { value: "primary", label: "Primary Monitor" },
-              { value: "all", label: "All Monitors" },
-              { value: "specific", label: "Specific Monitor" },
+              { value: "primary", label: t("common.monitor.primary") },
+              { value: "all", label: t("common.monitor.all") },
+              { value: "specific", label: t("common.monitor.specific") },
             ]}
           />
         </SettingRow>
 
         {notchMonitorMode === "specific" && (
-          <SettingRow icon={Monitor} label="Monitor" desc="Which display shows the notch">
+          <SettingRow icon={Monitor} label={t("common.monitor")} desc={t("common.monitor.desc", { target: "notch" })}>
             <Dropdown
               value={notchMonitorId}
               onChange={setNotchMonitorIdValue}
-              placeholder={monitors.length === 0 ? "Loading..." : undefined}
+              placeholder={monitors.length === 0 ? t("common.loading") : undefined}
               options={monitors.map((m) => ({
                 value: m.id,
-                label: `${m.label}${m.is_primary ? " (Primary)" : ""}`,
+                label: `${m.label}${m.is_primary ? " " + t("common.monitor.primaryTag") : ""}`,
               }))}
             />
           </SettingRow>
         )}
 
         {multiMonitor && (
-          <SettingRow icon={Monitor} label="Per-Monitor Behavior" desc="Set a different behavior for each monitor">
+          <SettingRow icon={Monitor} label={t("common.perMonitor")} desc={t("common.perMonitor.desc")}>
             <label className="toggle-switch">
               <input type="checkbox" checked={perMonitor.enabled} onChange={perMonitor.toggle} />
               <span className="slider"></span>
@@ -173,20 +202,20 @@ export function NotchTab({
         )}
 
         {showPerMonitor && monitors.map((m) => (
-          <SettingRow key={m.id} icon={Monitor} label={`${m.label} Behavior`} desc={m.is_primary ? "Primary monitor" : undefined}>
+          <SettingRow key={m.id} icon={Monitor} label={t("common.monitor.behavior", { name: m.label })} desc={m.is_primary ? t("common.monitor.primaryDesc") : undefined}>
             <Dropdown
               value={notchModeByMonitor[m.id] || notchMode}
               onChange={(v) => setNotchModeForMonitor(m.id, v)}
               options={[
-                { value: "fixed", label: "Fixed" },
-                { value: "smart", label: "Smart" },
-                { value: "peek", label: "Peek" },
+                { value: "fixed", label: t("common.mode.fixed") },
+                { value: "smart", label: t("common.mode.smart") },
+                { value: "peek", label: t("common.mode.peek") },
               ]}
             />
           </SettingRow>
         ))}
 
-        <SettingRow icon={Calendar} label="Calendar" desc="Day, week, month and agenda views in the notch">
+        <SettingRow icon={Calendar} label={t("notch.calendar")} desc={t("notch.calendar.desc")}>
           <label className="toggle-switch">
             <input type="checkbox" checked={calendarEnabled} onChange={toggleCalendar} />
             <span className="slider"></span>
@@ -196,8 +225,12 @@ export function NotchTab({
         {calendarEnabled && (
           <SettingRow
             icon={CloudCog}
-            label="Calendar Sync"
-            desc={sources ? `${sources} source${sources === 1 ? "" : "s"} connected` : "Show your real events from Google, iCloud, Nextcloud and more"}
+            label={t("notch.calendarSync")}
+            desc={
+              sources
+                ? t("notch.calendarSync.connected", { count: sources })
+                : t("notch.calendarSync.desc")
+            }
             action
             onClick={onOpenCalendarSync}
           >
@@ -205,7 +238,23 @@ export function NotchTab({
           </SettingRow>
         )}
 
-        <SettingRow icon={Hourglass} label="Timer" desc="Countdown with presets and a custom time">
+        <SettingRow icon={ClipboardList} label={t("clip.settings.enable")} desc={t("clip.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={clipboardEnabled} onChange={toggleClipboard} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {clipboardEnabled && (
+          <SettingRow icon={ClipboardList} label={t("clip.settings.paste")} desc={t("clip.settings.paste.desc")}>
+            <label className="toggle-switch">
+              <input type="checkbox" checked={clipboardPaste} onChange={toggleClipboardPaste} />
+              <span className="slider"></span>
+            </label>
+          </SettingRow>
+        )}
+
+        <SettingRow icon={Hourglass} label={t("notch.timer")} desc={t("notch.timer.desc")}>
           <label className="toggle-switch">
             <input type="checkbox" checked={timerEnabled} onChange={toggleTimerEnabled} />
             <span className="slider"></span>
@@ -213,7 +262,7 @@ export function NotchTab({
         </SettingRow>
 
         {timerEnabled && (
-          <SettingRow icon={BellRing} label="Timer Sound" desc="Play a chime when the timer finishes">
+          <SettingRow icon={BellRing} label={t("notch.timerSound")} desc={t("notch.timerSound.desc")}>
             <label className="toggle-switch">
               <input type="checkbox" checked={timerSoundEnabled} onChange={toggleTimerSound} />
               <span className="slider"></span>
@@ -221,14 +270,14 @@ export function NotchTab({
           </SettingRow>
         )}
 
-        <SettingRow icon={Timer} label="Stopwatch" desc="Count up with laps">
+        <SettingRow icon={Timer} label={t("notch.stopwatch")} desc={t("notch.stopwatch.desc")}>
           <label className="toggle-switch">
             <input type="checkbox" checked={stopwatchEnabled} onChange={toggleStopwatchEnabled} />
             <span className="slider"></span>
           </label>
         </SettingRow>
 
-        <SettingRow icon={Music} label="Music Mode" desc="Interactive live music widget">
+        <SettingRow icon={Music} label={t("notch.music")} desc={t("notch.music.desc")}>
           <label className="toggle-switch">
             <input type="checkbox" checked={musicModeEnabled} onChange={toggleMusicMode} />
             <span className="slider"></span>
@@ -237,32 +286,32 @@ export function NotchTab({
 
         {musicModeEnabled && (
           <>
-            <SettingRow icon={Minimize2} label="Compact Mode" desc="Show visualizer & artwork when collapsed">
+            <SettingRow icon={Minimize2} label={t("notch.compact")} desc={t("notch.compact.desc")}>
               <label className="toggle-switch">
                 <input type="checkbox" checked={musicCompactNotch} onChange={toggleMusicCompactNotch} />
                 <span className="slider"></span>
               </label>
             </SettingRow>
 
-            <SettingRow icon={LayoutList} label="Media Layout" desc="Choose expanded player style">
+            <SettingRow icon={LayoutList} label={t("notch.mediaLayout")} desc={t("notch.mediaLayout.desc")}>
               <div className="unit-toggle-minimal wide">
                 <span className={mediaLayout === "classic" ? "active" : ""} onClick={() => toggleMediaLayout("classic")}>
-                  Classic
+                  {t("notch.mediaLayout.classic")}
                 </span>
                 <span className={mediaLayout === "compact" ? "active" : ""} onClick={() => toggleMediaLayout("compact")}>
-                  Compact
+                  {t("notch.mediaLayout.compact")}
                 </span>
               </div>
             </SettingRow>
 
-            <SettingRow icon={Sparkles} label="Ambient Glow" desc="Colored glow behind expanded album art">
+            <SettingRow icon={Sparkles} label={t("notch.ambient")} desc={t("notch.ambient.desc")}>
               <label className="toggle-switch">
                 <input type="checkbox" checked={mediaAmbienceEnabled} onChange={toggleAmbience} />
                 <span className="slider"></span>
               </label>
             </SettingRow>
 
-            <SettingRow icon={Circle} label="Compact Glow" desc="Glow around collapsed thumbnail" divider={false}>
+            <SettingRow icon={Circle} label={t("notch.compactGlow")} desc={t("notch.compactGlow.desc")} divider={false}>
               <label className="toggle-switch">
                 <input type="checkbox" checked={mediaCompactGlowEnabled} onChange={toggleCompactGlow} />
                 <span className="slider"></span>
@@ -272,9 +321,38 @@ export function NotchTab({
         )}
       </div>
 
-      <div className="setting-group-label">Weather</div>
+      <div className="setting-group-label">{t("notch.weather")}</div>
       <div className="setting-group">
-        <SettingRow icon={CloudSun} label="Weather Status" desc={cityName || "Auto-detect location"}>
+        <SettingRow icon={Layers} label={t("shelf.settings.enable")} desc={t("shelf.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={shelfEnabled} onChange={toggleShelf} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {shelfEnabled && (
+          <SettingRow icon={Layers} label={t("shelf.note")} desc={t("shelf.settings.note")} divider={false} />
+        )}
+
+        <SettingRow icon={ListTodo} label={t("todo.settings.enable")} desc={t("todo.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={todoEnabled} onChange={toggleTodo} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {todoEnabled && <SettingRow icon={ListTodo} label={t("todo.settings.note")} divider={false} />}
+
+        <SettingRow icon={Mic2} label={t("lyrics.settings.enable")} desc={t("lyrics.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={lyricsEnabled} onChange={toggleLyrics} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {lyricsEnabled && <LyricsCacheRow />}
+
+        <SettingRow icon={CloudSun} label={t("notch.weather.status")} desc={cityName || t("notch.weather.auto")}>
           <div className="weather-controls">
             <div className="unit-toggle-minimal" onClick={toggleTempUnit}>
               <span className={!tempUnitFahrenheit ? "active" : ""}>C</span>
@@ -292,7 +370,7 @@ export function NotchTab({
             <div className="city-input-row">
               <input
                 type="text"
-                placeholder="Search city..."
+                placeholder={t("notch.weather.search")}
                 value={cityName}
                 onChange={(e) => setCityName(e.target.value)}
                 onFocus={() => citySearchResults.length > 0 && setShowCityDropdown(true)}
@@ -314,7 +392,7 @@ export function NotchTab({
                     e.preventDefault();
                     handleCityClear();
                   }}
-                  title="Clear city"
+                  title={t("notch.weather.clear")}
                 >
                   <X size={10} strokeWidth={2.5} />
                 </button>
@@ -341,10 +419,62 @@ export function NotchTab({
         )}
       </div>
 
-      <div className="setting-group-label">Widgets</div>
+      <div className="setting-group-label">{t("notch.widgets")}</div>
       <div className="setting-group">
         <StatusWidgetConfig value={statusWidgets} onChange={handleWidgetsChange} hasBattery={hasBattery} />
       </div>
     </>
+  );
+}
+
+/**
+ * Lyrics cache: how much is on disk, and one button to take it away.
+ *
+ * Kept as its own component rather than three more props: the count is a fact
+ * about the file system, not a user preference, so it is read here and never
+ * round-trips through `useSettings`. The privacy line sits underneath because
+ * this is the only feature in the app that talks to a server.
+ */
+function LyricsCacheRow() {
+  const t = useT();
+  const [count, setCount] = useState<number | null>(null);
+  const [cleared, setCleared] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    invoke<number>("lyrics_cache_count")
+      .then((value) => alive && setCount(value))
+      .catch(() => alive && setCount(null));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const clear = () => {
+    invoke<number>("lyrics_clear_cache")
+      .then(() => {
+        setCount(0);
+        setCleared(true);
+        window.setTimeout(() => setCleared(false), 2000);
+      })
+      .catch(() => {});
+  };
+
+  return (
+    <SettingRow
+      icon={Trash2}
+      label={t("lyrics.settings.cache")}
+      desc={
+        cleared
+          ? t("lyrics.settings.cache.cleared")
+          : count === null
+            ? t("lyrics.settings.privacy")
+            : t("lyrics.settings.cache.desc", { count })
+      }
+    >
+      <button type="button" className="settings-inline-btn" onClick={clear} disabled={!count}>
+        {t("lyrics.settings.cache.clear")}
+      </button>
+    </SettingRow>
   );
 }

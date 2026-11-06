@@ -4,11 +4,13 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Effect, EffectState } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Settings, Palette, PanelTop, Monitor, Layers, Info } from "lucide-react";
+import { Settings, Palette, PanelTop, Monitor, Layers, Info, Sparkles } from "lucide-react";
+import { Onboarding } from "./settings/Onboarding";
 import { WindowControls } from "./components/WindowControls";
 import {
   useSettings,
   GeneralTab,
+  AssistantTab,
   AppearanceTab,
   NotchTab,
   CalendarSyncPage,
@@ -18,30 +20,98 @@ import {
 } from "./settings/index";
 import type { SettingsTab } from "./settings/index";
 import { initTheme } from "./theme";
+import { initI18n, useT } from "./i18n";
+import type { MessageKey } from "./i18n/en";
 import "./Settings.css";
 
 const appWindow = getCurrentWebviewWindow();
 
-const TABS: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
-  { id: "general", label: "General", icon: Settings },
-  { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "notch", label: "Notch", icon: PanelTop },
-  { id: "dock", label: "Dock", icon: Monitor },
-  { id: "overlays", label: "Overlays", icon: Layers },
-  { id: "about", label: "About", icon: Info },
+/** The assistant tab has no fixed label: it shows the name the user chose. */
+const TABS: { id: SettingsTab; label: MessageKey | null; icon: typeof Settings }[] = [
+  { id: "general", label: "settings.tab.general", icon: Settings },
+  { id: "assistant", label: null, icon: Sparkles },
+  { id: "appearance", label: "settings.tab.appearance", icon: Palette },
+  { id: "notch", label: "settings.tab.notch", icon: PanelTop },
+  { id: "dock", label: "settings.tab.dock", icon: Monitor },
+  { id: "overlays", label: "settings.tab.overlays", icon: Layers },
+  { id: "about", label: "settings.tab.about", icon: Info },
 ];
+
+/**
+ * Size of the first-run flow. Noticeably larger than the regular Settings
+ * window: five screens in a 620x480 box would scroll constantly.
+ */
+const ONBOARDING_SIZE = { width: 720, height: 620 };
 
 function SettingsApp() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  // The first sidebar entry is the assistant's tab; once the user renames it in
+  // the welcome flow, the tab should say that name rather than a stale "Is".
+  const [assistantName, setAssistantName] = useState(
+    () => localStorage.getItem("islet-assistant-name") || "Is",
+  );
+  // `null` until we know: showing the Settings UI for a frame and then
+  // swapping to the welcome flow is exactly the flicker we want to avoid.
+  const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const settings = useSettings();
+
+  const t = useT();
 
   useEffect(() => {
     return initTheme();
   }, []);
 
+  useEffect(() => initI18n(), []);
+
+  // First run? The flag lives in settings.json, not localStorage: the two
+  // webviews do not reliably share storage, and this decision must be made
+  // once, authoritatively, on the main window's behalf.
+  useEffect(() => {
+    let cancelled = false;
+    invoke<Record<string, unknown>>("load_settings")
+      .then((stored) => {
+        if (cancelled) return;
+        const done = String(stored["islet-onboarded"] ?? "") === "true";
+        setOnboarding(!done);
+        if (!done) {
+          // Let the notch and the dock settle first: the window appearing on
+          // top of a half-drawn desktop feels like a crash, not a welcome.
+          setTimeout(() => {
+            if (!cancelled) invoke("open_settings_window").catch(console.error);
+          }, 1200);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setOnboarding(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The welcome flow has its own window size; restore the regular one on exit.
+  useEffect(() => {
+    if (onboarding === null) return;
+    const size = onboarding
+      ? ONBOARDING_SIZE
+      : { width: 620 * settings.scale, height: 480 * settings.scale };
+    invoke("resize_settings_window", size).catch(console.error);
+  }, [onboarding, settings.scale]);
+
   useEffect(() => {
     const unlisten = listen<string>("settings-navigate", (e) => {
       if (e.payload === "calendar-sync") setActiveTab("calendar-sync");
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  useEffect(() => {
+    const unlisten = listen<{ key: string; value: unknown }>("settings-changed", (e) => {
+      if (e.payload.key === "islet-assistant-name") {
+        setAssistantName(String(e.payload.value ?? "Is") || "Is");
+      }
     });
     return () => {
       unlisten.then((fn) => fn());
@@ -59,18 +129,39 @@ function SettingsApp() {
     };
   }, []);
 
-  useEffect(() => {
-    invoke("resize_settings_window", {
-      width: 620 * settings.scale,
-      height: 480 * settings.scale,
-    }).catch(console.error);
-  }, [settings.scale]);
+  // Undecided: render the window chrome only, so nothing flashes.
+  if (onboarding === null) {
+    return (
+      <div className="settings-container" style={{ zoom: settings.scale }}>
+        <div className="title-bar" data-tauri-drag-region>
+          <span className="title-text" data-tauri-drag-region>
+            {t("settings.title")}
+          </span>
+          <WindowControls />
+        </div>
+      </div>
+    );
+  }
+
+  if (onboarding) {
+    return (
+      <div className="settings-container" style={{ zoom: settings.scale }}>
+        <div className="title-bar" data-tauri-drag-region>
+          <span className="title-text" data-tauri-drag-region>
+            {t("settings.welcomeTitle")}
+          </span>
+          <WindowControls />
+        </div>
+        <Onboarding onFinish={() => setOnboarding(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="settings-container" style={{ zoom: settings.scale }}>
       <div className="title-bar" data-tauri-drag-region>
         <span className="title-text" data-tauri-drag-region>
-          Settings
+          {t("settings.title")}
         </span>
         <WindowControls />
       </div>
@@ -86,7 +177,7 @@ function SettingsApp() {
               <div className="sidebar-tab-icon">
                 <Icon size={14} strokeWidth={1.5} />
               </div>
-              <span>{label}</span>
+              <span>{label === null ? assistantName : t(label)}</span>
             </button>
           ))}
         </div>
@@ -104,8 +195,11 @@ function SettingsApp() {
               handleThresholdChange={settings.handleThresholdChange}
               restartIslet={settings.restartIslet}
               quitIslet={settings.quitIslet}
+              replayOnboarding={() => setOnboarding(true)}
             />
           )}
+          {activeTab === "assistant" && <AssistantTab />}
+
           {activeTab === "appearance" && (
             <AppearanceTab
               themeMode={settings.themeMode}
@@ -140,6 +234,16 @@ function SettingsApp() {
               replaceNotchModes={settings.replaceNotchModesByMonitor}
               calendarEnabled={settings.calendarEnabled}
               toggleCalendar={settings.toggleCalendar}
+              clipboardEnabled={settings.clipboardEnabled}
+              toggleClipboard={settings.toggleClipboard}
+              clipboardPaste={settings.clipboardPaste}
+              toggleClipboardPaste={settings.toggleClipboardPaste}
+              lyricsEnabled={settings.lyricsEnabled}
+              toggleLyrics={settings.toggleLyrics}
+              shelfEnabled={settings.shelfEnabled}
+              toggleShelf={settings.toggleShelf}
+              todoEnabled={settings.todoEnabled}
+              toggleTodo={settings.toggleTodo}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}
@@ -213,6 +317,8 @@ function SettingsApp() {
               brightnessOverlayEnabled={settings.brightnessOverlayEnabled}
               toggleBrightnessOverlay={settings.toggleBrightnessOverlay}
               brightnessEdgeEnabled={settings.brightnessEdgeEnabled}
+              keyboardIndicatorsEnabled={settings.keyboardIndicatorsEnabled}
+              toggleKeyboardIndicators={settings.toggleKeyboardIndicators}
               toggleBrightnessEdge={settings.toggleBrightnessEdge}
             />
           )}

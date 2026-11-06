@@ -42,8 +42,8 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-color);
-  backdrop-filter: blur(25px) saturate(140%);
-  -webkit-backdrop-filter: blur(25px) saturate(140%);
+  backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
+  -webkit-backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--window-line);
@@ -1302,4 +1302,226 @@ input:checked + .slider:before {
 
 .caldav-providers {
   align-self: flex-start;
+}
+
+/* --- Is tab ------------------------------------------------------------- */
+
+.assistant-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.assistant-slider-value {
+  min-width: 38px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--islet-text, #fff);
+  opacity: 0.8;
+}
+
+.assistant-readout {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--islet-text, #fff);
+  opacity: 0.75;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Is: name field ------------------------------------------------------ */
+
+.assistant-name-input {
+  width: 116px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 550;
+  color: var(--islet-text, #fff);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  outline: none;
+  text-align: right;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.light-mode .assistant-name-input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1c1c1e;
+}
+
+.assistant-name-input:focus {
+  border-color: var(--islet-accent, #007aff);
+}
+
+/* — Theme presets ---------------------------------------------------------
+ * A grid of swatches rather than a dropdown: choosing a theme is a visual
+ * decision, so each card paints the preset's own colours. The little bar is
+ * the notch, drawn at the same proportion, so the card reads as "this is what
+ * the top of my screen will look like".
+ */
+
+.preset-block {
+  margin-bottom: 16px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 8px;
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  background: var(--group-bg);
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.preset-card:hover {
+  border-color: var(--islet-border, rgba(255, 255, 255, 0.2));
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.07));
+}
+
+.preset-card:active {
+  transform: scale(0.985);
+}
+
+/* The selected card gets the accent ring *and* the readable label: the ring
+   alone would not carry the state for anyone with a low-contrast display. */
+.preset-card.active {
+  border-color: var(--islet-accent, #007aff);
+  box-shadow: 0 0 0 1px var(--islet-accent, #007aff) inset;
+  color: var(--text-color);
+}
+
+.preset-card:focus-visible {
+  outline: 2px solid var(--islet-accent, #007aff);
+  outline-offset: 2px;
+}
+
+.preset-swatch {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preset-swatch--dynamic {
+  align-items: center;
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.05));
+  color: var(--text-muted);
+  border: 1px dashed var(--islet-border, rgba(255, 255, 255, 0.2));
+}
+
+/* The notch itself, at a readable scale. `mix-blend-mode` keeps it visible on
+   both a near-black and a near-white swatch. */
+.preset-swatch-bar {
+  width: 58%;
+  height: 7px;
+  margin-bottom: 0;
+  border-radius: 0 0 4px 4px;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.preset-swatch-bar.frost {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(4px);
+}
+
+.preset-swatch-bar.glass {
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.preset-swatch-bar.liquid {
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.preset-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 0 2px;
+}
+
+.preset-card.active .preset-name {
+  font-weight: 650;
+}
+
+/* The material name teaches the vocabulary used everywhere else in the app
+   ("frost", "glass"), so the same word means the same thing in a bug report. */
+.preset-material {
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+  padding: 0 2px;
+}
+
+.preset-hint {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preset-card {
+    transition: none;
+  }
+  .preset-card:active {
+    transform: none;
+  }
+}
+
+/* Small inline action that lives inside a SettingRow, next to a toggle.
+   Same shape as the CalDAV chips so the settings window has one button
+   vocabulary rather than three. */
+.settings-inline-btn {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+  border-radius: 999px;
+  color: var(--islet-text-muted, rgba(255, 255, 255, 0.7));
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-inline-btn:hover:not(:disabled) {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.1));
+  color: var(--islet-text, #fff);
+}
+
+.settings-inline-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settings-inline-btn:focus-visible {
+  outline: 2px solid var(--islet-accent, #007aff);
+  outline-offset: 2px;
 }

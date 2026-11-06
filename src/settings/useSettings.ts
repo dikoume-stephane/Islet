@@ -5,7 +5,7 @@ import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getVersion } from "@tauri-apps/api/app";
 import type { UpdateCheckResult } from "../updater";
 import { useSettingsSync } from "../hooks/useSettingsSync";
-import { hexToHsl } from "../theme";
+import { applyTheme, hexToHsl } from "../theme";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 
 function saveSetting(key: string, value: string) {
@@ -21,6 +21,15 @@ export function useSettings() {
   const [autostart, setAutostart] = useState(false);
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [calendarEnabled, setCalendarEnabled] = useState(true);
+  const [clipboardEnabled, setClipboardEnabled] = useState(true);
+  const [clipboardPaste, setClipboardPaste] = useState(false);
+  // Off by default: the only feature that talks to a server.
+  const [lyricsEnabled, setLyricsEnabled] = useState(false);
+  const [shelfEnabled, setShelfEnabled] = useState(true);
+  const [todoEnabled, setTodoEnabled] = useState(true);
+  const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
+    () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
+  );
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
@@ -152,6 +161,11 @@ export function useSettings() {
 
       apply(getVal("islet-weather-enabled"), setWeatherEnabled, readBool);
       apply(getVal("islet-calendar-enabled"), setCalendarEnabled, readBool);
+      apply(getVal("islet-clipboard-enabled"), setClipboardEnabled, readBool);
+      apply(getVal("islet-clipboard-paste"), setClipboardPaste, readBool);
+      apply(getVal("islet-lyrics-enabled"), setLyricsEnabled, readBool);
+      apply(getVal("islet-shelf-enabled"), setShelfEnabled, readBool);
+      apply(getVal("islet-todo-enabled"), setTodoEnabled, readBool);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -159,6 +173,7 @@ export function useSettings() {
       apply(getVal("islet-music-compact-notch"), setMusicCompactNotch, readBool);
       apply(getVal("islet-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
       apply(getVal("islet-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
+      apply(getVal("islet-keyboard-indicators-enabled"), setKeyboardIndicatorsEnabled, readBool);
       apply(getVal("islet-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
       apply(getVal("islet-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
       apply(getVal("islet-corners-enabled"), setCornersEnabled, readBool);
@@ -270,6 +285,11 @@ export function useSettings() {
     "islet-dock-mixed-reorder": setDockMixedReorder,
     "islet-weather-enabled": setWeatherEnabled,
     "islet-calendar-enabled": setCalendarEnabled,
+    "islet-clipboard-enabled": setClipboardEnabled,
+    "islet-clipboard-paste": setClipboardPaste,
+    "islet-lyrics-enabled": setLyricsEnabled,
+    "islet-shelf-enabled": setShelfEnabled,
+    "islet-todo-enabled": setTodoEnabled,
     "islet-timer-enabled": setTimerEnabled,
     "islet-timer-sound-enabled": setTimerSoundEnabled,
     "islet-stopwatch-enabled": setStopwatchEnabled,
@@ -288,6 +308,7 @@ export function useSettings() {
     "islet-volume-overlay-enabled": setVolumeOverlayEnabled,
     "islet-volume-edge-enabled": setVolumeEdgeEnabled,
     "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+    "islet-keyboard-indicators-enabled": setKeyboardIndicatorsEnabled,
     "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
     "islet-theme-mode": setThemeMode,
     "islet-theme-color": setThemeColor,
@@ -424,6 +445,42 @@ export function useSettings() {
     const next = !calendarEnabled;
     setCalendarEnabled(next);
     saveSetting("islet-calendar-enabled", String(next));
+  };
+
+  const toggleClipboard = () => {
+    const next = !clipboardEnabled;
+    setClipboardEnabled(next);
+    saveSetting("islet-clipboard-enabled", String(next));
+  };
+
+  const toggleClipboardPaste = () => {
+    const next = !clipboardPaste;
+    setClipboardPaste(next);
+    saveSetting("islet-clipboard-paste", String(next));
+  };
+
+  const toggleLyrics = () => {
+    const next = !lyricsEnabled;
+    setLyricsEnabled(next);
+    saveSetting("islet-lyrics-enabled", String(next));
+  };
+
+  const toggleShelf = () => {
+    const next = !shelfEnabled;
+    setShelfEnabled(next);
+    saveSetting("islet-shelf-enabled", String(next));
+  };
+
+  const toggleKeyboardIndicators = () => {
+    const next = !keyboardIndicatorsEnabled;
+    setKeyboardIndicatorsEnabled(next);
+    saveSetting("islet-keyboard-indicators-enabled", String(next));
+  };
+
+  const toggleTodo = () => {
+    const next = !todoEnabled;
+    setTodoEnabled(next);
+    saveSetting("islet-todo-enabled", String(next));
   };
 
   const toggleTimerEnabled = () => {
@@ -658,6 +715,9 @@ export function useSettings() {
   const handleThemeModeChange = async (mode: string) => {
     setThemeMode(mode);
     saveSetting("islet-theme-mode", mode);
+    // Paint now instead of waiting for the round-trip through settings-changed:
+    // picking a theme has to feel like a switch, not like a save.
+    applyTheme(mode, themeColor, themeOpacity, themeSaturation, themeBrightness);
 
     if (mode === "adaptive") {
       try {
@@ -676,6 +736,7 @@ export function useSettings() {
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
     saveSetting("islet-theme-color", color);
+    applyTheme("custom", color, themeOpacity, themeSaturation, themeBrightness);
 
     try {
       const hsl = hexToHsl(color);
@@ -691,6 +752,7 @@ export function useSettings() {
   const handleOpacityChange = (value: number) => {
     setThemeOpacity(value);
     saveSetting("islet-theme-opacity", String(value));
+    applyTheme(themeMode, themeColor, value, themeSaturation, themeBrightness);
   };
 
   const handleSaturationChange = (value: number) => {
@@ -857,6 +919,18 @@ export function useSettings() {
     setNotchModeValue,
     calendarEnabled,
     toggleCalendar,
+    clipboardEnabled,
+    toggleClipboard,
+    clipboardPaste,
+    toggleClipboardPaste,
+    lyricsEnabled,
+    toggleLyrics,
+    shelfEnabled,
+    toggleShelf,
+    todoEnabled,
+    toggleTodo,
+    keyboardIndicatorsEnabled,
+    toggleKeyboardIndicators,
     timerEnabled,
     toggleTimerEnabled,
     timerSoundEnabled,

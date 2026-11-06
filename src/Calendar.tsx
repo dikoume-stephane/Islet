@@ -7,16 +7,18 @@ import { emit } from "@tauri-apps/api/event";
 import { Check, ChevronLeft, ChevronRight, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import { WindowControls } from "./components/WindowControls";
 import { initTheme } from "./theme";
+import { initI18n, useT, t as tr } from "./i18n";
+import type { MessageKey } from "./i18n/en";
 import { useCaldav, type CalEvent } from "./hooks/useCaldav";
 import "./Calendar.css";
 
 type View = "day" | "week" | "month" | "agenda";
 
-const VIEWS: { id: View; label: string }[] = [
-  { id: "day", label: "Day" },
-  { id: "week", label: "Week" },
-  { id: "month", label: "Month" },
-  { id: "agenda", label: "Agenda" },
+const VIEWS: { id: View; labelKey: MessageKey }[] = [
+  { id: "day", labelKey: "cal.view.day" },
+  { id: "week", labelKey: "cal.view.week" },
+  { id: "month", labelKey: "cal.view.month" },
+  { id: "agenda", labelKey: "cal.view.agenda" },
 ];
 
 const VIEW_KEY = "islet-calendar-window-view";
@@ -64,12 +66,14 @@ function readHidden(): Set<string> {
 }
 
 function ago(ms: number | null): string {
-  if (!ms) return "never";
+  if (!ms) return tr("caldav.time.never");
   const mins = Math.round((Date.now() - ms) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1) return tr("caldav.time.now");
+  if (mins < 60) return tr("caldav.time.minutes", { count: mins });
   const hours = Math.round(mins / 60);
-  return hours < 24 ? `${hours} h ago` : `${Math.round(hours / 24)} d ago`;
+  return hours < 24
+    ? tr("caldav.time.hours", { count: hours })
+    : tr("caldav.time.days", { count: Math.round(hours / 24) });
 }
 
 function colorStyle(e: CalEvent): React.CSSProperties {
@@ -77,6 +81,7 @@ function colorStyle(e: CalEvent): React.CSSProperties {
 }
 
 function CalendarWindow() {
+  const t = useT();
   const state = useCaldav();
   const today = startOfDay(new Date());
   const [view, setViewState] = useState<View>(readView);
@@ -87,6 +92,7 @@ function CalendarWindow() {
   const hour12 = localStorage.getItem("islet-time-format-24h") !== "true";
 
   useEffect(() => initTheme(), []);
+  useEffect(() => initI18n(), []);
 
   useEffect(() => {
     appWindow.setEffects({ effects: [Effect.Acrylic], state: EffectState.Active, color: [10, 10, 15, 20] }).catch(() => {});
@@ -167,14 +173,14 @@ function CalendarWindow() {
     <div className="cw">
       <div className="cw-titlebar" data-tauri-drag-region>
         <span className="cw-title-text" data-tauri-drag-region>
-          Calendar
+          {t("cal.window.title")}
         </span>
         <WindowControls />
       </div>
 
       <div className="cw-body">
         <aside className="cw-sidebar">
-          <div className="cw-label">Calendars</div>
+          <div className="cw-label">{t("cal.window.calendars")}</div>
           <ul className="cw-sources">
             {state.calendars.map((c) => {
               const off = hidden.has(c.name);
@@ -190,19 +196,19 @@ function CalendarWindow() {
                 </li>
               );
             })}
-            {state.calendars.length === 0 && <li className="cw-muted">No calendars yet</li>}
+            {state.calendars.length === 0 && <li className="cw-muted">{t("cal.window.none")}</li>}
           </ul>
 
           <div className="cw-sidebar-foot">
             <div className="cw-sync-row">
               <span>Synced {syncing ? "now…" : ago(state.syncedAt)}</span>
               <button onClick={sync} disabled={syncing || !state.connected}>
-                <RefreshCw size={11} className={syncing ? "spin" : ""} /> Sync
+                <RefreshCw size={11} className={syncing ? "spin" : ""} /> {t("cal.window.sync")}
               </button>
             </div>
             {syncError && <div className="cw-error">{syncError}</div>}
             <button className="cw-manage" onClick={manageSources}>
-              <SettingsIcon size={12} /> Manage sources
+              <SettingsIcon size={12} /> {t("cal.window.manageSources")}
             </button>
           </div>
         </aside>
@@ -210,12 +216,12 @@ function CalendarWindow() {
         <main className="cw-main">
           {!state.connected ? (
             <div className="cw-empty-state">
-              <div className="cw-empty-title">No calendar connected</div>
+              <div className="cw-empty-title">{t("cal.window.emptyTitle")}</div>
               <div className="cw-empty-text">
-                Add a Google, iCloud or Outlook calendar link, or connect Nextcloud, to see your events here.
+                {t("cal.window.emptyBody")}
               </div>
               <button className="cw-primary" onClick={manageSources}>
-                Set up Calendar Sync
+                {t("cal.window.setup")}
               </button>
             </div>
           ) : (
@@ -232,19 +238,19 @@ function CalendarWindow() {
                         className={view === v.id ? "active" : ""}
                         onClick={() => setView(v.id)}
                       >
-                        {v.label}
+                        {t(v.labelKey)}
                       </button>
                     ))}
                   </div>
                   {view !== "agenda" && (
                     <div className="cw-nav">
                       <button className="cw-today" onClick={() => setAnchor(today)}>
-                        Today
+                        {t("cal.window.today")}
                       </button>
-                      <button aria-label="Previous" onClick={() => shift(-1)}>
+                      <button aria-label={t("cal.previous")} onClick={() => shift(-1)}>
                         <ChevronLeft size={15} />
                       </button>
-                      <button aria-label="Next" onClick={() => shift(1)}>
+                      <button aria-label={t("cal.next")} onClick={() => shift(1)}>
                         <ChevronRight size={15} />
                       </button>
                     </div>
@@ -258,10 +264,10 @@ function CalendarWindow() {
                     {anchor.toLocaleDateString("default", { weekday: "long", month: "long", day: "numeric" })}
                   </span>
                   <span className="cw-selected-count">
-                    {selectedEvents.length === 0 ? "No events" : `${selectedEvents.length} event${selectedEvents.length === 1 ? "" : "s"}`}
+                    {selectedEvents.length === 0 ? t("cal.noEvents") : t("cal.window.count", { count: selectedEvents.length })}
                   </span>
                   <button className="cw-primary small" onClick={() => openDay(anchor)}>
-                    Open day &#8250;
+                    {t("cal.window.openDay")} &#8250;
                   </button>
                 </div>
               )}
@@ -285,9 +291,10 @@ function DayNumber({ day, today, muted }: { day: Date; today: Date; muted?: bool
 }
 
 function Chip({ event, time, stacked }: { event: CalEvent; time?: (ms: number) => string; stacked?: boolean }) {
+  const t = useT();
   return (
     <div className={`cw-chip${stacked ? " stacked" : ""}`} style={colorStyle(event)}>
-      {time && <i>{event.allDay ? "All day" : time(event.start)}</i>}
+      {time && <i>{event.allDay ? t("cal.allDay") : time(event.start)}</i>}
       <span>{event.title}</span>
     </div>
   );
@@ -311,6 +318,7 @@ interface HoverCard {
 const CARD_WIDTH = 236;
 
 function MonthView({ anchor, today, events, time, onSelect, onOpen }: MonthProps) {
+  const t = useT();
   const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
   const gridStart = addDays(first, -first.getDay());
   const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -418,7 +426,7 @@ function MonthView({ anchor, today, events, time, onSelect, onOpen }: MonthProps
             <div key={`${e.uid}-${e.start}-${i}`} className="cw-hover-row" style={colorStyle(e)}>
               <span className="cw-hover-name">{e.title}</span>
               <span className="cw-hover-meta">
-                {e.allDay ? "All day" : `${time(e.start)} – ${time(e.end)}`}
+                {e.allDay ? t("cal.allDay") : `${time(e.start)} – ${time(e.end)}`}
                 {e.location ? ` · ${e.location}` : ""}
               </span>
             </div>
@@ -431,6 +439,7 @@ function MonthView({ anchor, today, events, time, onSelect, onOpen }: MonthProps
 }
 
 function WeekView({ anchor, today, events, time, onOpen }: { anchor: Date; today: Date; events: CalEvent[]; time: (ms: number) => string; onOpen: (d: Date) => void }) {
+  const t = useT();
   const first = addDays(anchor, -anchor.getDay());
   return (
     <div className="cw-week">
@@ -447,7 +456,7 @@ function WeekView({ anchor, today, events, time, onOpen }: { anchor: Date; today
               {list.map((e, k) => (
                 <Chip key={`${e.uid}-${e.start}-${k}`} event={e} time={time} stacked />
               ))}
-              {list.length === 0 && <span className="cw-muted center">Free</span>}
+              {list.length === 0 && <span className="cw-muted center">{t("cal.free")}</span>}
             </div>
           </div>
         );
@@ -457,9 +466,10 @@ function WeekView({ anchor, today, events, time, onOpen }: { anchor: Date; today
 }
 
 function DayView({ day, events, time }: { day: Date; events: CalEvent[]; time: (ms: number) => string }) {
+  const t = useT();
   const list = eventsOn(events, day);
   const [nowMs] = useState(() => Date.now());
-  if (list.length === 0) return <div className="cw-empty-day">Nothing planned</div>;
+  if (list.length === 0) return <div className="cw-empty-day">{t("cal.nothingPlanned")}</div>;
   return (
     <div className="cw-list">
       {list.map((e, i) => {
@@ -468,7 +478,7 @@ function DayView({ day, events, time }: { day: Date; events: CalEvent[]; time: (
           <div key={`${e.uid}-${e.start}-${i}`} className="cw-day-event" style={colorStyle(e)}>
             <span className="cw-day-time">
               {e.allDay ? (
-                <b>All day</b>
+                <b>{t("cal.allDay")}</b>
               ) : (
                 <>
                   <b>{time(e.start)}</b>
@@ -491,16 +501,17 @@ function DayView({ day, events, time }: { day: Date; events: CalEvent[]; time: (
 }
 
 function AgendaView({ today, events, time, onOpen }: { today: Date; events: CalEvent[]; time: (ms: number) => string; onOpen: (d: Date) => void }) {
+  const t = useT();
   const groups = Array.from({ length: 30 }, (_, i) => addDays(today, i))
     .map((day) => ({ day, list: eventsOn(events, day) }))
     .filter((g) => g.list.length > 0);
 
-  if (groups.length === 0) return <div className="cw-empty-day">Nothing in the next 30 days</div>;
+  if (groups.length === 0) return <div className="cw-empty-day">{t("cal.window.nothing30")}</div>;
 
   const heading = (day: Date) => {
     const diff = Math.round((day.getTime() - today.getTime()) / 86_400_000);
-    if (diff === 0) return "Today";
-    if (diff === 1) return "Tomorrow";
+    if (diff === 0) return t("cal.window.today");
+    if (diff === 1) return t("cal.window.tomorrow");
     return day.toLocaleDateString("default", { weekday: "long", month: "short", day: "numeric" });
   };
 

@@ -137,6 +137,12 @@ unsafe extern "system" fn keyboard_hook_proc(code: i32, wparam: windows::Win32::
             }
         }
 
+        // Verr Maj, Verr Num et Defil : la touche passe a Windows comme avant, on
+        // ne fait que remarquer qu'elle a ete frappee pour allumer l'indicateur.
+        if (kb.flags.0 & LLKHF_INJECTED.0) == 0 && is_down {
+            crate::keyboard_indicators::observe_key(vk_code.0);
+        }
+
         if (vk_code == VK_VOLUME_MUTE || vk_code == VK_VOLUME_UP || vk_code == VK_VOLUME_DOWN)
             && hook_overlay_enabled("islet-volume-overlay-enabled")
         {

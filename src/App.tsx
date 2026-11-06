@@ -6,14 +6,29 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { UpdateCheckResult } from "./updater";
 import "./App.css";
 import { initTheme } from "./theme";
+import { initI18n, useLanguage, useT } from "./i18n";
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, VolumeLowIcon, VolumeHighIcon, MusicNoteIcon, AudioOutputIcon } from "./icons";
 import { CompactMediaPlayer } from "./CompactMediaPlayer";
 import { useWeather } from "./hooks/useWeather";
 import { useSettingsSync } from "./hooks/useSettingsSync";
 import { useTrailingThrottle } from "./hooks/useTrailingThrottle";
 import { useCaldav } from "./hooks/useCaldav";
+import { useSystemSignals } from "./hooks/useSystemSignals";
+import { useAssistant } from "./hooks/useAssistant";
+import { AssistantTipView, SEVERITY_COLOR } from "./components/AssistantTip";
+import { tipPlainText } from "./lib/assistant";
 import { NotchCalendar } from "./components/NotchCalendar";
+import { NotchClipboard } from "./components/NotchClipboard";
+import { NotchLyrics } from "./components/NotchLyrics";
+import { useLyrics } from "./hooks/useLyrics";
+import { useShelf } from "./hooks/useShelf";
+import { NotchShelf } from "./components/NotchShelf";
+import { useTodos } from "./hooks/useTodos";
+import { NotchTodos } from "./components/NotchTodos";
+import { pendingReminders } from "./lib/todo";
+import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
+import { useCountdown } from "./hooks/useCountdown";
 import { useStopwatch } from "./hooks/useStopwatch";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
 import {
@@ -301,7 +316,12 @@ const TitleMarquee = ({ title }: { title: string }) => {
 
 function App() {
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
   const [time, setTime] = useState("");
@@ -314,6 +334,22 @@ function App() {
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
   const [hasBattery, setHasBattery] = useState(true);
+  // Is: hardware signals + tips (battery, disks, memory, session).
+  const systemSignals = useSystemSignals();
+  const {
+    tip: assistantTip,
+    unread: assistantUnread,
+    dismiss: dismissAssistantTip,
+    acknowledge: acknowledgeAssistantTip,
+    settings: assistantSettings,
+  } = useAssistant(systemSignals);
+
+  // Is has something to say that the user has not looked at yet: the collapsed
+  // notch carries a coloured outline until they acknowledge it.
+  const isSignalling = assistantUnread !== null && assistantTip === null;
+
+  const t = useT();
+
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
   const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("islet-low-battery-threshold") || "20"));
@@ -351,7 +387,9 @@ function App() {
 
   useEffect(() => {
     // Trigger pulse when dropping below threshold while discharging
-    if (hasBattery && isReady && batteryLevel <= lowBatteryThreshold && !isCharging && !lowBatteryPulseShownRef.current) {
+    // Is already covers the battery with a more detailed tip: skip the duplicate.
+    const isHandlesBattery = assistantSettings.enabled && assistantSettings.battery;
+    if (hasBattery && isReady && !isHandlesBattery && batteryLevel <= lowBatteryThreshold && !isCharging && !lowBatteryPulseShownRef.current) {
       setShowLowBatteryPulse(true);
       if (notchMode === 'peek') triggerEventPeek(5000);
       lowBatteryPulseShownRef.current = true;
@@ -362,7 +400,12 @@ function App() {
     if (isCharging || batteryLevel > lowBatteryThreshold) {
       lowBatteryPulseShownRef.current = false;
     }
-  }, [batteryLevel, isCharging, lowBatteryThreshold, isReady, notchMode, triggerEventPeek, hasBattery]);
+  }, [batteryLevel, isCharging, lowBatteryThreshold, isReady, notchMode, triggerEventPeek, hasBattery, assistantSettings.enabled, assistantSettings.battery]);
+
+  // Is has something to say: in peek mode, unfold the notch for the tip.
+  useEffect(() => {
+    if (assistantTip && notchMode === "peek") triggerEventPeek(10_000);
+  }, [assistantTip, notchMode, triggerEventPeek]);
 
   // Weather state (managed by useWeather hook)
 
@@ -606,6 +649,21 @@ function App() {
   // Settings state
   const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("islet-weather-enabled") !== "false");
   const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("islet-calendar-enabled") !== "false");
+  // On by default: a clipboard history nobody finds in the settings is a
+  // feature nobody uses, and nothing here leaves the machine. The pause
+  // button sits in the panel header, one click away.
+  const [settingsClipboardEnabled, setSettingsClipboardEnabled] = useState(() => localStorage.getItem("islet-clipboard-enabled") !== "false");
+  const [settingsClipboardPaste, setSettingsClipboardPaste] = useState(() => localStorage.getItem("islet-clipboard-paste") === "true");
+  // Off by default, and deliberately so: this is the first feature that talks
+  // to a server. Nothing leaves the machine until someone turns it on in
+  // Settings › Notch, and the panel says so when it is off.
+  const [settingsLyricsEnabled, setSettingsLyricsEnabled] = useState(() => localStorage.getItem("islet-lyrics-enabled") === "true");
+  // On by default: dropping a file has to work before the feature is
+  // discovered. Nothing is copied, so the floor is a list of paths.
+  const [settingsShelfEnabled, setSettingsShelfEnabled] = useState(() => localStorage.getItem("islet-shelf-enabled") !== "false");
+  // Les tâches du jour : actives par défaut, comme l'étagère. Rien ne sort de
+  // la machine, et une liste vide n'apprend rien à personne.
+  const [settingsTodoEnabled, setSettingsTodoEnabled] = useState(() => localStorage.getItem("islet-todo-enabled") !== "false");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -639,6 +697,13 @@ function App() {
     return () => { unlisten.then(f => f()); };
   }, []);
 
+  // The watcher lives in Rust and runs for the lifetime of the process: the
+  // setting has to reach it, not just the React tree, or "off" would only mean
+  // "hidden" while the clipboard kept being read behind the user's back.
+  useEffect(() => {
+    invoke("clipboard_set_recording", { enabled: settingsClipboardEnabled }).catch(() => {});
+  }, [settingsClipboardEnabled]);
+
   useEffect(() => {
     if (!windowLabel) return;
 
@@ -653,6 +718,11 @@ function App() {
 
       setSettingsWeatherEnabled(getVal("islet-weather-enabled", "true") !== "false");
       setSettingsCalendarEnabled(getVal("islet-calendar-enabled", "true") !== "false");
+      setSettingsClipboardEnabled(getVal("islet-clipboard-enabled", "true") !== "false");
+      setSettingsClipboardPaste(getVal("islet-clipboard-paste", "false") === "true");
+      setSettingsLyricsEnabled(getVal("islet-lyrics-enabled", "false") === "true");
+      setSettingsShelfEnabled(getVal("islet-shelf-enabled", "true") !== "false");
+      setSettingsTodoEnabled(getVal("islet-todo-enabled", "true") !== "false");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -780,6 +850,11 @@ function App() {
     {
       "islet-weather-enabled": setSettingsWeatherEnabled,
       "islet-calendar-enabled": setSettingsCalendarEnabled,
+      "islet-clipboard-enabled": setSettingsClipboardEnabled,
+      "islet-clipboard-paste": setSettingsClipboardPaste,
+      "islet-lyrics-enabled": setSettingsLyricsEnabled,
+      "islet-shelf-enabled": setSettingsShelfEnabled,
+      "islet-todo-enabled": setSettingsTodoEnabled,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -814,6 +889,7 @@ function App() {
     [windowLabel]
   );
 
+
   // Side effects: dock-enabled (skip first render — startup code handles initial state)
   useEffect(() => {
     if (windowLabel !== 'main') return;
@@ -841,7 +917,29 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos' | 'command-center' | 'status'>('status');
+  // Lyrics for the track that is playing. The hook is called unconditionally:
+  // it does nothing (and asks nothing) while the setting is off.
+  const lyrics = useLyrics({
+    enabled: settingsLyricsEnabled,
+    visible: isletMode === 'lyrics',
+    title: mediaInfo.title,
+    artist: mediaInfo.artist,
+    // No album field: Windows' media session does not expose one, and inventing
+    // it would only make LRCLIB's matching look more precise than it is.
+    durationMs: mediaInfo.duration_ms ?? 0,
+    positionMs: mediaInfo.position_ms ?? 0,
+    positionUpdatedAt: mediaInfo.position_updated_at ?? 0,
+    isPlaying,
+  });
+  const language = useLanguage();
+  const lyricsDecimalSeparator = language === "fr" ? "," : ".";
+
+  // The shelf: files dropped on the notch, kept as paths. The hook owns the
+  // drop listener, so a disabled shelf is not even a window that accepts files.
+  const shelf = useShelf({ enabled: settingsShelfEnabled });
+  // Les tâches du jour : lues du fichier une fois, puis tenues par le backend.
+  const todos = useTodos({ enabled: settingsTodoEnabled });
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -853,7 +951,17 @@ function App() {
 
   const handleWheel = (e: React.WheelEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('.calendar-grid') || target.closest('.timer-column') || target.closest('.cal-scroll')) {
+    if (
+      target.closest('.calendar-grid') ||
+      target.closest('.timer-column') ||
+      target.closest('.cal-scroll') ||
+      // A list that scrolls must scroll: switching mode on a wheel meant for
+      // sixty clipboard entries would make the panel unusable.
+      target.closest('.clipboard-panel') ||
+      target.closest('.lyrics-panel') ||
+      target.closest('.shelf-panel') ||
+      target.closest('.todo-panel')
+    ) {
       return;
     }
 
@@ -875,12 +983,17 @@ function App() {
     // Playing: command-center → music → status → calendar (active, near command-center)
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
-    const modes: ('command-center' | 'status' | 'music' | 'calendar')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'status', 'calendar']
-      : ['command-center', 'status', 'music', 'calendar'];
+    // Lyrics sit next to the music mode: same subject, one notch width apart.
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'lyrics', 'status', 'todos', 'calendar', 'shelf', 'clipboard']
+      : ['command-center', 'status', 'music', 'lyrics', 'todos', 'shelf', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
+      if (m === 'clipboard' && !settingsClipboardEnabled) return false;
+      if (m === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) return false;
+      if (m === 'shelf' && !settingsShelfEnabled) return false;
+      if (m === 'todos' && !settingsTodoEnabled) return false;
       return true;
     });
 
@@ -896,62 +1009,44 @@ function App() {
 
 
   // Timer state
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isCompactTimerVisible, setIsCompactTimerVisible] = useState(false);
-  const [isTimerFinished, setIsTimerFinished] = useState(false);
-  const timerIntervalRef = useRef<any>(null);
 
-  const formatTimerTime = (totalSeconds: number) => {
-    const mins = Math.floor(Math.abs(totalSeconds) / 60);
-    const secs = Math.abs(totalSeconds) % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Le minuteur range une cible absolue et la relit du stockage : il survit à la
+  // veille comme au redémarrage, là où un compteur qui retire une seconde par
+  // seconde finit toujours par dériver.
+  const countdown = useCountdown();
+  const timerSeconds = countdown.remainingSeconds;
+  const isTimerRunning = countdown.running;
+  const isTimerFinished = countdown.finished;
+  const formatTimerTime = countdown.format;
 
   const startTimerSeconds = (seconds: number) => {
     // Unlock audio on this click so the chime can play later.
     getTimerChimeCtx();
-    setTimerSeconds(seconds);
-    setIsTimerRunning(true);
-    setIsTimerFinished(false);
+    countdown.start(seconds);
   };
 
   const toggleTimer = () => {
-    if (!isTimerRunning) getTimerChimeCtx();
-    setIsTimerRunning(!isTimerRunning);
+    if (!countdown.running) getTimerChimeCtx();
+    countdown.toggle();
   };
-  const resetTimer = () => {
-    setIsTimerRunning(false);
-    setTimerSeconds(0);
-    setIsTimerFinished(false);
-  };
+
+  const resetTimer = countdown.reset;
 
   const stopwatch = useStopwatch();
 
   useEffect(() => {
     if (!settingsTimerEnabled) resetTimer();
-  }, [settingsTimerEnabled]);
+  }, [settingsTimerEnabled, resetTimer]);
 
   useEffect(() => {
     if (!settingsStopwatchEnabled) stopwatch.reset();
-  }, [settingsStopwatchEnabled]);
-
-  useEffect(() => {
-    if (isTimerRunning && timerSeconds > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        setTimerSeconds(s => s - 1);
-      }, 1000);
-    } else if (isTimerRunning && timerSeconds === 0) {
-      setIsTimerRunning(false);
-      setIsTimerFinished(true);
-    }
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, [isTimerRunning, timerSeconds === 0]);
+  }, [settingsStopwatchEnabled, stopwatch.reset]);
 
   // On finish: chime, and peek the notch.
-  const prevTimerFinishedRef = useRef(false);
+  // Le témoin part de l'état restauré : un minuteur retrouvé déjà terminé au
+  // démarrage ne sonne pas, il s'affiche simplement terminé.
+  const prevTimerFinishedRef = useRef(isTimerFinished);
   useEffect(() => {
     if (isTimerFinished && !prevTimerFinishedRef.current) {
       if (settingsTimerSoundEnabled) playTimerChime();
@@ -976,7 +1071,9 @@ function App() {
     }
 
     // Only auto-switch if music mode is enabled
-    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && isletMode !== 'calendar' && (isNewTrackWhilePlaying || justStartedPlaying)) {
+    // Reading the lyrics is an explicit act: a new track must not pull the
+    // panel back to the player while someone is following the words.
+    if (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying && isletMode !== 'calendar' && isletMode !== 'lyrics' && (isNewTrackWhilePlaying || justStartedPlaying)) {
       // Switch if compact notch display is enabled OR we are hovered
       if (settingsMusicCompactNotch || isHovered) {
         manualMusicRef.current = false;
@@ -1005,6 +1102,62 @@ function App() {
       setIsletMode('status');
     }
   }, [productivityEnabled, isletMode]);
+
+  useEffect(() => {
+    if (!settingsClipboardEnabled && isletMode === 'clipboard') {
+      setIsletMode('status');
+    }
+  }, [settingsClipboardEnabled, isletMode]);
+
+  // A finished drop opens the shelf: the gesture was "put this somewhere I can
+  // reach", and a silent list update somewhere off screen answers neither half.
+  const shelfFlashRef = useRef(0);
+  useEffect(() => {
+    if (shelf.flash === 0 || shelf.flash === shelfFlashRef.current) return;
+    shelfFlashRef.current = shelf.flash;
+    if (!settingsShelfEnabled) return;
+    setIsletMode('shelf');
+    if (notchMode === 'peek') triggerEventPeek(4000);
+  }, [shelf.flash, settingsShelfEnabled, notchMode, triggerEventPeek]);
+
+  // A disabled shelf must not keep a panel open, nor keep swallowing drops.
+  useEffect(() => {
+    if (!settingsShelfEnabled && isletMode === 'shelf') {
+      setIsletMode('status');
+    }
+  }, [settingsShelfEnabled, isletMode]);
+
+  // Le rappel d'une tâche : une seule fois par tâche, jamais pour une échéance
+  // d'hier soir, et sans son. Le notch est déjà à l'écran, c'est lui le rappel.
+  const remindedTodosRef = useRef<string[]>([]);
+  useEffect(() => {
+    if (!settingsTodoEnabled) return;
+    const check = () => {
+      const due = pendingReminders(todos.tasks, Date.now(), remindedTodosRef.current);
+      if (due.length === 0) return;
+      // Plafonné : ce témoin n'a pas à grandir pendant des jours.
+      remindedTodosRef.current = [...remindedTodosRef.current, ...due.map((task) => task.id)].slice(-200);
+      setIsletMode('todos');
+      if (notchMode === 'peek') triggerEventPeek(6000);
+    };
+    check();
+    const id = setInterval(check, 20_000);
+    return () => clearInterval(id);
+  }, [settingsTodoEnabled, todos.tasks, notchMode, triggerEventPeek]);
+
+  // Un panneau qu'on vient d'éteindre ne doit pas rester ouvert.
+  useEffect(() => {
+    if (!settingsTodoEnabled && isletMode === 'todos') {
+      setIsletMode('status');
+    }
+  }, [settingsTodoEnabled, isletMode]);
+
+  // Lyrics have no subject once the track is gone.
+  useEffect(() => {
+    if (isletMode === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) {
+      setIsletMode('status');
+    }
+  }, [settingsLyricsEnabled, mediaInfo.has_media, isletMode]);
 
   useEffect(() => {
     if (!settingsMusicModeEnabled && isletMode === 'music') {
@@ -1407,7 +1560,7 @@ function App() {
       case "weather":
         if (!settingsWeatherEnabled || temperature === null) return null;
         return (
-          <div className="passive-feature" key="weather" data-tooltip={cityName ? `${weatherCondition} — ${cityName}` : weatherCondition}>
+          <div className="passive-feature" key="weather" data-tooltip={cityName ? `${weatherCondition} · ${cityName}` : weatherCondition}>
             <WeatherIcon size={12} strokeWidth={2.2} />
             <span className="label">{temperature}°{tempUnit === "fahrenheit" ? "F" : "C"}</span>
           </div>
@@ -1464,6 +1617,10 @@ function App() {
 
   // Calculate width dynamically based on enabled features
   const getDynamicWidth = () => {
+    if (isletMode === 'clipboard') return 340;
+    if (isletMode === 'lyrics') return 340;
+    if (isletMode === 'shelf') return 340;
+    if (isletMode === 'todos') return 350;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1474,6 +1631,7 @@ function App() {
       return Math.min(200 + totalWidgets * 65, 460);
     }
     if (isMusicMode && isHovered) return mediaLayout === 'compact' ? 300 : 340;
+    if (assistantTip && !isHovered) return 290;
     if ((showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered) return 200;
 
     let w = 140;
@@ -1494,6 +1652,10 @@ function App() {
     if (!isExpanded || isHidden) {
       return isImpacted ? 28.9 : 44.2;
     }
+    if (isletMode === 'clipboard') return 384;
+    if (isletMode === 'lyrics') return 320;
+    if (isletMode === 'shelf') return 300;
+    if (isletMode === 'todos') return 340;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1509,6 +1671,10 @@ function App() {
   };
 
   const isCalendarMode = isletMode === 'calendar';
+  const isClipboardMode = isletMode === 'clipboard';
+  const isLyricsMode = isletMode === 'lyrics';
+  const isShelfMode = isletMode === 'shelf';
+  const isTodosMode = isletMode === 'todos';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1545,8 +1711,21 @@ function App() {
       <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center' }}>
         <motion.div
           ref={isletRef}
-          className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''}`}
-          onMouseEnter={() => setIsNotchHovered(true)}
+          className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isSignalling ? 'is-signalling' : ''}`}
+          // The marker doubles as a tooltip: hovering the notch reads back the
+          // message that was missed, without reopening anything.
+          title={
+            isSignalling && assistantUnread
+              ? tipPlainText(assistantUnread.message, t)
+              : undefined
+          }
+          onMouseEnter={() => {
+            setIsNotchHovered(true);
+            // The notch takes focus the moment it opens; asking it later would
+            // answer "Islet". Hovering is the last instant the previous window
+            // is still the foreground one.
+            invoke("clipboard_remember_target").catch(() => {});
+          }}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
         initial={{ y: 250, width: 30.6, height: 44.2, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderBottomLeftRadius: 18, borderBottomRightRadius: 18, scaleX: 1, scaleY: 1, opacity: 0 }}
@@ -1559,13 +1738,16 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
         onClick={(e) => {
           e.stopPropagation();
+          // Clicking the signalling notch says "seen". It does nothing in any
+          // other state, so the gesture costs nothing when there is no marker.
+          if (isSignalling) acknowledgeAssistantTip();
         }}
         onHoverStart={() => {
           setIsHovered(true);
@@ -1576,11 +1758,15 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'todos' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
-        style={{ originY: 0 }}
+        style={
+          isSignalling && assistantUnread
+            ? ({ originY: 0, "--signal-accent": SEVERITY_COLOR[assistantUnread.severity] } as React.CSSProperties)
+            : { originY: 0 }
+        }
         transition={{
           width: { type: "spring", stiffness: 400, damping: 31 },
           height: { type: "spring", stiffness: 450, damping: 29 },
@@ -1817,7 +2003,9 @@ function App() {
                   >
                     <div className="main-row">
                       <AnimatePresence mode="wait">
-                        {(showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered ? (
+                        {assistantTip && !isHovered ? (
+                          <AssistantTipView tip={assistantTip} onDismiss={dismissAssistantTip} />
+                        ) : (showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered ? (
                           showUpdatePulse ? (
                             <motion.div
                               key="update-pulse-view"
@@ -1828,7 +2016,7 @@ function App() {
                             >
                               <GreenDownArrowIcon />
                               <span className="label" style={{ color: "#32D74B" }}>
-                                Update Available
+                                {t("notch.updateAvailable")}
                               </span>
                             </motion.div>
                           ) : (
@@ -1842,7 +2030,12 @@ function App() {
                               {updateAvailable && <GreenDownArrowIcon />}
                               <BatteryIcon charging={isCharging} level={batteryLevel} threshold={lowBatteryThreshold} />
                               <span className="label" style={{ color: showLowBatteryPulse ? "#FF453A" : "inherit" }}>
-                                {showLowBatteryPulse ? "Low Battery" : (isCharging ? "Charging" : "On Battery")} • {batteryLevel}%
+                                {showLowBatteryPulse
+                                  ? t("notch.lowBattery")
+                                  : isCharging
+                                    ? t("notch.charging")
+                                    : t("notch.onBattery")}{" "}
+                                • {batteryLevel}%
                               </span>
                             </motion.div>
                           )
@@ -1898,7 +2091,7 @@ function App() {
                             <div className="time-center">
                               <div className="time-flip-container" onClick={toggleCalendarMode}>
                                 <AnimatePresence initial={false}>
-                                  {isCompactTimerVisible || isTimerFinished ? (
+                                  {isCompactTimerVisible || isTimerFinished || countdown.paused ? (
                                     <motion.span
                                       key="timer"
                                       className={`time compact-timer ${isTimerFinished ? 'timer-finished' : ''}`}
@@ -1907,7 +2100,7 @@ function App() {
                                       exit={{ rotateX: 90, opacity: 0 }}
                                       transition={{ type: "spring", stiffness: 600, damping: 30 }}
                                     >
-                                      {isTimerRunning || isTimerFinished
+                                      {isTimerRunning || isTimerFinished || countdown.paused
                                         ? formatTimerTime(timerSeconds)
                                         : <StopwatchReadout base={stopwatch.base} startedAt={stopwatch.startedAt} precise={false} />}
                                     </motion.span>
@@ -2043,7 +2236,7 @@ function App() {
                           <WifiIcon enabled={wifiEnabled} connected={wifiConnected} />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Wi-Fi</span>
+                          <span className="cc-pill-title">{t("cc.wifi")}</span>
                           <span className="cc-pill-status">{wifiStatus === null ? '…' : !wifiEnabled ? 'Off' : wifiConnected ? 'Connected' : 'Not connected'}</span>
                         </div>
                       </div>
@@ -2057,7 +2250,7 @@ function App() {
                           <DockIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Dock Mode</span>
+                          <span className="cc-pill-title">{t("cc.dockMode")}</span>
                           <span className="cc-pill-status">{dockMode === 'fixed' ? 'Fixed' : dockMode === 'smart' ? 'Smart' : 'Peek'}</span>
                         </div>
                       </div>
@@ -2072,7 +2265,7 @@ function App() {
                           <BluetoothIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Bluetooth</span>
+                          <span className="cc-pill-title">{t("cc.bluetooth")}</span>
                           <span className="cc-pill-status">{bluetoothEnabled ? 'On' : 'Off'}</span>
                         </div>
                       </div>
@@ -2086,7 +2279,7 @@ function App() {
                           <NotchIcon />
                         </div>
                         <div className="cc-pill-info">
-                          <span className="cc-pill-title">Notch Mode</span>
+                          <span className="cc-pill-title">{t("cc.notchMode")}</span>
                           <span className="cc-pill-status">{notchMode === 'fixed' ? 'Fixed' : notchMode === 'smart' ? 'Smart' : 'Peek'}</span>
                         </div>
                       </div>
@@ -2138,7 +2331,7 @@ function App() {
                       <div className="cc-classic-slider-row">
                         <div className="cc-classic-slider-label">
                           <VolumeLowIcon style={{ opacity: 0.5 }} />
-                          <span>Volume</span>
+                          <span>{t("cc.volume")}</span>
                         </div>
                         <div className="cc-classic-slider-track">
                           <input
@@ -2161,7 +2354,7 @@ function App() {
                       <div className="cc-classic-slider-row">
                         <div className="cc-classic-slider-label">
                           <BrightnessLowIcon />
-                          <span>Brightness</span>
+                          <span>{t("cc.brightness")}</span>
                         </div>
                         <div className="cc-classic-slider-track">
                           <input
@@ -2180,6 +2373,90 @@ function App() {
                         <span className="cc-classic-percentage">{currentBrightness}%</span>
                       </div>
                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Clipboard history: same grammar as the calendar module. */}
+              <AnimatePresence>
+                {settingsClipboardEnabled && isClipboardMode && (
+                  <motion.div
+                    className="clipboard-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchClipboard
+                      pasteOnClick={settingsClipboardPaste}
+                      onClose={() => setIsletMode('status')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Lyrics: same frame as the clipboard, one module away from the player. */}
+              <AnimatePresence>
+                {isLyricsMode && (
+                  <motion.div
+                    className="lyrics-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchLyrics
+                      lyrics={lyrics}
+                      title={mediaInfo.title}
+                      artist={mediaInfo.artist}
+                      durationMs={mediaInfo.duration_ms ?? 0}
+                      decimalSeparator={lyricsDecimalSeparator}
+                      onSeek={(positionMs) => invoke("media_seek", { positionMs }).catch(() => {})}
+                      onClose={() => setIsletMode('status')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Shelf: the files dropped on the notch. */}
+              <AnimatePresence>
+                {isShelfMode && (
+                  <motion.div
+                    className="shelf-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchShelf
+                      shelf={shelf}
+                      onOpen={(path) => openPath(path).catch(() => {})}
+                      onReveal={(path) => revealItemInDir(path).catch(() => {})}
+                      onClose={() => setIsletMode('status')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* To-do du jour : les tâches, leur heure, et rien d'autre. */}
+              <AnimatePresence>
+                {isTodosMode && (
+                  <motion.div
+                    className="todo-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchTodos todos={todos} onClose={() => setIsletMode('status')} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -2208,11 +2485,15 @@ function App() {
                         solo={!settingsCalendarEnabled}
                         timerSeconds={timerSeconds}
                         isTimerRunning={isTimerRunning}
+                        isTimerFinished={isTimerFinished}
+                        timerEndsAt={countdown.endsAt}
+                        timerProgress={countdown.progress}
                         formatTimerTime={formatTimerTime}
                         onStartTimer={startTimerSeconds}
                         onToggleTimer={toggleTimer}
                         onResetTimer={resetTimer}
                         stopwatch={stopwatch}
+                        onClearLaps={stopwatch.clearLaps}
                       />
                     )}
                   </motion.div>

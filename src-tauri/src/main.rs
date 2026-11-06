@@ -16,6 +16,12 @@ mod caldav;
 mod calendar_sync;
 mod ics;
 mod active_look;
+mod signals;
+mod clipboard;
+mod lyrics;
+mod shelf;
+mod todo;
+mod keyboard_indicators;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -171,6 +177,7 @@ fn main() {
             get_cpu_usage,
             get_ram_usage,
             get_disk_space,
+            signals::get_system_signals,
             get_network_speed,
             get_running_processes,
             kill_process,
@@ -188,7 +195,29 @@ fn main() {
             calendar_sync::caldav_get_cache,
             ics::ics_add_link,
             ics::ics_remove_link,
-            ics::ics_detect
+            ics::ics_detect,
+            clipboard::clipboard_get_state,
+            clipboard::clipboard_remember_target,
+            clipboard::clipboard_copy,
+            clipboard::clipboard_paste,
+            clipboard::clipboard_toggle_pin,
+            clipboard::clipboard_remove,
+            clipboard::clipboard_clear,
+            clipboard::clipboard_set_recording,
+            clipboard::clipboard_is_recording,
+            lyrics::lyrics_fetch,
+            lyrics::lyrics_clear_cache,
+            lyrics::lyrics_cache_count,
+            shelf::shelf_list,
+            shelf::shelf_add,
+            shelf::shelf_remove,
+            shelf::shelf_clear,
+            todo::todo_list,
+            todo::todo_add,
+            todo::todo_toggle,
+            todo::todo_set_due,
+            todo::todo_remove,
+            todo::todo_clear_done
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());
@@ -220,6 +249,14 @@ fn main() {
             }
 
             crate::calendar_sync::start_background_sync(app.handle().clone());
+
+            // Is: sample system signals (battery, disks, memory, uptime).
+            signals::start_sampler(app.handle().clone());
+
+            // Clipboard history: watch the clipboard and keep it in memory.
+            // Recording can be turned off from the notch without stopping the
+            // thread, so toggling it is instant and reversible.
+            clipboard::start_watcher(app.handle().clone());
 
             let window = app.get_webview_window("main").unwrap();
             let dock_win = app.get_webview_window("dock").unwrap();
@@ -272,6 +309,8 @@ fn main() {
             let tx = setup_system_worker(app.handle().clone());
             let _ = COMMAND_SENDER.set(tx.clone());
             let _hook = services::setup_keyboard_hook(app.handle().clone());
+            // Les temoins du clavier : Verr Maj, Verr Num, Defil et la langue.
+            keyboard_indicators::start(app.handle().clone());
             setup_taskbar_hook();
             start_window_style_guard(app.handle().clone());
             setup_audio_visualization(app.handle().clone());

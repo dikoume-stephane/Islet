@@ -57,6 +57,56 @@ Tu dois parcourir l'ensemble de l'arbre du projet et effectuer les remplacements
 
 ---
 
+## Règle permanente : toute chaîne visible passe par `t()`
+
+Depuis J8 (2026-11-04), Islet parle **français et anglais**. Ce n'est pas une
+traduction faite une fois : c'est une contrainte qui s'applique à **tout code écrit
+à partir de maintenant**.
+
+**Obligatoire**
+1. Aucune phrase affichée à l'utilisateur en dur dans le JSX, un `.ts` ou un message
+   d'erreur. Tout passe par `t("clé")` depuis `src/i18n`.
+2. Ajouter la clé dans `src/i18n/en.ts` **et** `src/i18n/fr.ts`. L'oubli de la
+   seconde est une erreur de compilation, pas un détail de revue.
+3. Ne jamais construire une phrase par concaténation de deux clés : l'ordre des mots
+   change d'une langue à l'autre. Une phrase = une clé + des `{{placeholders}}`.
+4. Pour le pluriel, utiliser la forme `{ one, other }` et passer `params.count`.
+5. Dates et nombres via `formatDate()` / `formatNumber()` (qui reposent sur `Intl`),
+   jamais un format écrit à la main : `11/04/2026` désigne deux jours différents
+   selon le pays.
+6. Vérifier la longueur **dans le notch** : environ 200 px de texte utile, soit
+   ~33 caractères à 12 px. Le test `test:assistant` mesure les conseils d'Is ligne
+   par ligne (titre ≤ 28, détail ≤ 32).
+
+## Règles typographiques de l'interface
+
+Elles valent pour **tout texte affiché**, dans les deux langues.
+
+1. **Jamais de tiret cadratin (`—`).** Il sert de séparateur dans la presse, pas
+   dans une ligne de 290 px, et il tombe au mauvais endroit dès qu'une traduction
+   s'allonge. Pour séparer deux informations : deux lignes, un point, un deux-points
+   ou une parenthèse. Un test parcourt les deux dictionnaires et échoue si un `—`
+   réapparaît.
+2. **Points de suspension = un caractère (`…`)**, jamais trois points.
+3. **Un conseil d'Is se compose, il ne se ponctue pas.** Deux clés : `.title` (le
+   fait, en gras) et `.detail` (l'action, en retrait). La hiérarchie appartient à
+   la mise en page ; une traduction ne doit jamais avoir à porter un séparateur.
+4. **L'emphase ne transporte pas de sens.** La couleur de sévérité reste sur la
+   pastille. Le texte joue sur la graisse et l'opacité, jamais sur la couleur.
+5. Contraste minimal du texte secondaire : **4,5:1** sur le fond du notch.
+6. Signe moins typographique (`−`, U+2212) pour les boutons de décrémentation,
+   pas un tiret.
+
+**Corollaire pour les revues** : un écran mi-français mi-anglais est un bug, pas un
+état intermédiaire acceptable. Si un écran n'est pas encore traduit, le documenter
+dans `todo.md` (Bloc N) plutôt que le laisser à moitié.
+
+**Ce qui n'est PAS traduit** : les noms d'applications, les titres de morceaux, les
+noms de processus, et le mot « notch » — c'est le nom de la fonctionnalité dans le
+produit, pas un mot à traduire.
+
+---
+
 ## Workflow d'Exécution Attendu pour l'Agent
 
 1. **Analyse préalable :**
