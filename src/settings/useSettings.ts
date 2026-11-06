@@ -27,6 +27,9 @@ export function useSettings() {
   const [lyricsEnabled, setLyricsEnabled] = useState(false);
   const [shelfEnabled, setShelfEnabled] = useState(true);
   const [todoEnabled, setTodoEnabled] = useState(true);
+  const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
+    () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
+  );
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
@@ -170,6 +173,7 @@ export function useSettings() {
       apply(getVal("islet-music-compact-notch"), setMusicCompactNotch, readBool);
       apply(getVal("islet-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
       apply(getVal("islet-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
+      apply(getVal("islet-keyboard-indicators-enabled"), setKeyboardIndicatorsEnabled, readBool);
       apply(getVal("islet-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
       apply(getVal("islet-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
       apply(getVal("islet-corners-enabled"), setCornersEnabled, readBool);
@@ -304,6 +308,7 @@ export function useSettings() {
     "islet-volume-overlay-enabled": setVolumeOverlayEnabled,
     "islet-volume-edge-enabled": setVolumeEdgeEnabled,
     "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+    "islet-keyboard-indicators-enabled": setKeyboardIndicatorsEnabled,
     "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
     "islet-theme-mode": setThemeMode,
     "islet-theme-color": setThemeColor,
@@ -464,6 +469,12 @@ export function useSettings() {
     const next = !shelfEnabled;
     setShelfEnabled(next);
     saveSetting("islet-shelf-enabled", String(next));
+  };
+
+  const toggleKeyboardIndicators = () => {
+    const next = !keyboardIndicatorsEnabled;
+    setKeyboardIndicatorsEnabled(next);
+    saveSetting("islet-keyboard-indicators-enabled", String(next));
   };
 
   const toggleTodo = () => {
@@ -918,6 +929,8 @@ export function useSettings() {
     toggleShelf,
     todoEnabled,
     toggleTodo,
+    keyboardIndicatorsEnabled,
+    toggleKeyboardIndicators,
     timerEnabled,
     toggleTimerEnabled,
     timerSoundEnabled,

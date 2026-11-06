@@ -1,4 +1,4 @@
-import { Volume2, Sun, ArrowLeftToLine, ArrowRightToLine } from "lucide-react";
+import { Volume2, Sun, ArrowLeftToLine, ArrowRightToLine, Keyboard } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { useT } from "../i18n";
 
@@ -11,6 +11,8 @@ interface OverlaysTabProps {
   toggleBrightnessOverlay: () => void;
   brightnessEdgeEnabled: boolean;
   toggleBrightnessEdge: () => void;
+  keyboardIndicatorsEnabled: boolean;
+  toggleKeyboardIndicators: () => void;
 }
 
 export function OverlaysTab({
@@ -22,6 +24,8 @@ export function OverlaysTab({
   toggleBrightnessOverlay,
   brightnessEdgeEnabled,
   toggleBrightnessEdge,
+  keyboardIndicatorsEnabled,
+  toggleKeyboardIndicators,
 }: OverlaysTabProps) {
   const t = useT();
   return (
@@ -52,13 +56,20 @@ export function OverlaysTab({
         </SettingRow>
 
         {brightnessOverlayEnabled && (
-          <SettingRow icon={ArrowRightToLine} label={t("overlays.brightnessEdge")} desc={t("overlays.brightnessEdge.desc")} divider={false}>
+          <SettingRow icon={ArrowRightToLine} label={t("overlays.brightnessEdge")} desc={t("overlays.brightnessEdge.desc")}>
             <label className="toggle-switch">
               <input type="checkbox" checked={brightnessEdgeEnabled} onChange={toggleBrightnessEdge} />
               <span className="slider"></span>
             </label>
           </SettingRow>
         )}
+
+        <SettingRow icon={Keyboard} label={t("overlays.keyboard")} desc={t("overlays.keyboard.desc")} divider={false}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={keyboardIndicatorsEnabled} onChange={toggleKeyboardIndicators} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
       </div>
     </>
   );

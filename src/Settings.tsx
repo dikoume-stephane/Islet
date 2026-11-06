@@ -317,6 +317,8 @@ function SettingsApp() {
               brightnessOverlayEnabled={settings.brightnessOverlayEnabled}
               toggleBrightnessOverlay={settings.toggleBrightnessOverlay}
               brightnessEdgeEnabled={settings.brightnessEdgeEnabled}
+              keyboardIndicatorsEnabled={settings.keyboardIndicatorsEnabled}
+              toggleKeyboardIndicators={settings.toggleKeyboardIndicators}
               toggleBrightnessEdge={settings.toggleBrightnessEdge}
             />
           )}

@@ -340,12 +340,22 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C3 | **Chronomètre + minuteur** | ✅ (J4) | Chronomètre (tours, meilleur/pire) et minuteur libre en plus du Pomodoro, tous deux ancrés sur une **cible absolue** : justes après une veille ou un redémarrage |
 | P3-C4 | **Suivi d'hydratation** | ⏭️ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours. **Écarté à la demande** le 2026-11-05, à reprendre si besoin |
 | P3-C5 | **To-do du jour** | ✅ (J4) | Tâches avec heure d'échéance en langage naturel, rappel via le notch, report au lendemain, sections retard/aujourd'hui/à venir |
-| P3-C6 | **Indicateurs clavier** | ❌ | Caps Lock / Verr Num / langue active — overlay bref, comme les overlays volume existants |
+| P3-C6 | **Indicateurs clavier** | ✅ (J4) | Verr Maj / Verr Num / Défil et langue de saisie, en surcouche brève au bas de l'écran, une seule pastille mise en avant |
 | P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
 | P3-C8 | **Modes notch minimalistes** | Partiel | Ajouter la « pilule minimale » (temps seul, aucun module) |
 | P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C6 en détail** (livré 2026-11-05) : `src-tauri/src/keyboard_indicators.rs` est un capteur (crochet clavier
+pour les trois touches, sondage de la disposition au premier plan pour la langue), `src/lib/keyboard.ts` décide
+(table des langues, pastilles, ce qui a changé), `Overlay.tsx` affiche. **19 tests**.
+
+Deux points techniques. `GetKeyState` répond **pour le fil appelant** : il n'est donc lu que depuis le fil du
+crochet clavier, celui qui traite réellement les messages. Et le crochet voit la touche **avant** Windows :
+l'état lu est l'ancien, le nouveau est son inverse, ce qui permet d'annoncer le changement sans attendre.
+La langue se surveille par sondage, un changement de disposition ne produisant aucune touche interceptable
+de façon fiable.
 
 **P3-C5 en détail** (livré 2026-11-05) : `src/lib/todo.ts` décide (saisie d'une heure, retard, sections,
 rappel, report), `src-tauri/src/todo.rs` garde le fichier (`todos.json`, à côté de `settings.json`),

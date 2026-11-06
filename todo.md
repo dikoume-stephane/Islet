@@ -145,6 +145,13 @@
   - [x] J7d — `NotchTodos` : ajout en deux champs, sections retard / aujourd'hui / à venir / terminées, coche, report, suppression, état vide explicatif
   - [x] J7e — Rappel : une échéance atteinte ouvre le panneau une fois (fenêtre d'une heure, pas de son) et ne se répète jamais dans la session
   - [ ] J7f — **À vérifier sur Windows** : compiler `todo.rs` (pas de toolchain ici), créer une tâche à une heure proche et voir le notch s'ouvrir tout seul
+- [x] J8 — **Indicateurs clavier** ✅ livré 2026-11-05
+  - [x] J8a — `src/lib/keyboard.ts` : table des langues Windows (sous-langue retirée, code court, langue inconnue laissée de côté), lecture défensive de l'événement, détection de ce qui a changé, choix des pastilles — **19 tests**
+  - [x] J8b — `src-tauri/src/keyboard_indicators.rs` : lecture des trois touches depuis le fil du crochet, garde anti-répétition (400 ms), sondage de la disposition au premier plan toutes les 250 ms, aucun envoi quand le réglage est coupé
+  - [x] J8c — Crochet clavier : Verr Maj / Verr Num / Défil remarqués sans jamais bloquer la touche
+  - [x] J8d — `Overlay.tsx` : surcouche au bas de l'écran, 1,5 s, seule la pastille qui a changé est mise en avant
+  - [x] J8e — Réglage `islet-keyboard-indicators-enabled` dans l'onglet Surcouches
+  - [ ] J8f — **À vérifier sur Windows** : compiler, appuyer sur Verr Maj dans une autre application et voir la pastille ; faire Alt+Maj et vérifier que la langue change bien
 
 ## Bloc K — Assistant « Is » (J3, J5)
 

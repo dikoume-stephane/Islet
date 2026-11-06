@@ -21,6 +21,7 @@ mod clipboard;
 mod lyrics;
 mod shelf;
 mod todo;
+mod keyboard_indicators;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -308,6 +309,8 @@ fn main() {
             let tx = setup_system_worker(app.handle().clone());
             let _ = COMMAND_SENDER.set(tx.clone());
             let _hook = services::setup_keyboard_hook(app.handle().clone());
+            // Les temoins du clavier : Verr Maj, Verr Num, Defil et la langue.
+            keyboard_indicators::start(app.handle().clone());
             setup_taskbar_hook();
             start_window_style_guard(app.handle().clone());
             setup_audio_visualization(app.handle().clone());

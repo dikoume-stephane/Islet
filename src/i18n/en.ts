@@ -243,6 +243,12 @@ export const en = {
   "overlays.brightness.desc": "Islet brightness overlay",
   "overlays.brightnessEdge": "Show on Edge Hover",
   "overlays.brightnessEdge.desc": "Slide in from right edge",
+  "overlays.keyboard": "Keyboard indicators",
+  "overlays.keyboard.desc": "Caps Lock, Num Lock and the input language, for a glance",
+  "kbd.caps": "Caps",
+  "kbd.num": "Num",
+  "kbd.scroll": "Scroll",
+  "kbd.label": "Keyboard indicators",
 
   // — Settings: Processes --------------------------------------------------
   "processes.group": "Background Tasks",

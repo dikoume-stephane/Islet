@@ -87,9 +87,20 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
 | `islet-lyrics-offset` | integer, milliseconds | absent (= `0`) | Your manual correction to the lyrics timing, from `-5000` to `5000`. Written by the ± control in the lyrics panel. Not a settings-window field. |
 | `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
+| `islet-keyboard-indicators-enabled` | `"true"` / `"false"` | `"true"` | Show a brief overlay when Caps Lock, Num Lock, Scroll Lock or the input language changes. Off means the backend reads nothing. |
 | `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Keyboard indicators
+
+Press Caps Lock and a small pill appears at the bottom of the screen for about a second: `Verr Maj`,
+`Verr Num`, and the input language. Only the indicator that just changed is highlighted, because three
+lights moving at once say nothing.
+
+The keys are **never swallowed**: Windows still toggles Caps Lock itself, Islet only reports it. The
+language is read from the foreground window's keyboard layout and reported as a short code (`FR`, `EN`,
+`DE`); an unknown language is left out rather than shown as a hexadecimal number.
 
 ### Today's tasks
 

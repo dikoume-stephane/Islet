@@ -5,6 +5,37 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (6) — J4 : les témoins du clavier
+
+**Fait**
+- `src/lib/keyboard.ts` : table des langues Windows, lecture défensive de l'événement, détection de ce
+  qui a changé, choix des pastilles. **19 tests** (`npm run test:keyboard`).
+- `src-tauri/src/keyboard_indicators.rs` : les trois touches lues depuis le fil du crochet, garde
+  anti-répétition, sondage de la disposition au premier plan toutes les 250 ms, rien n'est lu quand le
+  réglage est coupé.
+- Crochet clavier : Verr Maj, Verr Num et Défil remarqués **sans jamais bloquer la touche**.
+- `Overlay.tsx` : surcouche de 1,5 s au bas de l'écran, seule la pastille qui vient de changer est mise
+  en avant.
+- Réglage `islet-keyboard-indicators-enabled` (actif par défaut) dans l'onglet Surcouches.
+
+**Constats**
+- Le piège central est un détail de documentation Win32 : `GetKeyState` répond pour le fil appelant. Lu
+  depuis le fil de sondage, il aurait rendu un état figé, et le bogue aurait été difficile à croire
+  (« le voyant ne suit pas »). D'où la séparation : touches dans le crochet, langue par sondage.
+- Le crochet voit la touche avant Windows, donc l'état lu est l'ancien : c'est une chance, pas une gêne,
+  puisque le nouveau est son inverse et qu'on peut l'annoncer tout de suite.
+- La table des langues n'a pas sa place en Rust : elle se serait trompée en silence. Elle est en
+  TypeScript, testée, et une langue inconnue ne s'affiche pas plutôt que d'afficher « 047F ».
+
+**Bloqué**
+- Pas de toolchain Rust : `keyboard_indicators.rs` est relu, pas compilé.
+
+**À faire ensuite**
+- Sur Windows : compiler, appuyer sur Verr Maj dans une autre application, puis Alt+Maj.
+- J4 : pilule minimale (P3-C8), dernier chantier de la parité Nusa.
+
+---
+
 ## 2026-11-05 (5) — J4 : la to-do du jour
 
 **Fait**

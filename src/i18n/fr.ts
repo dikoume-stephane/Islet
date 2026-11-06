@@ -247,6 +247,12 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "overlays.brightness.desc": "Surcouche de luminosité d'Islet",
   "overlays.brightnessEdge": "Afficher au survol du bord",
   "overlays.brightnessEdge.desc": "Glisse depuis le bord droit",
+  "overlays.keyboard": "Indicateurs du clavier",
+  "overlays.keyboard.desc": "Verr Maj, Verr Num et la langue de saisie, le temps d'un coup d'œil",
+  "kbd.caps": "Verr Maj",
+  "kbd.num": "Verr Num",
+  "kbd.scroll": "Défil",
+  "kbd.label": "Témoins du clavier",
 
   // — Réglages : Processus -------------------------------------------------
   "processes.group": "Tâches d'arrière-plan",

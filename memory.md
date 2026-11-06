@@ -399,3 +399,27 @@ La syntaxe a été relue, pas vérifiée par `cargo`.
   oublie d'abord les tâches faites les plus anciennes (`prune`).
 - Réglage `islet-todo-enabled`, **actif par défaut** (rien ne sort de la machine).
 - ⚠️ `todo.rs` n'est **pas compilé** ici : pas de toolchain Rust dans le sandbox.
+
+---
+
+## 13. Indicateurs clavier (J4 / P3-C6, livré 2026-11-05)
+
+`keyboard_indicators.rs` est un capteur · `src/lib/keyboard.ts` décide · `Overlay.tsx` affiche.
+
+- **`GetKeyState` répond pour le fil appelant.** Il n'est donc lu que depuis le fil du crochet clavier,
+  celui qui traite réellement les messages. Depuis un autre fil, la valeur serait celle du dernier
+  message traité par ce fil, c'est-à-dire n'importe quoi. `GetKeyboardLayout`, lui, est indépendant du
+  fil : la langue se sonde toutes les 250 ms depuis un fil dédié.
+- **Le crochet voit la touche avant Windows** : l'état lu sur `VK_CAPITAL` est encore l'ancien, le
+  nouveau est son inverse. C'est ce qui permet d'annoncer le changement sans attendre.
+- **Les touches ne sont jamais avalées.** Verr Maj continue d'être géré par Windows ; l'indicateur ne
+  fait que le dire. Garde anti-répétition de 400 ms pour que l'auto-répétition ne fasse pas clignoter.
+- **La table des langues vit en TypeScript**, pas en Rust : c'est une donnée qui se trompe facilement
+  et se teste facilement. `primaryLanguage` retire la sous-langue (`0x080C` belge → `0x0C` français) ;
+  une langue inconnue ne s'affiche pas du tout plutôt que de montrer un code hexadécimal.
+- **Seule la pastille qui a changé est mise en avant** (`changedKinds`) ; Défil n'apparaît que s'il est
+  actif, pour ne pas laisser une pastille éteinte en permanence.
+- Surcouche affichée 1,5 s au bas de l'écran, `prefers-reduced-motion` respecté.
+- Réglage `islet-keyboard-indicators-enabled` (actif par défaut) dans l'onglet Surcouches ; coupé, le
+  backend ne lit rien et n'envoie rien.
+- ⚠️ `keyboard_indicators.rs` n'est **pas compilé** ici : pas de toolchain Rust.
