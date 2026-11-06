@@ -42,12 +42,9 @@
   margin: 10px 0 14px;
 }
 
-.onboarding-hero img {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  object-fit: contain;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+/* Le personnage remplace le logo : même silhouette, mais il vit. */
+.onboarding-hero .is-sprite {
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.42));
   user-select: none;
   -webkit-user-drag: none;
 }

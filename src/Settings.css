@@ -1336,6 +1336,105 @@ input:checked + .slider:before {
 
 /* --- Is: name field ------------------------------------------------------ */
 
+/* Le personnage : un aperçu vivant, pas une vignette. Le fond reste celui du
+   groupe de réglages, pour que le dessin se détache comme il le fait sur le
+   notch. */
+.assistant-character {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+.assistant-character-sprite {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 60% at 50% 42%, rgba(100, 210, 255, 0.14) 0%, transparent 70%),
+    rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.light-mode .assistant-character-sprite {
+  background:
+    radial-gradient(60% 60% at 50% 42%, rgba(100, 210, 255, 0.18) 0%, transparent 70%),
+    rgba(0, 0, 0, 0.05);
+}
+
+.assistant-character-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.assistant-character-name {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text-color, #fff);
+  letter-spacing: -0.01em;
+}
+
+.assistant-character-mood {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64d2ff;
+}
+
+.assistant-character-hint {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.assistant-character-moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 14px;
+}
+
+.assistant-mood-chip {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.assistant-mood-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #fff);
+}
+
+.assistant-mood-chip.is-active {
+  background: rgba(100, 210, 255, 0.18);
+  border-color: rgba(100, 210, 255, 0.45);
+  color: #9fe4ff;
+}
+
+.light-mode .assistant-mood-chip {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light-mode .assistant-mood-chip.is-active {
+  background: rgba(10, 132, 255, 0.12);
+  border-color: rgba(10, 132, 255, 0.35);
+  color: #0a6cc4;
+}
+
 .assistant-name-input {
   width: 116px;
   padding: 5px 9px;

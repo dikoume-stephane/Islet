@@ -160,6 +160,15 @@
 
 ## Bloc K — Assistant « Is » (J3, J5)
 
+### K1 — Le personnage (J3) ✅ livré 2026-11-05
+- [x] K1a — `src/lib/character.ts` : réducteur d'humeur, cadres de dessin, regard en direction unitaire, clignement, sommeil — **39 tests**
+- [x] K1b — `scripts/character.test.ts` + `npm run test:character`, branché dans `npm run test`
+- [x] K1c — `src/components/IsSprite.tsx` + `IsSprite.css` : sprite SVG (mascotte : dôme, palmier, hémisphère, yeux à reflet, bouche en w), souffle, clignement, regard, halo coloré, mouvement réduit
+- [x] K1d — `AssistantTip` : Is prend le visage du conseil (sourire pour une remarque, yeux écarquillés pour une alerte) et suit le curseur du notch
+- [x] K1e — Onglet Is : bloc « Le personnage » avec aperçu vivant, six états à essayer, endormissement après 45 s d'immobilité
+- [x] K1f — Accueil : la mascotte remplace le logo sur l'étape du nom, se penche quand on tape
+- [ ] K1g — **À vérifier sur Windows** : l'aperçu de l'onglet Is doit cligner, suivre la souris et s'endormir ; vérifier aussi le rendu réduit (mouvement désactivé dans Windows)
+
 ### K0 — Signaux système ✅ (livré 2026-11-03)
 - [x] K0a — Capteur Rust `signals.rs` : batterie, mémoire, disques, CPU, uptime → événement `system-signals` (30 s) + commande `get_system_signals`
 - [x] K0b — Miroir TypeScript `useSystemSignals`

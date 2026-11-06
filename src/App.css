@@ -2512,13 +2512,11 @@ img {
     }
 }
 
-.assistant-tip-avatar img {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    object-fit: contain;
-    user-select: none;
-    -webkit-user-drag: none;
+/* Is est dessiné (voir `src/components/IsSprite.tsx`), plus posé en image :
+   ses yeux suivent le curseur du notch. */
+.assistant-tip-avatar .is-sprite {
+    position: relative;
+    z-index: 1;
 }
 
 /* Severity dot, pinned to the avatar corner. */

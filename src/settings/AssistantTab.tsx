@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Sparkles, BatteryCharging, HardDrive, Gauge, Clock, Tag } from "lucide-react";
 import { SettingRow } from "./SettingRow";
@@ -8,6 +8,9 @@ import type { AssistantSettings } from "../lib/assistant";
 import { formatUptime } from "../lib/assistant";
 import { useSystemSignals } from "../hooks/useSystemSignals";
 import { useT, useLanguage } from "../i18n";
+import { gazeVector, MOODS, shouldSleep, type IsMood } from "../lib/character";
+import { useTrailingThrottle } from "../hooks/useTrailingThrottle";
+import { IsSprite } from "../components/IsSprite";
 
 /**
  * Is settings.
@@ -131,8 +134,79 @@ export function AssistantTab() {
   const off = !config.enabled;
   const battery = signals?.battery;
 
+  // --- Le personnage -------------------------------------------------------
+  // L'aperçu obéit à trois choses : le curseur (le regard), le silence (le
+  // sommeil) et un état choisi à la main, qui a le dernier mot tant qu'on ne
+  // l'a pas rendu au repos.
+  const [forced, setForced] = useState<IsMood | null>(null);
+  const [dozing, setDozing] = useState(false);
+  const [gaze, setGaze] = useState({ x: 0, y: 0 });
+  const spriteRef = useRef<HTMLDivElement>(null);
+  const lastMoveRef = useRef(Date.now());
+
+  const trackPointer = useTrailingThrottle((x: number, y: number) => {
+    lastMoveRef.current = Date.now();
+    setDozing(false);
+    const node = spriteRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    setGaze(gazeVector({ x, y }, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }));
+  }, 70);
+
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => trackPointer(event.clientX, event.clientY);
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [trackPointer]);
+
+  useEffect(() => {
+    // Un état choisi à la main ne s'endort pas : on est en train de le regarder.
+    const timer = setInterval(() => {
+      if (forced) return;
+      if (shouldSleep(Date.now() - lastMoveRef.current)) setDozing(true);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [forced]);
+
+  const mood: IsMood = forced ?? (dozing ? "sleeping" : "idle");
+
   return (
     <>
+      <div className="setting-group-label">{t("settings.assistant.character")}</div>
+      <div className="setting-group">
+        <div className="assistant-character">
+          <div className="assistant-character-sprite" ref={spriteRef}>
+            <IsSprite mood={mood} size={72} gaze={gaze} accent="#64D2FF" />
+          </div>
+          <div className="assistant-character-text">
+            <span className="assistant-character-name">{name.trim() || "Is"}</span>
+            <span className="assistant-character-mood">{t(`settings.assistant.mood.${mood}`)}</span>
+            <span className="assistant-character-hint">
+              {forced ? t("settings.assistant.character.preview") : t("settings.assistant.character.auto")}
+            </span>
+          </div>
+        </div>
+        <div className="assistant-character-moods" role="group" aria-label={t("settings.assistant.moods")}>
+          {MOODS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={`assistant-mood-chip ${option === mood ? "is-active" : ""}`}
+              aria-pressed={option === mood}
+              onClick={() => {
+                // « Repos » rend le personnage à lui-même : il cligne, il
+                // regarde, il s'endort si on le laisse.
+                setForced(option === "idle" ? null : option);
+                setDozing(false);
+                lastMoveRef.current = Date.now();
+              }}
+            >
+              {t(`settings.assistant.mood.${option}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="setting-group-label">{t("settings.assistant.group", { name })}</div>
       <div className="setting-group">
         <SettingRow icon={Tag} label={t("settings.assistant.name")} desc={t("settings.assistant.name.desc")}>

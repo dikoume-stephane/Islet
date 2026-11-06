@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { applyTheme } from "../theme";
 import { useT } from "../i18n";
+import { gazeVector } from "../lib/character";
+import { useTrailingThrottle } from "../hooks/useTrailingThrottle";
+import { IsSprite } from "../components/IsSprite";
 import "./Onboarding.css";
 
 /**
@@ -72,6 +75,23 @@ export function Onboarding({ onFinish }: OnboardingProps) {
   const [notchMode, setNotchMode] = useState(() => read("islet-notch-mode", "fixed"));
   const [dockEnabled, setDockEnabled] = useState(() => read("islet-dock-enabled", "true") !== "false");
   const [autoUpdate, setAutoUpdate] = useState(() => read("islet-auto-update", "false") === "true");
+
+  // Le personnage salue : il suit le curseur du regard et se penche quand on
+  // vient de lui donner un nom.
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [gaze, setGaze] = useState({ x: 0, y: 0 });
+  const [namingFocused, setNamingFocused] = useState(false);
+  const trackPointer = useTrailingThrottle((x: number, y: number) => {
+    const node = heroRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    setGaze(gazeVector({ x, y }, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }));
+  }, 70);
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => trackPointer(event.clientX, event.clientY);
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [trackPointer]);
 
   const finish = useCallback(() => {
     save("islet-onboarded", "true");
@@ -173,8 +193,10 @@ export function Onboarding({ onFinish }: OnboardingProps) {
         <motion.div className="onboarding-step" key={step} {...motionProps}>
           {step === "welcome" && (
             <>
-              <div className="onboarding-hero">
-                <img src="/islet.png" alt="" draggable={false} />
+              <div className="onboarding-hero" ref={heroRef}>
+                {/* La mascotte devient un personnage : c'est ici qu'on lui
+                    donne un nom, il est donc normal qu'elle soit là. */}
+                <IsSprite mood={namingFocused ? "listening" : "happy"} size={64} gaze={gaze} accent={accent} />
               </div>
               <h1 className="onboarding-title">{t("welcome.title")}</h1>
               <p className="onboarding-lead">{t("welcome.lead")}</p>
@@ -189,6 +211,8 @@ export function Onboarding({ onFinish }: OnboardingProps) {
                     maxLength={24}
                     spellCheck={false}
                     onChange={(e) => commitName(e.target.value)}
+                    onFocus={() => setNamingFocused(true)}
+                    onBlur={() => setNamingFocused(false)}
                     placeholder="Is"
                     aria-label={t("welcome.nameAria")}
                   />

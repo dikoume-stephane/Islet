@@ -441,3 +441,29 @@ répond à deux questions, et ce sont celles qui se trompent à la main.
   sinon. `getDynamicWidth` se termine par `return collapsed.width`.
 - Réglage `islet-notch-pill-minimal`, **éteint par défaut**, onglet Notch, icône `RectangleHorizontal`.
 - Un minuteur en cours reste affiché : c'est quelque chose qu'on a demandé, pas un module de décoration.
+
+---
+
+## 15. Le personnage d'Is (J3, livré 2026-11-05)
+
+`src/lib/character.ts` décide, `IsSprite.tsx` dessine, `AssistantTip` / onglet Is / accueil l'utilisent.
+
+- **`reduceIs(state, event)`** : `IsState = { mood, signal }`, événements `tip | unread | dismiss | hover |
+  leave | think | settle | sleep | wake`. Un conseil à l'écran garde son visage au survol : se pencher
+  pendant qu'on lit une alerte changerait le sens de ce qu'on lit.
+- **`moodForSeverity`** : `info` → `happy`, `warn` et `critical` → `alert`.
+- **`frameFor(mood)`** : `{ eyeOpen, mouth, blush, aura, breath }` — six humeurs. `eyeOpen` 0 = fermé,
+  au-delà de 1 = écarquillé. Le composant ne décide rien.
+- **`gazeVector(pointer, center, radius = 240)`** : vecteur **unitaire**, nul au centre et au-delà du
+  rayon, de norme croissante avec la distance. Le composant multiplie par `GAZE_SHIFT = 2.6` unités
+  (côté 48) et applique `translate` sur le groupe des yeux.
+- **`nextBlinkDelay(random)`** 2400 à 6600 ms, `BLINK_DURATION_MS = 130`, `isBlinking(elapsed, at)`.
+- **`shouldSleep(idleMs, SLEEP_AFTER_MS = 45_000)`** : utilisé par l'aperçu de l'onglet Is (vérifié
+  toutes les 2 s, réveil au `pointermove`), pas par le notch.
+- Le sprite est un **SVG d'après `docs/brand/islet-mascot-transparent.png`** : dôme, palmier (3 palmes +
+  tronc), hémisphère en deux vagues, yeux ronds avec reflet blanc, bouche en « w ». Couleurs fixes
+  (`#f6f7fb` / `#14161c`), seul le halo prend la couleur du conseil.
+- **Outil de mise au point** : `@resvg/resvg-js` installé dans `/home/user/.tools` (hors dépôt) permet de
+  rasteriser un SVG et de le **regarder**. À refaire pour tout futur dessin.
+- Nom : `islet-assistant-name` (déjà là depuis l'accueil).
+

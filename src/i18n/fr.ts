@@ -108,6 +108,16 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
 
   // — Réglages : Is --------------------------------------------------------
   "settings.assistant.group": "{{name}} · Assistant",
+  "settings.assistant.character": "Le personnage",
+  "settings.assistant.character.auto": "Il cligne des yeux, vous regarde quand le curseur approche, et s'endort si on le laisse tranquille",
+  "settings.assistant.character.preview": "Aperçu d'un état. Choisissez « Repos » pour le lui rendre",
+  "settings.assistant.moods": "États du personnage",
+  "settings.assistant.mood.idle": "Repos",
+  "settings.assistant.mood.listening": "À l'écoute",
+  "settings.assistant.mood.thinking": "Réflexion",
+  "settings.assistant.mood.happy": "Content",
+  "settings.assistant.mood.alert": "Alerte",
+  "settings.assistant.mood.sleeping": "Endormi",
   "settings.assistant.name": "Nom",
   "settings.assistant.name.desc": "Le nom que le notch donne à votre assistant",
   "settings.assistant.enable": "Activer {{name}}",

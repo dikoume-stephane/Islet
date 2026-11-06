@@ -103,6 +103,16 @@ export const en = {
 
   // — Settings: Is ---------------------------------------------------------
   "settings.assistant.group": "{{name}} · Assistant",
+  "settings.assistant.character": "The character",
+  "settings.assistant.character.auto": "It blinks, watches you as the pointer comes near, and dozes off when left alone",
+  "settings.assistant.character.preview": "Previewing one state. Pick Idle to give it back to itself",
+  "settings.assistant.moods": "Character states",
+  "settings.assistant.mood.idle": "Idle",
+  "settings.assistant.mood.listening": "Listening",
+  "settings.assistant.mood.thinking": "Thinking",
+  "settings.assistant.mood.happy": "Happy",
+  "settings.assistant.mood.alert": "Alert",
+  "settings.assistant.mood.sleeping": "Asleep",
   "settings.assistant.name": "Name",
   "settings.assistant.name.desc": "What the notch calls your assistant",
   "settings.assistant.enable": "Enable {{name}}",

@@ -1,0 +1,81 @@
+/* Le personnage d'Is. Les couleurs viennent du dessin, pas du thème : Is reste
+   blanc sur le notch sombre comme sur le bureau clair, c'est sa silhouette qui
+   le détache. Seul le halo prend la couleur du conseil. */
+
+.is-sprite {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+  position: relative;
+}
+
+.is-sprite svg {
+  display: block;
+  overflow: visible;
+}
+
+.is-sprite-body {
+  fill: #f6f7fb;
+  transform-origin: 24px 35px;
+  animation: is-sprite-breathe var(--is-breath, 4200ms) ease-in-out infinite;
+}
+
+.is-sprite-palm {
+  fill: none;
+  stroke: #f6f7fb;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.is-sprite-eyes {
+  fill: #14161c;
+  transition: transform 140ms ease-out;
+}
+
+.is-sprite-eyes path {
+  fill: none;
+  stroke: #14161c;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.is-sprite-glint {
+  fill: #ffffff;
+}
+
+.is-sprite-mouth {
+  fill: none;
+  stroke: #14161c;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.is-sprite-mouth-solid {
+  fill: #14161c;
+}
+
+.is-sprite-blush {
+  fill: var(--is-accent, #ffffff);
+  opacity: 0.4;
+}
+
+.is-sprite-aura {
+  fill: var(--is-accent, #ffffff);
+  opacity: calc(var(--is-aura, 0) * 0.16);
+  filter: blur(5px);
+}
+
+@keyframes is-sprite-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+/* Mouvement réduit : ni souffle ni transition de regard. */
+.is-still .is-sprite-body { animation: none; }
+.is-still .is-sprite-eyes { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .is-sprite-body { animation: none; }
+  .is-sprite-eyes { transition: none; }
+}

@@ -5,6 +5,36 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (8) — J3 : le personnage
+
+**Fait**
+- `src/lib/character.ts` : réducteur d'humeur (`reduceIs`), cadres de dessin (`frameFor`), regard en
+  direction unitaire (`gazeVector`), clignement et sommeil. **39 tests**.
+- `src/components/IsSprite.tsx` : la mascotte en SVG, six humeurs plus le clignement, souffle, reflets,
+  halo coloré, `prefers-reduced-motion` respecté.
+- `AssistantTip` : Is prend le visage du conseil et suit le curseur du notch.
+- Onglet Is : bloc « Le personnage », six états à essayer, endormissement après 45 s.
+- Accueil : la mascotte remplace le logo sur l'étape du nom.
+
+**Constats**
+- Le sprite en image (le PNG du logo) ne pouvait pas avoir d'yeux qui suivent : il fallait dessiner. Le
+  SVG a un second avantage, celui de la mise au point : j'ai pu rasteriser les essais hors navigateur
+  (`@resvg/resvg-js`) et **regarder** le personnage aux tailles réelles, ce qui a tué deux fausses bonnes
+  idées (une ligne de mer qui s'emmêlait avec la bouche, un hémisphère trop dentelé).
+- Le regard est un vecteur **unitaire** dont la norme croît avec la distance et s'annule au-delà de
+  240 px. Un personnage qui suit le curseur d'un bout à l'autre de l'écran ne regarde personne.
+- Une humeur qui ne répond à aucun événement est un mensonge animé : chaque état a son déclencheur, et
+  le réducteur refuse de changer le visage d'un conseil qu'on est en train de lire.
+
+**Bloqué**
+- Rien côté Rust : chantier entièrement interface.
+
+**À faire ensuite**
+- Vérifier sur Windows le rendu et le mouvement réduit.
+- Suite du ROADMAP : J5 (git, ports, build, focus), puis J6, J7.
+
+---
+
 ## 2026-11-05 (7) — J4 : la pilule minimale
 
 **Fait**

@@ -251,6 +251,24 @@ Islet n'est plus seulement une barre des tâches remplacée : c'est une **surfac
 
 **Demande** : « le mini avatar "Is" (ou le nom que l'utilisateur aura choisi) soit un mini assistant, utile pour les dev surtout », avec l'idée d'un avatar « que l'on poussera un peu plus tard ».
 
+### 3.B.1 — Livré : le personnage (2026-11-05)
+
+| ID | État | Ce qui a été fait |
+|---|---|---|
+| P3-B1 | ✅ | Sprite SVG dessiné d'après la mascotte (`docs/brand/islet-mascot-transparent.png`) : dôme, palmier, hémisphère en vague, yeux ronds avec reflet, bouche en « w » |
+| P3-B2 | ✅ | Six humeurs (`idle`, `listening`, `thinking`, `happy`, `alert`, `sleeping`) plus le clignement, tiré au hasard entre 2,4 et 6,6 s |
+| P3-B3 | ✅ | Le regard suit le curseur **dans un rayon de 240 px**, en direction unitaire : au-delà, les yeux reviennent au centre |
+| P3-B4 | ✅ | Endormissement après 45 s sans mouvement, réveil au moindre geste ; l'aperçu des réglages le montre |
+| P3-B5 | ✅ | Nom personnalisable (`islet-assistant-name`), déjà en place depuis l'accueil |
+| P3-B6 | ⏸ | Interaction « pousser » : hors périmètre |
+| P3-B7 | ✅ | `prefers-reduced-motion` coupe le souffle **et** le clignement |
+
+`src/lib/character.ts` tient le réducteur, les cadres d'humeur, le regard et le sommeil ; `scripts/character.test.ts`
+les vérifie (**39 tests**). `src/components/IsSprite.tsx` ne décide rien : il dessine ce qu'on lui dit.
+
+Le personnage apparaît là où Is parle (le conseil du notch), là où on lui donne son nom (l'accueil) et là où on
+le règle (onglet Is), avec un aperçu vivant des six états.
+
 ### 3.B.1 Le personnage
 
 | ID | Tâche | Détail |
@@ -468,14 +486,14 @@ et `test:theme` refuse le contraire. Liquid Glass est à 66 %, pas à 42 %.
 |---|---|---|
 | **J1 — Accueil** ✅ | 3.A complet (sauf sélecteur de langue, reporté en J8) | Aucune |
 | **J2 — Matière** ✅ | 3.D presets + Liquid Glass (2026-11-04) | Aucune |
-| **J3 — Personnage** | 3.B.1 + 3.B.3 (états, regard, sommeil) | J1 (nom de l'assistant) |
+| **J3 — Personnage** ✅ | 3.B.1 + 3.B.3 (états, regard, sommeil) — livré 2026-11-05 | J1 (nom de l'assistant) |
 | **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) | J3 |
 | **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
 | **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |
 
-Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → ~~J2~~ ✅ → **J4 → J3 → J5 → J6 → J7**
+Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → ~~J2~~ ✅ → ~~J4~~ ✅ → ~~J3~~ ✅ → **J5 → J6 → J7**
 (J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
 chaque écran livré avant lui est un écran à traduire plus tard).
 

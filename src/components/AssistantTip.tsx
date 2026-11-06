@@ -1,8 +1,11 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { tipPlainText, tipText, type AssistantTip, type TipSeverity } from "../lib/assistant";
+import { gazeVector, moodForSeverity } from "../lib/character";
+import { useTrailingThrottle } from "../hooks/useTrailingThrottle";
 import { useT } from "../i18n";
+import { IsSprite } from "./IsSprite";
 
 /**
  * Is' tip, rendered in the notch.
@@ -39,6 +42,29 @@ export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
   const { title, detail } = tipText(tip.message, t);
   const plain = tipPlainText(tip.message, t);
 
+  // Is regarde ce qui bouge autour de lui, et seulement autour : au-delà du
+  // rayon, ses yeux reviennent au centre. Un personnage qui suit le curseur
+  // d'un bout à l'autre de l'écran ne regarde personne, il surveille.
+  const avatarRef = useRef<HTMLSpanElement>(null);
+  const [gaze, setGaze] = useState({ x: 0, y: 0 });
+  const trackGaze = useTrailingThrottle((x: number, y: number) => {
+    const node = avatarRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    setGaze(gazeVector({ x, y }, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }));
+  }, 70);
+
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => trackGaze(event.clientX, event.clientY);
+    const onLeave = () => setGaze({ x: 0, y: 0 });
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
+  }, [trackGaze]);
+
   return (
     <motion.div
       // Keyed by tip so the flare replays for each new message instead of being
@@ -54,12 +80,14 @@ export function AssistantTipView({ tip, onDismiss }: AssistantTipViewProps) {
       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.04, filter: "blur(4px)" }}
       transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 26 }}
     >
-      <span className="assistant-tip-avatar" aria-hidden>
+      <span className="assistant-tip-avatar" ref={avatarRef} aria-hidden>
         {/* Two rings expanding out of the mascot: the eye catches motion at the
             top of the screen long before it reads a line of text. */}
         <span className="assistant-tip-ring" />
         <span className="assistant-tip-ring assistant-tip-ring-late" />
-        <img src="/islet.png" alt="" draggable={false} />
+        {/* Is prend le visage de ce qu'il annonce : sourire pour une remarque
+            sans conséquence, yeux écarquillés pour un avertissement. */}
+        <IsSprite mood={moodForSeverity(tip.severity)} size={20} accent={accent} gaze={gaze} />
         <span className="assistant-tip-dot" />
       </span>
 
