@@ -82,6 +82,7 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-calendar-view` | `"day"` / `"week"` / `"month"` / `"agenda"` | `"month"` | Which view the notch calendar shows once a calendar source is connected. Set by the Day / Week / Month / Agenda switcher in the notch. |
 | `islet-music-mode-enabled` | `"true"` / `"false"` | `"true"` | Enable interactive music media widget. |
 | `islet-music-compact-notch` | `"true"` / `"false"` | `"true"` | Show compact music display (visualizer + artwork) in collapsed notch. |
+| `islet-notch-pill-minimal` | `"true"` / `"false"` | `"false"` | Minimal pill: the collapsed notch shows the time alone, narrower, with no artwork or visualizer even while music plays. Hovering brings everything back. |
 | `islet-clipboard-enabled` | `"true"` / `"false"` | `"true"` | Keep a clipboard history in the notch (Settings › Notch › Clipboard History). Turning it off stops the watcher, not just the panel. |
 | `islet-clipboard-paste` | `"true"` / `"false"` | `"false"` | Clicking an entry pastes it into the window you came from instead of only copying it. |
 | `islet-lyrics-enabled` | `"true"` / `"false"` | `"false"` | Look up the current track's lyrics on LRCLIB. The only feature that talks to a server, so it is off until you turn it on. |
@@ -91,6 +92,19 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Minimal pill
+
+A notch that is collapsed has nothing to prove, and the collapsed Islet notch can still carry a
+visualizer and album art while music plays. Turn this on and the collapsed notch becomes a narrow pill
+with the time, nothing else: no artwork, no visualizer, 96 pixels wide instead of 140 or 200.
+
+Hovering brings everything back at once, and so do a tip, a battery alert or an open panel: the reduced
+shape only ever governs the notch at rest. A running timer still shows, because that is something you
+asked for.
+
+Off by default. Changing the notch's shape under someone who has arranged their widgets would be a
+regression dressed up as a finishing touch.
 
 ### Keyboard indicators
 

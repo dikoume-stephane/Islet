@@ -3,6 +3,7 @@ import {
   Calendar,
   Music,
   Minimize2,
+  RectangleHorizontal,
   LayoutList,
   Sparkles,
   Circle,
@@ -64,6 +65,8 @@ interface NotchTabProps {
   toggleMusicMode: () => void;
   musicCompactNotch: boolean;
   toggleMusicCompactNotch: () => void;
+  pillMinimal: boolean;
+  togglePillMinimal: () => void;
   mediaLayout: "classic" | "compact";
   toggleMediaLayout: (layout: "classic" | "compact") => void;
   mediaAmbienceEnabled: boolean;
@@ -120,6 +123,8 @@ export function NotchTab({
   toggleMusicMode,
   musicCompactNotch,
   toggleMusicCompactNotch,
+  pillMinimal,
+  togglePillMinimal,
   mediaLayout,
   toggleMediaLayout,
   mediaAmbienceEnabled,
@@ -214,6 +219,13 @@ export function NotchTab({
             />
           </SettingRow>
         ))}
+
+        <SettingRow icon={RectangleHorizontal} label={t("notch.pillMinimal")} desc={t("notch.pillMinimal.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={pillMinimal} onChange={togglePillMinimal} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
 
         <SettingRow icon={Calendar} label={t("notch.calendar")} desc={t("notch.calendar.desc")}>
           <label className="toggle-switch">

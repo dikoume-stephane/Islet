@@ -357,6 +357,8 @@ export const fr: Record<keyof typeof en, string | { one: string; other: string }
   "notch.stopwatch.desc": "Compte à l'endroit, avec temps intermédiaires",
   "notch.music": "Mode musique",
   "notch.music.desc": "Widget musical interactif en direct",
+  "notch.pillMinimal": "Pilule minimale",
+  "notch.pillMinimal.desc": "Réduire le notch replié au temps seul : ni pochette, ni visualiseur, et une forme plus étroite. Le survol rend tout",
   "notch.compact": "Mode compact",
   "notch.compact.desc": "Afficher visualiseur et pochette une fois replié",
   "notch.mediaLayout": "Disposition du lecteur",

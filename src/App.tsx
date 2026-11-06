@@ -26,6 +26,7 @@ import { NotchShelf } from "./components/NotchShelf";
 import { useTodos } from "./hooks/useTodos";
 import { NotchTodos } from "./components/NotchTodos";
 import { pendingReminders } from "./lib/todo";
+import { collapsedPill, minimalPillActive } from "./lib/pill";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { NotchClock, StopwatchReadout } from "./components/NotchClock";
 import { useCountdown } from "./hooks/useCountdown";
@@ -677,6 +678,9 @@ function App() {
   const productivityEnabled = settingsCalendarEnabled || showClockColumn;
   const [settingsMusicModeEnabled, setSettingsMusicModeEnabled] = useState(() => localStorage.getItem("islet-music-mode-enabled") !== "false");
   const [settingsMusicCompactNotch, setSettingsMusicCompactNotch] = useState(() => localStorage.getItem("islet-music-compact-notch") !== "false");
+  // Pilule minimale : le notch replié réduit au temps. Éteinte par défaut,
+  // pour ne pas changer sous les pieds de qui a réglé ses widgets.
+  const [settingsPillMinimal, setSettingsPillMinimal] = useState(() => localStorage.getItem("islet-notch-pill-minimal") === "true");
   const [settingsVisualizerEnabled, setSettingsVisualizerEnabled] = useState(() => localStorage.getItem("islet-visualizer-enabled") !== "false");
   const [settingsAlbumArtEnabled, setSettingsAlbumArtEnabled] = useState(() => localStorage.getItem("islet-media-album-art-enabled") !== "false");
   const [settingsAmbienceEnabled, setSettingsAmbienceEnabled] = useState(() => localStorage.getItem("islet-media-ambience-enabled") !== "false");
@@ -728,6 +732,7 @@ function App() {
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsMusicModeEnabled(getVal("islet-music-mode-enabled", "true") !== "false");
       setSettingsMusicCompactNotch(getVal("islet-music-compact-notch", "true") !== "false");
+      setSettingsPillMinimal(getVal("islet-notch-pill-minimal", "false") === "true");
       const viz = getVal("islet-media-visualizer-enabled") ?? getVal("islet-visualizer-enabled", "true");
       setSettingsVisualizerEnabled(viz !== "false");
       setSettingsAlbumArtEnabled(getVal("islet-media-album-art-enabled", "true") !== "false");
@@ -860,6 +865,7 @@ function App() {
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
       "islet-music-mode-enabled": setSettingsMusicModeEnabled,
       "islet-music-compact-notch": setSettingsMusicCompactNotch,
+      "islet-notch-pill-minimal": setSettingsPillMinimal,
       "islet-media-visualizer-enabled": setSettingsVisualizerEnabled,
       "islet-visualizer-enabled": setSettingsVisualizerEnabled,
       "islet-media-album-art-enabled": setSettingsAlbumArtEnabled,
@@ -1615,6 +1621,27 @@ function App() {
   // Music mode shows any time we have media info (playing or paused) and music mode setting is enabled
   const isMusicMode = mediaInfo.has_media && isletMode === 'music' && settingsMusicModeEnabled;
 
+  // La pilule minimale ne gouverne que le notch au repos : un conseil, une
+  // alerte ou un panneau ouvert reprennent la main, sinon une forme réduite
+  // resterait réduite pendant qu'on la lit.
+  const pillAlert = Boolean(assistantTip) || showPowerPulse || showLowBatteryPulse || showUpdatePulse;
+  const minimalPill = minimalPillActive({
+    enabled: settingsPillMinimal,
+    hovered: isHovered,
+    mode: isletMode,
+    alert: pillAlert,
+  });
+  const collapsed = collapsedPill({
+    minimal: minimalPill,
+    music: isMusicMode,
+    playing: isPlaying,
+    visualizer: settingsVisualizerEnabled,
+    albumArt: settingsAlbumArtEnabled,
+  });
+  // Au survol, le notch reprend tout : les modules ne dépendent plus du réglage.
+  const showPillVisualizer = isHovered ? settingsVisualizerEnabled : collapsed.showVisualizer;
+  const showPillAlbumArt = isHovered ? settingsAlbumArtEnabled : collapsed.showAlbumArt;
+
   // Calculate width dynamically based on enabled features
   const getDynamicWidth = () => {
     if (isletMode === 'clipboard') return 340;
@@ -1634,18 +1661,8 @@ function App() {
     if (assistantTip && !isHovered) return 290;
     if ((showPowerPulse || showLowBatteryPulse || showUpdatePulse) && !isHovered) return 200;
 
-    let w = 140;
-    if (isMusicMode) {
-      w = 140;
-      if (settingsVisualizerEnabled && isPlaying) w += 30;
-      if (settingsAlbumArtEnabled) w += 30;
-
-      if (isHovered) {
-        w += 60;
-      }
-    }
-
-    return w;
+    // Replié : la géométrie est décidée dans `src/lib/pill.ts`, testée là-bas.
+    return collapsed.width;
   };
 
   const getDynamicHeight = () => {
@@ -2060,9 +2077,9 @@ function App() {
                                     <UpdateActivity />
                                   </motion.div>
                                 </AnimatePresence>
-                              ) : isMusicMode && settingsVisualizerEnabled ? (
+                              ) : isMusicMode && showPillVisualizer ? (
                                 <AnimatePresence>
-                                  {settingsVisualizerEnabled && (
+                                  {showPillVisualizer && (
                                     <motion.div
                                       key="visualizer"
                                       initial={{ scale: 0.8, opacity: 0 }}
@@ -2122,7 +2139,7 @@ function App() {
 
                             {/* Right: album art (music) or battery (command-center, calendar) */}
                             <div className="side-content right">
-                              {isMusicMode && settingsAlbumArtEnabled ? (
+                              {isMusicMode && showPillAlbumArt ? (
                                 <AnimatePresence mode="wait">
                                   <motion.div
                                     key="album-art"

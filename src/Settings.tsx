@@ -254,6 +254,8 @@ function SettingsApp() {
               toggleMusicMode={settings.toggleMusicMode}
               musicCompactNotch={settings.musicCompactNotch}
               toggleMusicCompactNotch={settings.toggleMusicCompactNotch}
+              pillMinimal={settings.pillMinimal}
+              togglePillMinimal={settings.togglePillMinimal}
               mediaLayout={settings.mediaLayout}
               toggleMediaLayout={settings.toggleMediaLayout}
               mediaAmbienceEnabled={settings.mediaAmbienceEnabled}

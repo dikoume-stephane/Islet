@@ -353,6 +353,8 @@ export const en = {
   "notch.stopwatch.desc": "Count up with laps",
   "notch.music": "Music Mode",
   "notch.music.desc": "Interactive live music widget",
+  "notch.pillMinimal": "Minimal Pill",
+  "notch.pillMinimal.desc": "Keep the collapsed notch to the time alone: no artwork, no visualizer, and a narrower shape. Hovering brings it all back",
   "notch.compact": "Compact Mode",
   "notch.compact.desc": "Show visualizer & artwork when collapsed",
   "notch.mediaLayout": "Media Layout",

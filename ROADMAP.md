@@ -342,10 +342,22 @@ Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, p
 | P3-C5 | **To-do du jour** | ✅ (J4) | Tâches avec heure d'échéance en langage naturel, rappel via le notch, report au lendemain, sections retard/aujourd'hui/à venir |
 | P3-C6 | **Indicateurs clavier** | ✅ (J4) | Verr Maj / Verr Num / Défil et langue de saisie, en surcouche brève au bas de l'écran, une seule pastille mise en avant |
 | P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
-| P3-C8 | **Modes notch minimalistes** | Partiel | Ajouter la « pilule minimale » (temps seul, aucun module) |
+| P3-C8 | **Modes notch minimalistes** | ✅ (J4) | Pilule minimale : le notch replié réduit au temps seul, plus étroit, sans pochette ni visualiseur ; le survol rend tout |
 | P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
 
 **Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C8 en détail** (livré 2026-11-05) : `src/lib/pill.ts` décide quand le réglage s'applique et quelle largeur
+prend le notch replié, `App.tsx` s'y conforme. **21 tests**.
+
+Deux règles, et ce sont celles qu'on se trompe à écrire à la main. La pilule ne gouverne **que le notch au
+repos** : le survol, un conseil, une alerte ou un panneau ouvert reprennent la main, sinon une forme réduite
+resterait réduite pendant qu'on la lit. Et le visualiseur ne compte dans la largeur **que lorsqu'il bouge** :
+au repos ses barres retombent, il n'occupe plus rien de plus que la pochette. Hors mode musique, aucun
+module musical n'entre dans la largeur.
+
+Le réglage `islet-notch-pill-minimal` est **éteint par défaut** : changer la forme du notch sous les pieds de
+quelqu'un qui a réglé ses widgets serait une régression déguisée en finition.
 
 **P3-C6 en détail** (livré 2026-11-05) : `src-tauri/src/keyboard_indicators.rs` est un capteur (crochet clavier
 pour les trois touches, sondage de la disposition au premier plan pour la langue), `src/lib/keyboard.ts` décide

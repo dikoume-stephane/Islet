@@ -423,3 +423,21 @@ La syntaxe a été relue, pas vérifiée par `cargo`.
 - Réglage `islet-keyboard-indicators-enabled` (actif par défaut) dans l'onglet Surcouches ; coupé, le
   backend ne lit rien et n'envoie rien.
 - ⚠️ `keyboard_indicators.rs` n'est **pas compilé** ici : pas de toolchain Rust.
+
+---
+
+## 14. Pilule minimale (J4 / P3-C8, livré 2026-11-05)
+
+Le notch déplié justifie sa place, le notch replié encombre. `src/lib/pill.ts` ne dessine rien : il
+répond à deux questions, et ce sont celles qui se trompent à la main.
+
+- **Quand le réglage s'applique** — `minimalPillActive` : au repos seulement. Le survol, un conseil, une
+  alerte (batterie, mise à jour) ou un panneau ouvert (`PANEL_MODES`) reprennent la main. Une forme
+  réduite qui resterait réduite pendant qu'on la lit ne servirait à rien.
+- **Quelle largeur et quels modules** — `collapsedPill` : `PILL_MIN_WIDTH = 96`, `PILL_BASE_WIDTH = 140`,
+  `PILL_MUSIC_MODULE_WIDTH = 30`. Le visualiseur ne compte **que s'il bouge** (au repos ses barres
+  retombent), la pochette compte toujours, et hors mode musique rien ne compte.
+- Dans `App.tsx`, `showPillVisualizer` / `showPillAlbumArt` valent le réglage quand on survole, le calcul
+  sinon. `getDynamicWidth` se termine par `return collapsed.width`.
+- Réglage `islet-notch-pill-minimal`, **éteint par défaut**, onglet Notch, icône `RectangleHorizontal`.
+- Un minuteur en cours reste affiché : c'est quelque chose qu'on a demandé, pas un module de décoration.

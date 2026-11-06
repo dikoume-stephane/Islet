@@ -35,6 +35,10 @@ export function useSettings() {
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
   const [musicModeEnabled, setMusicModeEnabled] = useState(true);
   const [musicCompactNotch, setMusicCompactNotch] = useState(true);
+  // Pilule minimale : le notch replié au temps seul. Éteinte par défaut.
+  const [pillMinimal, setPillMinimal] = useState(
+    () => localStorage.getItem("islet-notch-pill-minimal") === "true"
+  );
   const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(true);
   const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(
     () => localStorage.getItem("islet-volume-edge-enabled") !== "false"
@@ -513,6 +517,12 @@ export function useSettings() {
     saveSetting("islet-music-compact-notch", String(next));
   };
 
+  const togglePillMinimal = () => {
+    const next = !pillMinimal;
+    setPillMinimal(next);
+    saveSetting("islet-notch-pill-minimal", String(next));
+  };
+
   const toggleMediaLayout = (layout: "classic" | "compact") => {
     setMediaLayout(layout);
     saveSetting("islet-media-layout", layout);
@@ -941,6 +951,8 @@ export function useSettings() {
     toggleMusicMode,
     musicCompactNotch,
     toggleMusicCompactNotch,
+    pillMinimal,
+    togglePillMinimal,
     mediaLayout,
     toggleMediaLayout,
     mediaAmbienceEnabled,

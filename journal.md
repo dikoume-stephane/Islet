@@ -5,6 +5,36 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (7) — J4 : la pilule minimale
+
+**Fait**
+- `src/lib/pill.ts` : quand le réglage s'applique, largeur et modules du notch replié. **21 tests**
+  (`npm run test:pill`).
+- `App.tsx` : le notch replié passe de 140 à 96 pixels, et perd visualiseur et pochette tant qu'on ne
+  le survole pas. Le calcul de largeur sort de `getDynamicWidth`, où il était noyé.
+- Réglage `islet-notch-pill-minimal`, **éteint par défaut**, onglet Notch.
+
+**Constats**
+- La question n'était pas la largeur, c'était **quand** le réglage s'applique. Réduire le notch pendant
+  qu'on le survole aurait donné une forme qui ne s'ouvre jamais : le survol, un conseil, une alerte ou
+  un panneau ouvert reprennent donc la main, et le test le vérifie mode par mode.
+- Deuxième piège de géométrie : le visualiseur ne compte dans la largeur **que lorsqu'il bouge**. Au
+  repos ses barres retombent ; les compter quand même laissait 30 pixels de vide. Le test compare les
+  seize combinaisons de musique, lecture, visualiseur et pochette.
+- Éteint par défaut, volontairement : changer la forme du notch sous les pieds de quelqu'un qui a réglé
+  ses widgets serait une régression déguisée en finition.
+
+**Bloqué**
+- Rien de neuf côté Rust : ce chantier est entièrement côté interface.
+
+**À faire ensuite**
+- Sur Windows : activer le réglage, lancer un morceau, vérifier que le notch replié ne montre que
+  l'heure, puis le survoler.
+- J4 est complet côté code (`C9`, `C1`, `C2`, `C3`, `C5`, `C6`, `C8` ; `C4` écarté). Suite du ROADMAP :
+  J3, puis J5.
+
+---
+
 ## 2026-11-05 (6) — J4 : les témoins du clavier
 
 **Fait**

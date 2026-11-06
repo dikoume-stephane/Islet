@@ -53,9 +53,10 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 
 ## En cours
 - **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
-  chrono/minuteur libre (P3-C3), to-do du jour (P3-C5) et indicateurs clavier (P3-C6) livrés,
-  **302 tests** TypeScript au vert. L'hydratation (P3-C4) a été écartée à la demande. Reste la
-  validation Rust sur Windows, puis la pilule minimale (P3-C8).
+  chrono/minuteur libre (P3-C3), to-do du jour (P3-C5), indicateurs clavier (P3-C6) et pilule
+  minimale (P3-C8) livrés, **323 tests** TypeScript au vert. L'hydratation (P3-C4) a été écartée à la
+  demande. La parité Nusa est donc complète côté code : reste la validation Rust et le rendu réel sur
+  Windows.
 
 ¹ A8 livré en Phase 2 depuis une capture Windows réelle ; reste à refaire après rebuild pour l'icône du dock (build antérieur à la PR #2).
 

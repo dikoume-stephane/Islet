@@ -128,8 +128,7 @@
   - [x] J2d — `NotchClock` : jauge de progression, heure de fin, état « temps écoulé », raccourcis 1/3/5/10/25/50, liste complète des tours avec meilleur et pire, effacement des tours
   - [x] J2e — Notch compact : un minuteur en pause reste affiché au lieu de rendre la place à l'horloge
   - [ ] J2f — **À vérifier sur Windows** : lancer un minuteur, mettre le PC en veille deux minutes, vérifier que le décompte a bien avancé de deux minutes au réveil
-- [ ] J3 — Indicateurs Caps Lock / Verr Num / langue
-- [ ] J4 — Pilule minimale (temps seul)
+- [x] J3 — Indicateurs Caps Lock / Verr Num / langue → voir J8
 - [x] J5 — **File shelf** ✅ livré 2026-11-05
   - [x] J5a — `src/lib/shelf.ts` : nature par extension, unités SI traduites, dédoublonnage insensible à la casse, plafond 24, ordre (manquants en bas), chemins abrégés — **41 tests**
   - [x] J5b — `src-tauri/src/shelf.rs` : `shelf_list` / `_add` / `_remove` / `_clear`, persistance `shelf.json`, existence et taille revérifiées à chaque lecture
@@ -152,6 +151,12 @@
   - [x] J8d — `Overlay.tsx` : surcouche au bas de l'écran, 1,5 s, seule la pastille qui a changé est mise en avant
   - [x] J8e — Réglage `islet-keyboard-indicators-enabled` dans l'onglet Surcouches
   - [ ] J8f — **À vérifier sur Windows** : compiler, appuyer sur Verr Maj dans une autre application et voir la pastille ; faire Alt+Maj et vérifier que la langue change bien
+- [x] J9 — **Pilule minimale** ✅ livré 2026-11-05
+  - [x] J9a — `src/lib/pill.ts` : quand le réglage s'applique (au repos seulement), largeur et modules du notch replié — **21 tests**
+  - [x] J9b — `scripts/pill.test.ts` + `npm run test:pill`, branché dans `npm run test`
+  - [x] J9c — `App.tsx` : largeur du notch replié ramenée à 96 px, visualiseur et pochette retirés tant qu'on ne survole pas, calcul sorti de `getDynamicWidth`
+  - [x] J9d — Réglage `islet-notch-pill-minimal` (éteint par défaut) dans l'onglet Notch, libellé et description bilingues
+  - [ ] J9e — **À vérifier sur Windows** : activer le réglage, lancer un morceau et vérifier que le notch replié ne montre que l'heure, puis le survoler et retrouver pochette et widgets
 
 ## Bloc K — Assistant « Is » (J3, J5)
 
