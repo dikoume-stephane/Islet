@@ -1704,3 +1704,53 @@ input:checked + .slider:before {
 .light-mode .dev-build-input::placeholder {
   color: rgba(0, 0, 0, 0.28);
 }
+
+/* ─── Durée d'une session de focus ──────────────────────────────────────── */
+
+.focus-presets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
+}
+
+.focus-preset {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.focus-preset:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-color, #fff);
+}
+
+.focus-preset.is-on {
+  background: rgba(100, 210, 255, 0.18);
+  color: #9fe4ff;
+}
+
+.light-mode .focus-presets {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.light-mode .focus-preset {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.light-mode .focus-preset.is-on {
+  background: rgba(10, 132, 255, 0.14);
+  color: #0a6cc4;
+}

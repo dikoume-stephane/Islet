@@ -27,6 +27,7 @@ import { useTodos } from "./hooks/useTodos";
 import { NotchTodos } from "./components/NotchTodos";
 import { NotchDev } from "./components/NotchDev";
 import { useDev } from "./hooks/useDev";
+import { useFocus } from "./hooks/useFocus";
 import { pendingReminders } from "./lib/todo";
 import { collapsedPill, minimalPillActive } from "./lib/pill";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
@@ -340,7 +341,7 @@ function App() {
   // Is: hardware signals + tips (battery, disks, memory, session).
   const systemSignals = useSystemSignals();
   const {
-    tip: assistantTip,
+    tip: assistantTipRaw,
     unread: assistantUnread,
     dismiss: dismissAssistantTip,
     acknowledge: acknowledgeAssistantTip,
@@ -349,7 +350,8 @@ function App() {
 
   // Is has something to say that the user has not looked at yet: the collapsed
   // notch carries a coloured outline until they acknowledge it.
-  const isSignalling = assistantUnread !== null && assistantTip === null;
+  /** Pendant une session, plus rien ne doit tirer l'œil. */
+  const focusQuietRef = useRef(false);
 
   const t = useT();
 
@@ -364,6 +366,10 @@ function App() {
   const eventPeekTimeoutRef = useRef<any>(null);
   const updatePulseTimerRef = useRef<any>(null);
   const triggerEventPeek = useCallback((duration = 3000) => {
+    // Une session de focus est une promesse de silence : aucun aperçu ne la
+    // rompt. La lecture passe par une référence pour ne pas reconstruire cette
+    // fonction, appelée depuis une dizaine d'effets.
+    if (focusQuietRef.current) return;
     setEventPeek(true);
     if (eventPeekTimeoutRef.current) clearTimeout(eventPeekTimeoutRef.current);
     eventPeekTimeoutRef.current = setTimeout(() => setEventPeek(false), duration);
@@ -406,9 +412,11 @@ function App() {
   }, [batteryLevel, isCharging, lowBatteryThreshold, isReady, notchMode, triggerEventPeek, hasBattery, assistantSettings.enabled, assistantSettings.battery]);
 
   // Is has something to say: in peek mode, unfold the notch for the tip.
+  // `triggerEventPeek` refuse de s'exécuter pendant une session de focus : la
+  // garde est là-bas, pour que tous les aperçus s'y plient d'un coup.
   useEffect(() => {
-    if (assistantTip && notchMode === "peek") triggerEventPeek(10_000);
-  }, [assistantTip, notchMode, triggerEventPeek]);
+    if (assistantTipRaw && notchMode === "peek") triggerEventPeek(10_000);
+  }, [assistantTipRaw, notchMode, triggerEventPeek]);
 
   // Weather state (managed by useWeather hook)
 
@@ -498,7 +506,6 @@ function App() {
     if (raw === "auto-hide") return "smart";
     return raw;
   });
-  const [dndActive, setDndActive] = useState(false);
   const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("islet-dock-enabled") !== "false");
   const [isNotchHovered, setIsNotchHovered] = useState(false);
 
@@ -671,6 +678,10 @@ function App() {
   const [settingsDevEnabled, setSettingsDevEnabled] = useState(() => localStorage.getItem("islet-dev-enabled") !== "false");
   const [settingsDevFolder, setSettingsDevFolder] = useState(() => localStorage.getItem("islet-dev-folder") ?? "");
   const [settingsDevBuild, setSettingsDevBuild] = useState(() => localStorage.getItem("islet-dev-build") ?? "");
+  const [settingsFocusMinutes, setSettingsFocusMinutes] = useState(() => {
+    const stored = Number(localStorage.getItem("islet-focus-minutes"));
+    return Number.isFinite(stored) && stored > 0 ? stored : 25;
+  });
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -736,6 +747,7 @@ function App() {
       setSettingsDevEnabled(getVal("islet-dev-enabled", "true") !== "false");
       setSettingsDevFolder(getVal("islet-dev-folder", "") ?? "");
       setSettingsDevBuild(getVal("islet-dev-build", "") ?? "");
+      setSettingsFocusMinutes(Number(getVal("islet-focus-minutes", "25")) || 25);
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -872,6 +884,7 @@ function App() {
       "islet-dev-enabled": setSettingsDevEnabled,
       "islet-dev-folder": setSettingsDevFolder,
       "islet-dev-build": setSettingsDevBuild,
+      "islet-focus-minutes": (value) => setSettingsFocusMinutes(Number(value) || 25),
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -1034,6 +1047,15 @@ function App() {
   // veille comme au redémarrage, là où un compteur qui retire une seconde par
   // seconde finit toujours par dériver.
   const countdown = useCountdown();
+  const focus = useFocus(countdown, settingsFocusMinutes);
+  focusQuietRef.current = focus.active;
+  /**
+   * Un conseil pendant une session attend son heure : il n'est pas jeté, il
+   * n'est pas affiché. Rien n'est perdu, la marque de non-lu reprend la main
+   * une fois la session finie, si personne ne l'a vue.
+   */
+  const assistantTip = focus.active ? null : assistantTipRaw;
+  const isSignalling = !focus.active && assistantUnread !== null && assistantTip === null;
   const timerSeconds = countdown.remainingSeconds;
   const isTimerRunning = countdown.running;
   const isTimerFinished = countdown.finished;
@@ -2330,10 +2352,24 @@ function App() {
                     {/* Circular Actions Row */}
                     <div className="cc-circular-actions-row">
                       <button
-                        className={`cc-circular-btn ${dndActive ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); setDndActive(prev => !prev); }}
+                        className={`cc-circular-btn ${focus.active ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); focus.toggle(); }}
+                        title={
+                          focus.active
+                            ? t("focus.running", { time: formatTimerTime(timerSeconds) })
+                            : t("focus.start", { minutes: settingsFocusMinutes })
+                        }
+                        aria-label={
+                          focus.active
+                            ? t("focus.running", { time: formatTimerTime(timerSeconds) })
+                            : t("focus.start", { minutes: settingsFocusMinutes })
+                        }
                       >
-                        <MoonIcon />
+                        {focus.active ? (
+                          <span className="cc-focus-time">{formatTimerTime(timerSeconds)}</span>
+                        ) : (
+                          <MoonIcon />
+                        )}
                       </button>
                       <button
                         className={`cc-circular-btn ${batterySaverEnabled ? 'active' : ''}`}

@@ -4343,3 +4343,21 @@ img {
         transition: none;
     }
 }
+
+/* ─── Le mode focus ─────────────────────────────────────────────────────── */
+
+/* Le bouton du centre de commandes porte le décompte pendant la session : le
+   chrono est déjà dans le notch, il n'a pas besoin d'être répété ailleurs. */
+.cc-focus-time {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cc-circular-btn {
+        transition: none;
+    }
+}

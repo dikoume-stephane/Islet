@@ -320,7 +320,7 @@ Le parti pris : **aucune IA requise au départ**. Is agrège des signaux locaux 
 | P3-B8 | **Git pulse** ✅ | Branche courante, fichiers modifiés, ahead/behind du dépôt suivi. Livré : trois commandes git en lecture seule, panneau du notch, 34 tests sur l'interprétation | `git` CLI lancé sur le dossier du projet suivi |
 | P3-B9 | **Port radar** ✅ | Ports en écoute, processus associé, âge du port, bouton « libérer ». Livré : `netstat -ano -p TCP` rapporté brut par Rust, interprété et testé en TypeScript | `netstat`, `kill_process` existant |
 | P3-B10 | **Build watcher** ✅ | L'utilisateur enregistre une commande (`bun run build`, `cargo check`…) ; Is l'exécute à la demande et affiche ✅/❌ + durée. Livré : `dev_run_build` (cmd /C borné à trois minutes, sortie mêlée puis tronquée à sa fin), bouton dans le panneau, champ `islet-dev-build` dans les réglages | spawn Rust, sortie capturée |
-| P3-B11 | **Focus guard** ⏳ | Mode focus = DND + chrono + Is au repos ; réutilise le Pomodoro existant | modules notch |
+| P3-B11 | **Focus guard** ✅ | Mode focus = silence + chrono + Is au repos. Livré : une session marque le minuteur du notch (un seul décompte dans l'app), les conseils d'Is et tous les aperçus sont coupés pendant la session, le bouton du centre de commandes porte le temps restant. Aucune retouche au Ne pas déranger de Windows : c'est le silence d'Islet, pas celui du système | modules notch, `useCountdown` réutilisé |
 | P3-B12 | **Rappels de contexte** ✅ | « 12 min sans commit sur une branche sale », « port 3000 occupé depuis 2 h », « 3 commits de retard ». Livrés dans le panneau ; leur passage en conseils d'Is viendra avec B10 | règles locales, pas de LLM |
 
 > ⚠️ **Aucun accès disque arbitraire** : l'utilisateur choisit explicitement le ou les dossiers que suit Is.
@@ -488,7 +488,7 @@ et `test:theme` refuse le contraire. Liquid Glass est à 66 %, pas à 42 %.
 | **J2 — Matière** ✅ | 3.D presets + Liquid Glass (2026-11-04) | Aucune |
 | **J3 — Personnage** ✅ | 3.B.1 + 3.B.3 (états, regard, sommeil) — livré 2026-11-05 | J1 (nom de l'assistant) |
 | **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
-| **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) — **B8, B9, B10 et B12 livrés**, B11 à faire | J3 |
+| **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) — **B8, B9, B10, B11 et B12 livrés**, J5 terminé | J3 |
 | **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
 | **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
 | **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |

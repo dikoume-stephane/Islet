@@ -251,6 +251,8 @@ function SettingsApp() {
               clearDevFolder={settings.clearDevFolder}
               devBuild={settings.devBuild}
               changeDevBuild={settings.changeDevBuild}
+              focusMinutes={settings.focusMinutes}
+              changeFocusMinutes={settings.changeFocusMinutes}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

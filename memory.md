@@ -518,3 +518,26 @@ répond à deux questions, et ce sont celles qui se trompent à la main.
 - ⚠️ `dev.rs` n'est toujours pas compilé ici ; `cmd /C` et la recherche de `bun` restent à vérifier
   sur Windows.
 
+---
+
+## 18. Le mode focus (P3-B11, livré 2026-11-05)
+
+- **Réglage** `islet-focus-minutes` (nombre, 25 par défaut ; l'UI n'offre que 25 / 45 / 90, la lecture
+  accepte 5 à 180). Le choisir ne démarre rien.
+- **`src/lib/focus.ts`** : `FOCUS_PRESETS = [25, 45, 90]`, `clampFocusMinutes` (5..180, arrondi,
+  `NaN` → 25), `focusSeconds`, `decodeFocusMinutes` (regex `^\d{1,3}$`, `< 5` → `null`),
+  `encodeFocusMinutes`, `focusActive(marked, running, finished, paused = false)`.
+- **`useFocus(countdown, minutes)`** : une session = **une marque dans `localStorage`**
+  (`islet-focus-session`) + **le minuteur du notch**. `start()` lance `countdown.start(minutes * 60)` ;
+  `stop()` fait `countdown.reset()`. La marque tombe dès qu'il n'y a plus ni minuteur en marche ni en
+  pause. Pas de second décompte, jamais.
+- **Effets pendant la session** : `assistantTip` forcé à `null`, `isSignalling` forcé à `false`,
+  `triggerEventPeek` sort immédiatement (garde par `focusQuietRef`, une référence, pour ne pas
+  reconstruire la fonction utilisée par une dizaine d'effets).
+- **UI** : le bouton lune du centre de commandes démarre / arrête et porte le décompte (`.cc-focus-time`
+  dans `.cc-circular-btn`). Trois boutons `.focus-preset` dans l'onglet Notch.
+- **Choix assumé** : aucun appel au mode Concentration de Windows. C'est le silence d'Islet, pas celui du
+  système, et c'est écrit dans SETTINGS.md.
+- ⚠️ Pièges : un second minuteur aurait doublé la source de vérité ; une session en pause doit rester
+  silencieuse ; une marque orpheline (plantage) doit mourir, sinon l'app se tait pour toujours.
+

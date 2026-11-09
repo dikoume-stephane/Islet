@@ -24,6 +24,7 @@ import {
   GitBranch,
   FolderGit2,
   Terminal,
+  Moon,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -33,6 +34,7 @@ import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 import { usePerMonitor } from "./usePerMonitor";
 import { useT } from "../i18n";
 import { shortPath } from "../lib/shelf";
+import { FOCUS_PRESETS } from "../lib/focus";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -66,6 +68,8 @@ interface NotchTabProps {
   clearDevFolder: () => void;
   devBuild: string;
   changeDevBuild: (command: string) => void;
+  focusMinutes: number;
+  changeFocusMinutes: (minutes: number) => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -131,6 +135,8 @@ export function NotchTab({
   clearDevFolder,
   devBuild,
   changeDevBuild,
+  focusMinutes,
+  changeFocusMinutes,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -299,6 +305,26 @@ export function NotchTab({
             </label>
           </SettingRow>
         )}
+
+        <SettingRow
+          icon={Moon}
+          label={t("focus.settings.minutes")}
+          desc={t("focus.settings.minutes.desc")}
+        >
+          <div className="focus-presets">
+            {FOCUS_PRESETS.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                className={`focus-preset${focusMinutes === minutes ? " is-on" : ""}`}
+                onClick={() => changeFocusMinutes(minutes)}
+                aria-pressed={focusMinutes === minutes}
+              >
+                {minutes}
+              </button>
+            ))}
+          </div>
+        </SettingRow>
 
         <SettingRow icon={Timer} label={t("notch.stopwatch")} desc={t("notch.stopwatch.desc")}>
           <label className="toggle-switch">

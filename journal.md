@@ -5,6 +5,39 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (11) — J5, le mode focus (P3-B11), et J5 terminé
+
+**Fait**
+- `src/lib/focus.ts` : les trois durées (25, 45, 90), les bornes (5 à 180 minutes), la marque de session
+  relue du stockage local, et la règle qui décide si une session est en cours. **12 tests**.
+- `src/hooks/useFocus.ts` : la session **marque le minuteur du notch** au lieu d'en créer un second. Un
+  seul décompte dans l'app, celui qui survit déjà à une mise en veille et à un redémarrage.
+- `src/App.tsx` : pendant la session, le conseil d'Is n'est plus affiché, la pastille d'alerte ne
+  s'allume plus, et `triggerEventPeek` refuse de s'exécuter. Une seule garde, donc tous les aperçus s'y
+  plient d'un coup. Le bouton du centre de commandes porte le temps restant.
+- Réglages : `islet-focus-minutes`, trois boutons dans l'onglet Notch.
+
+**Constats**
+- Le piège était de croire qu'il fallait un deuxième minuteur. Une session n'est pas une horloge, c'est
+  une **marque** posée à côté d'une horloge qui existe déjà. Moins de code, et la promesse tient mieux :
+  le décompte reste juste après une mise en veille.
+- Deuxième piège, la pause. Une session mise en pause doit rester silencieuse : reprendre ne doit pas
+  rouvrir les vannes au milieu hasardeux d'un travail commencé. `focusActive` accepte maintenant
+  `paused`, et un test le dit.
+- Troisième, la marque orpheline. Une valeur laissée dans le stockage après un plantage ne doit pas
+  rendre l'app muette pour toujours : sans minuteur qui tourne ou qui est en pause, il n'y a pas de
+  session.
+- Le bouton du centre de commandes était un faux Ne pas déranger : il basculait un booléen que personne
+  ne lisait. Il fait maintenant quelque chose, et il le dit.
+
+**Bloqué**
+- Rien de compilé côté Rust cette fois : B11 est entièrement côté front.
+
+**À faire ensuite**
+- J5 est terminé. La suite du ROADMAP : J6 (déjà couvert par la Shelf et les to-dos), puis J7.
+
+---
+
 ## 2026-11-05 (10) — J5, le build watcher (P3-B10)
 
 **Fait**

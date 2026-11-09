@@ -61,7 +61,10 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
   `islet-dev-folder`. **34 tests**.
 - **J5 — Build watcher** (P3-B10) : `dev_run_build` (cmd /C dans le dossier suivi, plafond de trois
   minutes, stdout et stderr mêlés, sortie tronquée à sa fin), bouton dans le panneau avec verdict et
-  durée, champ `islet-dev-build` dans les réglages. **12 tests** de plus. Reste le focus guard (B11).
+  durée, champ `islet-dev-build` dans les réglages. **12 tests** de plus.
+- **J5 — Focus guard** (P3-B11) : `src/lib/focus.ts` (presets, bornes, marque relue du stockage local),
+  `useFocus` posé sur le minuteur du notch, conseils et aperçus coupés pendant la session, décompte dans
+  le bouton du centre de commandes, durée réglable. **12 tests**. **J5 est terminé.**
 
 - **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
   chrono/minuteur libre (P3-C3), to-do du jour (P3-C5), indicateurs clavier (P3-C6) et pilule

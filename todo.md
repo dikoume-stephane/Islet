@@ -172,7 +172,8 @@
 - [ ] L1 — **Vérifier sur Windows** que `netstat` reste en anglais sur un système français (l'interprétation s'ancre sur `LISTENING`)
 - [x] L2 — **Build watcher** (P3-B10) ✅ : `islet-dev-build` enregistrée dans les réglages, `dev_run_build` dans Rust (cmd /C, plafond de trois minutes, stdout et stderr mêlés), bouton dans le panneau avec verdict et durée, fin de la sortie sur quatre lignes ; 12 tests sur le nettoyage de la sortie et le verdict
 - [ ] L2b — **Vérifier sur Windows** que `cmd /C` trouve bien `bun`, `cargo` et `npm` (mêmes variables qu'un terminal ouvert à la main), et qu'une commande de trois minutes est bien arrêtée
-- [ ] L3 — **Focus guard** (P3-B11) : mode focus = Ne pas déranger + chrono + Is au repos
+- [x] L3 — **Focus guard** (P3-B11) ✅ : session de 25, 45 ou 90 minutes, tenue par le minuteur du notch (marque dans le stockage local, donc une session survit à un redémarrage) ; pendant la session, plus de conseil d'Is, plus d'aperçu, plus de pastille d'alerte ; le bouton du centre de commandes porte le décompte ; 12 tests
+- [ ] L3b — **Décider du Ne pas déranger système** : la session ne touche pas au mode Concentration de Windows. Si un jour elle doit le faire, passer par les API documentées, jamais par le registre à l'aveugle
 - [ ] L4 — **Rappels de contexte en conseils d'Is** (P3-B12, suite) : brancher `devNotes` sur `pickTip` avec délais de répétition
 
 ## Bloc K — Assistant « Is » (J3, J5)

@@ -34,6 +34,7 @@ export function useSettings() {
   const [devFolder, setDevFolder] = useState("");
   // Vide par défaut : aucune commande n'est proposée à la place de l'utilisateur.
   const [devBuild, setDevBuild] = useState("");
+  const [focusMinutes, setFocusMinutes] = useState(25);
   const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
     () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
   );
@@ -182,6 +183,8 @@ export function useSettings() {
       if (storedFolder !== null) setDevFolder(storedFolder);
       const storedBuild = getVal("islet-dev-build");
       if (storedBuild !== null) setDevBuild(storedBuild);
+      const storedFocus = Number(getVal("islet-focus-minutes"));
+      if (Number.isFinite(storedFocus) && storedFocus > 0) setFocusMinutes(storedFocus);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -530,6 +533,12 @@ export function useSettings() {
   const changeDevBuild = (command: string) => {
     setDevBuild(command);
     saveSetting("islet-dev-build", command);
+  };
+
+  /** La durée d'une session de focus. Elle ne démarre rien : elle se choisit. */
+  const changeFocusMinutes = (minutes: number) => {
+    setFocusMinutes(minutes);
+    saveSetting("islet-focus-minutes", String(minutes));
   };
 
   const toggleTodo = () => {
@@ -997,6 +1006,8 @@ export function useSettings() {
     clearDevFolder,
     devBuild,
     changeDevBuild,
+    focusMinutes,
+    changeFocusMinutes,
     keyboardIndicatorsEnabled,
     toggleKeyboardIndicators,
     timerEnabled,

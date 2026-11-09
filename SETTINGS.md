@@ -92,6 +92,7 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
 | `islet-dev-enabled` | `"true"` / `"false"` | `"true"` | Show the developer panel (branch, changed files, listening ports). Off means neither `git` nor `netstat` runs. |
 | `islet-dev-folder` | string | `""` | The repository Islet reads. Empty means no `git` command is ever launched. Chosen with the folder picker in Settings › Notch. |
+| `islet-focus-minutes` | number | `25` | Length of a focus session, in minutes (`25`, `45` or `90` in the UI, 5 to 180 accepted). Choosing it starts nothing. |
 | `islet-dev-build` | string | `""` | The check command (`bun run build`, `cargo check`…). Empty means no button. It runs only when you click it, inside the tracked folder. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
@@ -121,6 +122,20 @@ four lines of output with terminal colours stripped: that is where the error is.
 Three remarks appear above the list when they apply: commits behind the upstream branch, a branch left
 dirty for more than twelve minutes, a port held for more than two hours. Nothing runs while the panel is
 closed, and nothing at all while the setting is off.
+
+### Focus session
+
+The command centre has a moon button. Clicking it starts a session; clicking it again ends it. While the
+session runs, **Islet stops interrupting**: no tip from Is, no peek of the notch, no alert marker. Is at
+rest is not a separate state, it is what happens when it has nothing to say.
+
+The chrono is the notch timer itself, not a second one. A session is therefore just a marker in local
+storage next to a running countdown, which is why it survives a restart, a pause, and a machine going to
+sleep, and why the remaining time shows up where you already read countdowns.
+
+The marker dies with the timer: a stop, a reset, or a countdown reaching zero drops it. A session
+interrupted by a crash therefore never leaves the app silent for ever. This is **Islet's own silence**,
+not the Windows Do Not Disturb: no system setting is touched.
 
 ### Minimal pill
 
