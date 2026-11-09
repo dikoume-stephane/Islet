@@ -149,6 +149,11 @@ Bundling the updater archive requires the maintainer's signing key (`TAURI_SIGNI
 bun run tauri build --bundles nsis --no-sign
 ```
 
+<<<<<<< HEAD
+=======
+Before shipping, run the gate: `npm run prerelease` (audit, tests, type-check). [RELEASE.md](RELEASE.md) walks through the rest of the process, including the checks that can only be done on Windows.
+
+>>>>>>> ac414a1 (chore(release): portillon de sortie et procédure de livraison)
 ### If the Rust build runs out of memory
 
 The first `tauri dev` build compiles roughly 600 crates. On an 8–16 GB machine, cargo's default "one job per core" can exhaust memory, kill `rustc` mid-build, and fail with misleading messages such as `rustc-LLVM ERROR: out of memory` or `only metadata stub found for rlib dependency core`. Those are symptoms of a crashed compilation, not of broken code.

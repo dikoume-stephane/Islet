@@ -23,7 +23,9 @@
     "test:character": "node_modules/.bin/esbuild scripts/character.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/character.test.mjs --log-level=error && node --test .test-build/character.test.mjs",
     "test:dev": "node_modules/.bin/esbuild scripts/dev.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/dev.test.mjs --log-level=error && node --test .test-build/dev.test.mjs",
     "test:focus": "node_modules/.bin/esbuild scripts/focus.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/focus.test.mjs --log-level=error && node --test .test-build/focus.test.mjs",
-    "test:ai": "node_modules/.bin/esbuild scripts/ai.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/ai.test.mjs --log-level=error && node --test .test-build/ai.test.mjs"
+    "test:ai": "node_modules/.bin/esbuild scripts/ai.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/ai.test.mjs --log-level=error && node --test .test-build/ai.test.mjs",
+    "audit": "node scripts/audit.mjs",
+    "prerelease": "npm run audit && npm run test && npm run build"
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",

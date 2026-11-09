@@ -185,7 +185,6 @@ fn main() {
             kill_process,
             export_settings,
             import_settings,
-            reset_settings,
             read_settings_from_path,
             write_settings_to_path,
             updater::check_for_updates,
