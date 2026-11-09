@@ -93,6 +93,9 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-dev-enabled` | `"true"` / `"false"` | `"true"` | Show the developer panel (branch, changed files, listening ports). Off means neither `git` nor `netstat` runs. |
 | `islet-dev-folder` | string | `""` | The repository Islet reads. Empty means no `git` command is ever launched. Chosen with the folder picker in Settings › Notch. |
 | `islet-focus-minutes` | number | `25` | Length of a focus session, in minutes (`25`, `45` or `90` in the UI, 5 to 180 accepted). Choosing it starts nothing. |
+| `islet-ai-enabled` | `"true"` / `"false"` | `"false"` | Ask a model to explain a build failure or summarise the work in progress. Off means nothing is ever sent. |
+| `islet-ai-endpoint` | string | `"http://127.0.0.1:11434"` | OpenAI-compatible provider. The default is Ollama on this machine. |
+| `islet-ai-model` | string | `"llama3.1"` | Model name, as the provider knows it. |
 | `islet-dev-build` | string | `""` | The check command (`bun run build`, `cargo check`…). Empty means no button. It runs only when you click it, inside the tracked folder. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
@@ -136,6 +139,21 @@ sleep, and why the remaining time shows up where you already read countdowns.
 The marker dies with the timer: a stop, a reset, or a countdown reaching zero drops it. A session
 interrupted by a crash therefore never leaves the app silent for ever. This is **Islet's own silence**,
 not the Windows Do Not Disturb: no system setting is touched.
+
+### AI assistance
+
+Off at install, and narrow on purpose. Two questions, both asked from the developer panel: **explain the
+failure** (the last 120 lines of a build) and **summarise the changes** (`git diff --stat`, never file
+contents). There is no agent writing to your repository, and there never will be one.
+
+What goes out is bounded and announced: the text is cut at 4,000 characters, keeping the end, and the
+panel carries a badge saying **local** or **remote**. The default address is `127.0.0.1:11434`, which is
+Ollama on this machine: with it, nothing leaves the computer. Point the address elsewhere and the badge
+turns amber, because the text now travels.
+
+Nothing is sent without a click. No timer, no polling, no request at startup, one question at a time.
+`ai_post` in Rust refuses any scheme other than http or https and any body over 60,000 bytes, and gives
+up after 60 seconds.
 
 ### Minimal pill
 

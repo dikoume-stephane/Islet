@@ -28,6 +28,8 @@ import { NotchTodos } from "./components/NotchTodos";
 import { NotchDev } from "./components/NotchDev";
 import { useDev } from "./hooks/useDev";
 import { useFocus } from "./hooks/useFocus";
+import { useAi } from "./hooks/useAi";
+import { DEFAULT_ENDPOINT, DEFAULT_MODEL } from "./lib/ai";
 import { pendingReminders } from "./lib/todo";
 import { collapsedPill, minimalPillActive } from "./lib/pill";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
@@ -678,6 +680,16 @@ function App() {
   const [settingsDevEnabled, setSettingsDevEnabled] = useState(() => localStorage.getItem("islet-dev-enabled") !== "false");
   const [settingsDevFolder, setSettingsDevFolder] = useState(() => localStorage.getItem("islet-dev-folder") ?? "");
   const [settingsDevBuild, setSettingsDevBuild] = useState(() => localStorage.getItem("islet-dev-build") ?? "");
+  // Éteint à l'installation : rien ne part tant que personne ne l'a demandé.
+  const [settingsAiEnabled, setSettingsAiEnabled] = useState(
+    () => localStorage.getItem("islet-ai-enabled") === "true"
+  );
+  const [settingsAiEndpoint, setSettingsAiEndpoint] = useState(
+    () => localStorage.getItem("islet-ai-endpoint") || DEFAULT_ENDPOINT
+  );
+  const [settingsAiModel, setSettingsAiModel] = useState(
+    () => localStorage.getItem("islet-ai-model") || DEFAULT_MODEL
+  );
   const [settingsFocusMinutes, setSettingsFocusMinutes] = useState(() => {
     const stored = Number(localStorage.getItem("islet-focus-minutes"));
     return Number.isFinite(stored) && stored > 0 ? stored : 25;
@@ -748,6 +760,9 @@ function App() {
       setSettingsDevFolder(getVal("islet-dev-folder", "") ?? "");
       setSettingsDevBuild(getVal("islet-dev-build", "") ?? "");
       setSettingsFocusMinutes(Number(getVal("islet-focus-minutes", "25")) || 25);
+      setSettingsAiEnabled(getVal("islet-ai-enabled", "false") === "true");
+      setSettingsAiEndpoint(getVal("islet-ai-endpoint", DEFAULT_ENDPOINT) || DEFAULT_ENDPOINT);
+      setSettingsAiModel(getVal("islet-ai-model", DEFAULT_MODEL) || DEFAULT_MODEL);
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -885,6 +900,9 @@ function App() {
       "islet-dev-folder": setSettingsDevFolder,
       "islet-dev-build": setSettingsDevBuild,
       "islet-focus-minutes": (value) => setSettingsFocusMinutes(Number(value) || 25),
+      "islet-ai-enabled": setSettingsAiEnabled,
+      "islet-ai-endpoint": (value) => setSettingsAiEndpoint(value || DEFAULT_ENDPOINT),
+      "islet-ai-model": (value) => setSettingsAiModel(value || DEFAULT_MODEL),
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -1195,6 +1213,9 @@ function App() {
 
   // Le panneau n'est relevé que lorsqu'il est ouvert : ailleurs, rien ne tourne.
   const dev = useDev(settingsDevEnabled, settingsDevFolder, isletMode === 'dev', settingsDevBuild);
+
+  // L'assistance ne part que sur un clic, et seulement si le réglage est ouvert.
+  const ai = useAi(settingsAiEnabled, settingsDevFolder, settingsAiEndpoint, settingsAiModel, language);
 
   useEffect(() => {
     if (!settingsTodoEnabled && isletMode === 'todos') {
@@ -2551,7 +2572,7 @@ function App() {
                     exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   >
-                    <NotchDev dev={dev} onClose={() => setIsletMode('status')} />
+                    <NotchDev dev={dev} ai={ai} onClose={() => setIsletMode('status')} />
                   </motion.div>
                 )}
               </AnimatePresence>

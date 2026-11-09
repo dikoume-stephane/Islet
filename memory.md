@@ -541,3 +541,27 @@ répond à deux questions, et ce sont celles qui se trompent à la main.
 - ⚠️ Pièges : un second minuteur aurait doublé la source de vérité ; une session en pause doit rester
   silencieuse ; une marque orpheline (plantage) doit mourir, sinon l'app se tait pour toujours.
 
+---
+
+## 19. L'assistance IA, première moitié (B13, B16, B15 partiel, 2026-11-05)
+
+- **Réglages** : `islet-ai-enabled` (`false` par défaut), `islet-ai-endpoint`
+  (`http://127.0.0.1:11434`), `islet-ai-model` (`llama3.1`). Lus par `App.tsx` (panneau) et par
+  `AssistantTab` (écran de consentement), qui écrit avec `save_setting`.
+- **`src/lib/ai.ts`** : `normalizeEndpoint` (schéma http/https sinon défaut), `chatUrl` (complète
+  `/v1/chat/completions`), `isLocalEndpoint` (vide → local ; illisible → **distant**), `clampInput`
+  (4 000 caractères, **la fin**, coupe annoncée par `[…]`, première ligne tronquée jetée), `buildMessages`
+  (deux tâches × deux langues), `buildChatBody` (`stream:false`, `temperature:0.2`), `parseAnswer`
+  (`choices[0].message.content`, `message.content`, `response`), `answerLines` (5 lignes).
+- **`src-tauri/src/ai.rs`** : `ai_post(url, body) -> AiRaw{ok,status,body}` ; `check_request` refuse un
+  schéma autre que http/https et un corps > 60 000 octets ; délai 60 s ; `timeout` en `Err`.
+- **`src/hooks/useAi.ts`** : `ask(task, payload)` (une seule requête à la fois, refus si réglage éteint),
+  `askChanges()` (lit `dev_git_diff` puis envoie), `reset()`. Erreurs brutes : `timeout`, `bad-url`,
+  `empty`, `HTTP nnn`, `request: …`, `no-folder`.
+- **`dev_git_diff(folder)`** : `git diff --stat HEAD`, gardes communes `checked_folder`.
+- **`BuildRun.fullLines`** : la sortie complète (120 lignes) est gardée pour l'IA, le panneau n'affiche
+  que `lines` (4 lignes). Sans ça, expliquer un échec depuis 4 lignes serait de la divination.
+- UI : `.dev-ai*` dans le panneau (pastille verte « locale » / ambre « distante »), `.ai-consent`,
+  `.ai-field`, `.ai-scope`, `.ai-test-*` dans l'onglet Is.
+- ⚠️ `ai.rs` non compilé ; aucun essai contre un vrai Ollama. B14 (clé) attend le trousseau Windows.
+

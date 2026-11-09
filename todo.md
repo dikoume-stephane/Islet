@@ -176,6 +176,19 @@
 - [ ] L3b — **Décider du Ne pas déranger système** : la session ne touche pas au mode Concentration de Windows. Si un jour elle doit le faire, passer par les API documentées, jamais par le registre à l'aveugle
 - [ ] L4 — **Rappels de contexte en conseils d'Is** (P3-B12, suite) : brancher `devNotes` sur `pickTip` avec délais de répétition
 
+## Bloc M — Assistance IA (J7)
+
+### M0 — Fournisseur local et consentement ✅ livré 2026-11-05
+- [x] M0a — `src/lib/ai.ts` : adresse normalisée et complétée (`/v1/chat/completions`), repérage du fournisseur local, bornage du texte envoyé (4 000 caractères, la fin gardée), corps de requête compatible OpenAI, lecture tolérante de trois formes de réponse — **19 tests**
+- [x] M0b — `scripts/ai.test.ts` + `npm run test:ai`
+- [x] M0c — `src-tauri/src/ai.rs` : `ai_post(url, body)`, POST borné (60 000 octets), schéma http/https seulement, délai de 60 s, `ok`/`status`/`body` bruts
+- [x] M0d — Onglet Is : réglage éteint par défaut, paragraphe de consentement, adresse et modèle réglables, bouton de test
+- [x] M0e — Panneau du notch : deux questions (« expliquer l'échec », « résumer les changements ») et pastille locale ou distante
+- [x] M0f — `dev_git_diff` : `git diff --stat HEAD`, gardes identiques à `dev_git_status`
+- [ ] M1 — **Proposer une commande** (P3-B15, troisième tâche) : champ libre, une ligne de réponse, jamais exécutée automatiquement
+- [ ] M2 — **Clé à soi** (P3-B14) : endpoint OpenAI-compatible avec clé, stockée dans le trousseau Windows, jamais dans `settings.json`
+- [ ] M3 — **Vérifier sur Windows** : `ai_post` compile (pas de toolchain ici), Ollama répond, et la pastille passe bien de « locale » à « distante »
+
 ## Bloc K — Assistant « Is » (J3, J5)
 
 ### K1 — Le personnage (J3) ✅ livré 2026-11-05

@@ -5,6 +5,41 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (12) — J6 clos, et J7 entamé : l'assistance IA
+
+**Fait**
+- **J6 est clos.** La Shelf (C2) et les to-dos du jour (C5) étaient livrés en J4 ; le suivi d'hydratation
+  (C4) est écarté à la demande. Il n'y avait donc rien à coder, seulement à le dire.
+- `src/lib/ai.ts` : adresse normalisée et complétée, repérage du fournisseur local, bornage du texte
+  envoyé, corps de requête compatible OpenAI, lecture tolérante de trois formes de réponse. **19 tests**.
+- `src-tauri/src/ai.rs` : `ai_post(url, body)`, un POST borné, schéma http ou https seulement, soixante
+  secondes de délai, code et corps rendus bruts.
+- `dev_git_diff` : `git diff --stat HEAD`, avec les mêmes gardes que `dev_git_status` (extraction d'un
+  `checked_folder` commun, les deux commandes refusent la même chose).
+- Panneau du notch : deux questions (« expliquer l'échec » après un build raté, « résumer les
+  changements » quand la branche est sale) et une pastille qui dit si le modèle est sur la machine.
+- Onglet Is : réglage éteint par défaut, paragraphe de consentement, adresse, modèle, bouton de test.
+
+**Constats**
+- Le module Rust ne décide de rien, comme `dev.rs` : il poste un corps déjà construit et rend la réponse.
+  C'est ce qui permet de vérifier toute la logique sans machine ni serveur de modèle.
+- Ce qui part est **la fin** du texte, jamais le début : une erreur de compilation se lit à la dernière
+  ligne, et couper au milieu d'une ligne piégerait le modèle. La coupe est annoncée par `[…]`.
+- Une adresse illisible est traitée comme **distante**, pas comme locale. Promettre « rien ne sort » sur
+  une adresse qu'on n'a pas su lire serait exactement le mensonge que le consentement doit éviter.
+- « Résumer un diff » envoie `--stat`, jamais le contenu : un diff complet pèse des mégaoctets et peut
+  contenir ce qu'on n'a pas l'intention de sortir de la machine.
+- La clé à soi (B14) attend. L'endpoint est réglable, mais garder une clé dans `settings.json` ou dans le
+  `localStorage` serait inacceptable : il faut le trousseau Windows, donc une tâche à part.
+
+**Bloqué**
+- `ai.rs` n'est pas compilé : pas de toolchain Rust ici. Rien n'a été testé contre un vrai Ollama non plus.
+
+**À faire ensuite**
+- M1 « proposer une commande », M2 la clé à soi, M3 la vérification Windows.
+
+---
+
 ## 2026-11-05 (11) — J5, le mode focus (P3-B11), et J5 terminé
 
 **Fait**

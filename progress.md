@@ -65,6 +65,10 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 - **J5 — Focus guard** (P3-B11) : `src/lib/focus.ts` (presets, bornes, marque relue du stockage local),
   `useFocus` posé sur le minuteur du notch, conseils et aperçus coupés pendant la session, décompte dans
   le bouton du centre de commandes, durée réglable. **12 tests**. **J5 est terminé.**
+- **J7 — Assistance IA** (première moitié) : `src/lib/ai.ts` (adresse, bornage, corps de requête, lecture de
+  trois formes de réponse), `src-tauri/src/ai.rs` (`ai_post`, POST borné http/https), panneau du notch avec
+  deux questions et pastille locale ou distante, consentement et test dans l'onglet Is, `dev_git_diff`.
+  **19 tests**. Restent « proposer une commande » (B15) et la clé à soi (B14). **J6 est clos** (C4 écarté).
 
 - **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
   chrono/minuteur libre (P3-C3), to-do du jour (P3-C5), indicateurs clavier (P3-C6) et pilule

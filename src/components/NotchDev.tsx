@@ -10,10 +10,13 @@ import {
   ExternalLink,
   Play,
   Loader2,
+  Sparkles,
+  CircleHelp,
 } from "lucide-react";
 import { formatAge, formatDuration, type BuildVerdict, type DevNote } from "../lib/dev";
 import { shortPath } from "../lib/shelf";
 import type { DevState } from "../hooks/useDev";
+import type { AiState } from "../hooks/useAi";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 
@@ -28,7 +31,18 @@ import type { MessageKey } from "../i18n/en";
 
 interface NotchDevProps {
   dev: DevState;
+  ai: AiState;
   onClose: () => void;
+}
+
+/** Traduit les codes d'erreur bruts du fournisseur de modèle. */
+function aiErrorKey(error: string): { key: MessageKey; detail?: string } {
+  if (error === "timeout") return { key: "ai.error.timeout" };
+  if (error === "bad-url") return { key: "ai.error.badUrl" };
+  if (error === "no-folder") return { key: "ai.error.noFolder" };
+  if (error === "empty") return { key: "ai.error.empty" };
+  if (error.startsWith("HTTP ")) return { key: "ai.error.http", detail: error.slice(5) };
+  return { key: "ai.error.generic" };
 }
 
 /** Traduit les codes d'erreur bruts du backend. */
@@ -39,7 +53,7 @@ function errorKey(error: string): MessageKey {
   return "dev.error.gitMissing";
 }
 
-export function NotchDev({ dev, onClose }: NotchDevProps) {
+export function NotchDev({ dev, ai, onClose }: NotchDevProps) {
   const t = useT();
   const [killing, setKilling] = useState<number | null>(null);
 
@@ -193,6 +207,81 @@ export function NotchDev({ dev, onClose }: NotchDevProps) {
               {line}
             </span>
           ))}
+        </div>
+      )}
+
+      {ai.enabled && (
+        <div className="dev-ai">
+          <div className="dev-ai-head">
+            <Sparkles size={11} strokeWidth={2.2} />
+            <span>{t("ai.panel.title")}</span>
+            <span
+              className={`dev-ai-scope ${ai.local ? "is-local" : "is-remote"}`}
+              title={ai.local ? t("ai.scope.local.desc") : t("ai.scope.remote.desc")}
+            >
+              {ai.local ? t("ai.scope.local") : t("ai.scope.remote")}
+            </span>
+          </div>
+
+          <div className="dev-ai-actions">
+            {dev.build !== null && dev.build.verdict === "failed" && (
+              <button
+                type="button"
+                className="dev-ai-button"
+                disabled={ai.thinking !== null}
+                onClick={() => ai.ask("explain", dev.build ? dev.build.fullLines.join("\n") : "")}
+              >
+                <CircleHelp size={10} strokeWidth={2.4} />
+                {t("ai.ask.explain")}
+              </button>
+            )}
+            <button
+              type="button"
+              className="dev-ai-button"
+              disabled={ai.thinking !== null || dev.folder.trim() === ""}
+              onClick={ai.askChanges}
+            >
+              <CircleHelp size={10} strokeWidth={2.4} />
+              {t("ai.ask.changes")}
+            </button>
+          </div>
+
+          {ai.thinking !== null && (
+            <div className="dev-ai-thinking" aria-live="polite">
+              <Loader2 className="dev-spin" size={10} strokeWidth={2.6} />
+              {t("ai.thinking")}
+            </div>
+          )}
+
+          {ai.answer !== null && ai.thinking === null && (
+            <div className="dev-ai-answer" aria-live="polite">
+              {ai.answer.lines.map((line, index) => (
+                <span className="dev-ai-line" key={`${index}-${line.slice(0, 10)}`}>
+                  {line}
+                </span>
+              ))}
+              <button
+                type="button"
+                className="dev-ai-dismiss"
+                onClick={ai.reset}
+                aria-label={t("wc.close")}
+                title={t("wc.close")}
+              >
+                <X size={9} strokeWidth={2.8} />
+              </button>
+            </div>
+          )}
+
+          {ai.error !== null && ai.thinking === null && (
+            <div className="dev-ai-error">
+              {(() => {
+                const mapped = aiErrorKey(ai.error);
+                return mapped.detail
+                  ? t(mapped.key, { status: mapped.detail })
+                  : t(mapped.key);
+              })()}
+            </div>
+          )}
         </div>
       )}
 

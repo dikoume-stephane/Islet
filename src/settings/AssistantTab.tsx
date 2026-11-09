@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Sparkles, BatteryCharging, HardDrive, Gauge, Clock, Tag } from "lucide-react";
+import { Sparkles, BatteryCharging, HardDrive, Gauge, Clock, Tag, Plug, Wifi, WifiOff } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import type { SettingRowProps } from "./types";
 import { readAssistantSettings } from "../hooks/useAssistant";
@@ -11,6 +11,16 @@ import { useT, useLanguage } from "../i18n";
 import { gazeVector, MOODS, shouldSleep, type IsMood } from "../lib/character";
 import { useTrailingThrottle } from "../hooks/useTrailingThrottle";
 import { IsSprite } from "../components/IsSprite";
+import {
+  buildChatBody,
+  buildMessages,
+  chatUrl,
+  DEFAULT_ENDPOINT,
+  DEFAULT_MODEL,
+  isLocalEndpoint,
+  normalizeEndpoint,
+  parseAnswer,
+} from "../lib/ai";
 
 /**
  * Is settings.
@@ -353,6 +363,160 @@ export function AssistantTab() {
           </span>
         </SettingRow>
       </div>
+
+      <div className="setting-group-label">{t("ai.settings.title")}</div>
+      <div className="setting-group">
+        <AiSettingsGroup />
+      </div>
+    </>
+  );
+}
+
+/**
+ * L'assistance IA : le consentement, l'adresse, et rien de plus.
+ *
+ * Ce bloc vit dans cet onglet plutôt que dans un onglet à part parce qu'il
+ * configure la même chose : ce qu'Is a le droit de faire. Il lit et écrit ses
+ * propres clés, comme le reste de ce fichier, et laisse le panneau du notch
+ * décider quand poser une question.
+ *
+ * **Éteint à l'installation.** Le paragraphe de consentement n'apparaît qu'une
+ * fois le réglage allumé : il décrit alors ce qui part vraiment, et vers où.
+ */
+function AiSettingsGroup() {
+  const t = useT();
+  const [enabled, setEnabled] = useState(() => localStorage.getItem("islet-ai-enabled") === "true");
+  const [endpoint, setEndpoint] = useState(
+    () => localStorage.getItem("islet-ai-endpoint") || DEFAULT_ENDPOINT
+  );
+  const [model, setModel] = useState(() => localStorage.getItem("islet-ai-model") || DEFAULT_MODEL);
+  const [testing, setTesting] = useState(false);
+  const [test, setTest] = useState<{ ok: boolean; detail: string } | null>(null);
+
+  const local = isLocalEndpoint(endpoint);
+
+  const toggle = () => {
+    const next = !enabled;
+    setEnabled(next);
+    saveSetting("islet-ai-enabled", String(next));
+    setTest(null);
+  };
+
+  const commitEndpoint = () => {
+    const clean = normalizeEndpoint(endpoint);
+    setEndpoint(clean);
+    saveSetting("islet-ai-endpoint", clean);
+  };
+
+  const commitModel = () => {
+    const clean = model.trim() === "" ? DEFAULT_MODEL : model.trim();
+    setModel(clean);
+    saveSetting("islet-ai-model", clean);
+  };
+
+  /**
+   * Une question minuscule, pour savoir si le fournisseur répond.
+   *
+   * C'est le seul bouton de cet écran qui envoie quelque chose, et il faut le
+   * cliquer : c'est exactement la règle du module.
+   */
+  const runTest = async () => {
+    if (testing) return;
+    setTesting(true);
+    setTest(null);
+    const started = Date.now();
+    try {
+      const body = buildChatBody(model, buildMessages("explain", "error: test", "fr"));
+      const raw = await invoke<{ ok: boolean; status: number; body: string }>("ai_post", {
+        url: chatUrl(endpoint),
+        body,
+      });
+      if (!raw.ok) {
+        setTest({ ok: false, detail: `HTTP ${raw.status}` });
+      } else if (parseAnswer(raw.body) === null) {
+        setTest({ ok: false, detail: t("ai.error.empty") });
+      } else {
+        setTest({ ok: true, detail: String(Date.now() - started) });
+      }
+    } catch (failure) {
+      setTest({ ok: false, detail: String(failure).replace(/^Error: /, "") });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <>
+      <SettingRow
+        icon={Sparkles}
+        label={t("ai.settings.enable")}
+        desc={t("ai.settings.enable.desc")}
+        divider={!enabled}
+      >
+        <label className="toggle-switch">
+          <input type="checkbox" checked={enabled} onChange={toggle} />
+          <span className="slider"></span>
+        </label>
+      </SettingRow>
+
+      {enabled && (
+        <>
+          {/* Le consentement se lit comme une phrase, pas comme un libellé de
+              réglage : c'est ce qui part, vers où, et quand. */}
+          <div className="ai-consent">
+            <span>{t("ai.settings.consent")}</span>
+            <span className={`ai-scope ${local ? "is-local" : "is-remote"}`}>
+              {local ? <WifiOff size={11} strokeWidth={2.4} /> : <Wifi size={11} strokeWidth={2.4} />}
+              {local ? t("ai.settings.local") : t("ai.settings.remote")}
+            </span>
+          </div>
+
+          <SettingRow icon={Plug} label={t("ai.settings.endpoint")} desc={t("ai.settings.endpoint.desc")}>
+            <input
+              className="ai-field"
+              type="text"
+              value={endpoint}
+              spellCheck={false}
+              autoComplete="off"
+              onChange={(event) => setEndpoint(event.target.value)}
+              onBlur={commitEndpoint}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+            />
+          </SettingRow>
+
+          <SettingRow icon={Sparkles} label={t("ai.settings.model")} desc={t("ai.settings.model.desc")}>
+            <input
+              className="ai-field"
+              type="text"
+              value={model}
+              spellCheck={false}
+              autoComplete="off"
+              onChange={(event) => setModel(event.target.value)}
+              onBlur={commitModel}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+            />
+          </SettingRow>
+
+          <SettingRow icon={Plug} label={t("ai.settings.test")} divider={false}>
+            <div className="ai-test-row">
+              <button type="button" className="settings-inline-btn" onClick={runTest} disabled={testing}>
+                {t("ai.settings.test")}
+              </button>
+              {test && (
+                <span className="ai-test-result">
+                  {test.ok
+                    ? t("ai.settings.test.ok", { ms: test.detail })
+                    : t("ai.settings.test.ko", { detail: test.detail })}
+                </span>
+              )}
+            </div>
+          </SettingRow>
+        </>
+      )}
     </>
   );
 }

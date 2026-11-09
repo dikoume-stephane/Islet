@@ -166,6 +166,7 @@ export function useDev(
           verdict: buildVerdict(raw),
           durationMs: raw.duration_ms,
           lines: buildTail(raw.lines),
+          fullLines: raw.lines,
           at: Date.now(),
         });
       })
@@ -176,6 +177,7 @@ export function useDev(
           verdict: "failed",
           durationMs: 0,
           lines: buildTail([String(error)]),
+          fullLines: [String(error)],
           at: Date.now(),
         });
       })

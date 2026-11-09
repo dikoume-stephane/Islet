@@ -255,6 +255,13 @@ export type BuildRun = {
   durationMs: number;
   /** La fin de la sortie, déjà nettoyée pour l'affichage. */
   lines: string[];
+  /**
+   * La sortie complète rendue par Rust (120 lignes au plus).
+   *
+   * Gardée pour l'assistance IA : expliquer un échec à partir de quatre lignes
+   * demanderait au modèle de deviner. Le panneau, lui, n'en montre que la fin.
+   */
+  fullLines: string[];
   at: number;
 };
 

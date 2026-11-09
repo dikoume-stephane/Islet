@@ -339,10 +339,10 @@ Un seul réducteur, alimenté par des *watchers* Rust (`emit` → `listen`), sur
 
 | ID | Tâche | Détail |
 |---|---|---|
-| P3-B13 | Fournisseur « local d'abord » | Ollama ou llama.cpp sur `localhost` — aucun compte, aucune donnée sortante |
-| P3-B14 | Fournisseur « clé à soi » | Endpoint OpenAI-compatible configurable (BYO key, stockée dans le trousseau Windows) |
-| P3-B15 | Portée volontairement étroite | Expliquer une erreur de build collée, résumer un diff, proposer une commande. **Pas** d'agent qui écrit dans le dépôt |
-| P3-B16 | Opt-in strict | Désactivé par défaut, écran de consentement explicite, indicateur visible quand Is « pense » en ligne |
+| P3-B13 | Fournisseur « local d'abord » ✅ | Ollama ou llama.cpp sur `localhost` — aucun compte, aucune donnée sortante. Livré : `ai_post` en Rust (POST borné, schéma http/https seulement), `src/lib/ai.ts` construit l'adresse et la requête (compatible OpenAI, Ollama compris), adresse et modèle réglables, bouton de test |
+| P3-B14 | Fournisseur « clé à soi » | ⏳ à faire. L'endpoint est déjà réglable ; ce qui manque, c'est **où garder la clé** : le trousseau Windows, jamais `settings.json`. À traiter quand une clé sera vraiment nécessaire |
+| P3-B15 | Portée volontairement étroite | 🔶 deux tâches sur trois. Livré : « expliquer l'échec » (les 120 dernières lignes du build) et « résumer les changements » (`git diff --stat`, jamais le contenu des fichiers). Restent « proposer une commande ». Toujours pas d'agent qui écrit dans le dépôt |
+| P3-B16 | Opt-in strict ✅ | Désactivé par défaut, paragraphe de consentement (ce qui part, vers où, quand), pastille « locale » ou « distante » dans le panneau, une seule question à la fois. Rien ne part sans un clic |
 
 ---
 
@@ -489,8 +489,8 @@ et `test:theme` refuse le contraire. Liquid Glass est à 66 %, pas à 42 %.
 | **J3 — Personnage** ✅ | 3.B.1 + 3.B.3 (états, regard, sommeil) — livré 2026-11-05 | J1 (nom de l'assistant) |
 | **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
 | **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) — **B8, B9, B10, B11 et B12 livrés**, J5 terminé | J3 |
-| **J6 — Confort** | 3.C2 (shelf), 3.C4 (eau), 3.C5 (to-do) | — |
-| **J7 — IA (option)** | 3.B.13 → 3.B.16 | J5 |
+| **J6 — Confort** ✅ | 3.C2 (shelf) ✅, 3.C5 (to-do) ✅ ; 3.C4 (eau) écarté à la demande le 2026-11-05 | — |
+| **J7 — IA (option)** | 3.B.13 → 3.B.16 — **B13, B16 livrés et B15 à moitié** ; B14 (clé à soi) à faire | J5 |
 | **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |
 
 Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → ~~J2~~ ✅ → ~~J4~~ ✅ → ~~J3~~ ✅ → **J5 → J6 → J7**

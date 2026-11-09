@@ -1754,3 +1754,71 @@ input:checked + .slider:before {
   background: rgba(10, 132, 255, 0.14);
   color: #0a6cc4;
 }
+
+/* ─── Consentement de l'assistance IA ──────────────────────────────────── */
+
+.ai-consent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 440px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 214, 10, 0.07);
+  border: 1px solid rgba(255, 214, 10, 0.18);
+}
+
+.ai-field {
+  font-family: "Cascadia Code", ui-monospace, monospace;
+  font-size: 11px;
+  width: 190px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color, #fff);
+}
+
+.ai-field:focus {
+  outline: none;
+  border-color: rgba(100, 210, 255, 0.5);
+}
+
+.ai-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.ai-scope.is-local {
+  background: rgba(50, 215, 75, 0.12);
+  color: #2fbf4a;
+}
+
+.ai-scope.is-remote {
+  background: rgba(255, 159, 10, 0.14);
+  color: #c47c07;
+}
+
+.ai-test-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-test-result {
+  font-size: 11px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.light-mode .ai-field {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.8);
+}

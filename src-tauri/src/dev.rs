@@ -67,21 +67,29 @@ fn run(program: &str, args: &[&str]) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
-/// L'état du dépôt suivi.
-#[tauri::command]
-pub fn dev_git_status(folder: String) -> Result<GitRaw, String> {
-    let path = std::path::Path::new(&folder);
+/// Les trois refus communs : aucun dossier choisi, dossier absent, dossier qui
+/// n'est pas un dépôt.
+///
+/// `.git` est un dossier dans un dépôt ordinaire, un fichier dans un worktree
+/// ou un sous-module : `exists` couvre les deux.
+fn checked_folder(folder: &str) -> Result<(), String> {
     if folder.trim().is_empty() {
         return Err("no-folder".to_string());
     }
+    let path = std::path::Path::new(folder);
     if !path.is_dir() {
         return Err("folder-missing".to_string());
     }
-    // `.git` est un dossier dans un dépôt ordinaire, un fichier dans un
-    // worktree ou un sous-module : `exists` couvre les deux.
     if !path.join(".git").exists() {
         return Err("not-a-repository".to_string());
     }
+    Ok(())
+}
+
+/// L'état du dépôt suivi.
+#[tauri::command]
+pub fn dev_git_status(folder: String) -> Result<GitRaw, String> {
+    checked_folder(&folder)?;
 
     let branch = run("git", &["-C", &folder, "rev-parse", "--abbrev-ref", "HEAD"])?;
     let porcelain = run(
@@ -105,6 +113,27 @@ pub fn dev_git_status(folder: String) -> Result<GitRaw, String> {
         porcelain,
         counts,
     })
+}
+
+/// Le résumé du travail en cours : `git diff --stat` face à HEAD.
+///
+/// Sert à l'assistance IA, qui résume des changements : elle reçoit un résumé
+/// chiffré, jamais le contenu des fichiers. Un diff complet peut peser des
+/// mégaoctets et contenir ce qu'on n'a pas l'intention d'envoyer.
+#[tauri::command]
+pub fn dev_git_diff(folder: String) -> Result<String, String> {
+    checked_folder(&folder)?;
+    run(
+        "git",
+        &[
+            "--no-optional-locks",
+            "-C",
+            &folder,
+            "diff",
+            "--stat",
+            "HEAD",
+        ],
+    )
 }
 
 /// Les lignes de `netstat -ano -p TCP`, telles quelles.
@@ -312,6 +341,13 @@ mod tests {
             dev_run_build(absent.to_string_lossy().to_string(), "echo hi".to_string()).unwrap_err(),
             "folder-missing"
         );
+    }
+
+    #[test]
+    fn diff_refuses_what_git_status_refuses() {
+        assert_eq!(dev_git_diff(String::new()).unwrap_err(), "no-folder");
+        let temp = std::env::temp_dir().to_string_lossy().to_string();
+        assert_eq!(dev_git_diff(temp).unwrap_err(), "not-a-repository");
     }
 
     #[test]
