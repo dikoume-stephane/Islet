@@ -5,6 +5,36 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (10) — J5, le build watcher (P3-B10)
+
+**Fait**
+- `src-tauri/src/dev.rs` : `dev_run_build(folder, command)` lance la commande par `cmd /C` dans le
+  dossier suivi, mêle stdout et stderr au fil de l'eau (deux fils, sinon un tuyau plein bloque
+  l'enfant), arrête tout au bout de trois minutes, et rend code, durée et fin de sortie.
+- `src/lib/dev.ts` : `buildVerdict` (arrêtée, réussie, échouée), `buildTail` (couleurs ANSI retirées,
+  lignes vides jetées, quatre dernières lignes gardées), `formatDuration` (« 850 ms », « 3.4 s »,
+  « 48 s », « 2 min »). **12 tests**.
+- `useDev` + `NotchDev` : bouton d'exécution, commande tronquée, pastille de verdict et durée, fin de
+  la sortie en petits caractères ; rien ne part sans un clic, rien ne se relance tout seul.
+- Réglages : `islet-dev-build`, enregistrée au blur ou sur Entrée, pas à chaque frappe.
+
+**Constats**
+- Le seul vrai piège était le tuyau. Lire la sortie après `wait()` sur un enfant bavard remplit le
+  tampon et bloque les deux processus : deux fils de lecture, joints avant de lire le résultat.
+- `slice(-0)` rend tout le tableau. Un test sur `buildTail(lines, 0)` l'a attrapé ; c'est le genre de
+  défaut qui ne se voit qu'une fois, à la relecture d'un écran vide.
+- Décision : trois minutes de plafond. Assez pour un `cargo check` à froid, trop court pour laisser
+  un verrou de répertoire de build immobiliser le panneau.
+
+**Bloqué**
+- `dev.rs` toujours non compilé : pas de toolchain Rust ici. À vérifier sur Windows, avec la question
+  ouverte de savoir si `cmd /C` trouve `bun` comme le terminal de l'utilisateur.
+
+**À faire ensuite**
+- Le focus guard (P3-B11), dernier morceau de J5.
+
+---
+
 ## 2026-11-05 (9) — J5, première moitié : les signaux du développeur
 
 **Fait**

@@ -231,3 +231,77 @@ export function formatAge(ms: number): string {
   const rest = minutes % 60;
   return rest === 0 ? `${hours} h` : `${hours} h ${String(rest).padStart(2, "0")}`;
 }
+
+/* ─── La vérification de build ─────────────────────────────────────────────
+ *
+ * La commande vient de l'utilisateur et ne part que sur un clic. Ce qui se
+ * décide ici : ce qu'on retient de sa sortie, et comment on la juge. Un
+ * compilateur écrit trois cents lignes dont deux comptent, et un notch fait
+ * 380 points de haut.
+ */
+
+/** La réponse brute de `dev_run_build`. */
+export interface BuildRaw {
+  code: number | null;
+  timed_out: boolean;
+  duration_ms: number;
+  lines: string[];
+}
+
+/** Ce que le panneau retient d'une commande de vérification. */
+export type BuildRun = {
+  verdict: BuildVerdict;
+  /** Durée mesurée par Rust, ou zéro quand la commande n'a pas pu partir. */
+  durationMs: number;
+  /** La fin de la sortie, déjà nettoyée pour l'affichage. */
+  lines: string[];
+  at: number;
+};
+
+export type BuildVerdict = "ok" | "failed" | "timeout";
+
+/** Nombre de lignes de sortie gardées pour le panneau. */
+export const BUILD_TAIL = 4;
+
+/** Les séquences d'échappement ANSI : couleurs et titres de cargo, de vite, de bun. */
+const ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]|\u001b\][^\u0007]*\u0007/g;
+
+/**
+ * La fin d'une sortie, propre.
+ *
+ * Retire les couleurs (un notch n'est pas un terminal), les lignes vides, et ne
+ * garde que les dernières : c'est là que se trouve l'erreur. Le tri se fait
+ * dans l'ordre d'arrivée, stdout et stderr mêlés, comme les a vus Rust.
+ */
+export function buildTail(lines: readonly string[], max: number = BUILD_TAIL): string[] {
+  const kept: string[] = [];
+  for (const line of lines) {
+    const clean = line.replace(ANSI, "").replace(/\s+$/, "");
+    if (clean.trim() === "") continue;
+    kept.push(clean);
+  }
+  // `slice(-0)` rend tout le tableau : c'est la raison du garde-fou explicite.
+  if (max <= 0) return [];
+  return kept.slice(-max);
+}
+
+/** Juge une réponse de build : arrêtée, réussie, ou échouée. */
+export function buildVerdict(raw: BuildRaw): BuildVerdict {
+  if (raw.timed_out) return "timeout";
+  return raw.code === 0 ? "ok" : "failed";
+}
+
+/**
+ * « 850 ms », « 3.4 s », « 48 s », « 2 min ».
+ *
+ * Les dixièmes ne servent que sous la dizaine de secondes, où la différence
+ * intéresse ; au-delà, une seconde près suffit. Le point décimal est le même
+ * dans les deux langues : c'est un nombre, pas une phrase.
+ */
+export function formatDuration(ms: number): string {
+  const safe = Number.isFinite(ms) && ms > 0 ? ms : 0;
+  if (safe < 1_000) return `${Math.round(safe)} ms`;
+  if (safe < 10_000) return `${(Math.floor(safe / 100) / 10).toFixed(1)} s`;
+  if (safe < 60_000) return `${Math.floor(safe / 1_000)} s`;
+  return formatAge(safe);
+}

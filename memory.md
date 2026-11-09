@@ -496,3 +496,25 @@ répond à deux questions, et ce sont celles qui se trompent à la main.
 - Piège rencontré : insérer un groupe de réglages au mauvais endroit avale le `</div>` du groupe voisin,
   et TypeScript le signale 300 lignes plus bas. Vérifier la pile des balises, pas le message.
 
+---
+
+## 17. La vérification de build (P3-B10, livré 2026-11-05)
+
+- **Réglage** `islet-dev-build` (chaîne, `""` par défaut) : la commande, écrite par l'utilisateur.
+  Champ de l'onglet Notch, enregistré au blur ou sur Entrée, jamais à chaque frappe.
+- **Rust** `dev_run_build(folder, command) -> Result<BuildRaw, String>` : `cmd /C <commande>` dans le
+  dossier suivi, `CREATE_NO_WINDOW`, stdin nul, **deux fils** de lecture (stdout et stderr) joints avant
+  de lire, `try_wait` toutes les 120 ms, `kill` au bout de `BUILD_TIMEOUT_MS = 180_000`, `keep_last`
+  sur 120 lignes. Erreurs : `no-command`, `no-folder`, `folder-missing`, sinon `cmd: {error}`.
+- **`buildVerdict(raw)`** : `timed_out` → `timeout`, sinon `code === 0` → `ok`, sinon `failed`.
+- **`buildTail(lines, max = 4)`** : retire les séquences ANSI, les lignes vides, les espaces de fin ;
+  garde les `max` dernières. ⚠️ `slice(-0)` rend tout : garde-fou `if (max <= 0) return []`.
+- **`formatDuration(ms)`** : `< 1 s` → « 850 ms » ; `< 10 s` → « 3.4 s » (dixième) ; `< 60 s` →
+  « 48 s » ; au-delà, `formatAge`.
+- **`useDev(enabled, folder, active, buildCommand)`** rend `build`, `buildRunning`, `buildCommand`,
+  `runBuild`. `runBuild` ignore un second clic, efface le verdict précédent, traduit un refus du
+  backend en `failed` avec la ligne d'erreur.
+- ⚠️ Un enfant bavard bloque si on ne lit ses tuyaux qu'après `wait()` : deux fils de lecture, joints.
+- ⚠️ `dev.rs` n'est toujours pas compilé ici ; `cmd /C` et la recherche de `bun` restent à vérifier
+  sur Windows.
+

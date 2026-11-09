@@ -23,6 +23,7 @@ import {
   ListTodo,
   GitBranch,
   FolderGit2,
+  Terminal,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -63,6 +64,8 @@ interface NotchTabProps {
   devFolder: string;
   pickDevFolder: () => void;
   clearDevFolder: () => void;
+  devBuild: string;
+  changeDevBuild: (command: string) => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -126,6 +129,8 @@ export function NotchTab({
   devFolder,
   pickDevFolder,
   clearDevFolder,
+  devBuild,
+  changeDevBuild,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -463,7 +468,6 @@ export function NotchTab({
             icon={FolderGit2}
             label={t("dev.settings.folder")}
             desc={devFolder === "" ? t("dev.settings.folder.desc") : shortPath(devFolder, 3)}
-            divider={false}
           >
             <div className="dev-folder-actions">
               {devFolder !== "" && (
@@ -477,8 +481,58 @@ export function NotchTab({
             </div>
           </SettingRow>
         )}
+
+        {devEnabled && <DevBuildRow value={devBuild} onSave={changeDevBuild} />}
       </div>
     </>
+  );
+}
+
+/**
+ * La commande de vérification.
+ *
+ * Gardée en brouillon local, enregistrée quand le champ perd le focus ou reçoit
+ * Entrée : écrire `bun run build` ne doit pas produire treize écritures dans
+ * `settings.json`. Le panneau du notch lit la valeur enregistrée, pas le
+ * brouillon : une commande à moitié tapée ne peut donc pas être lancée.
+ */
+function DevBuildRow({ value, onSave }: { value: string; onSave: (command: string) => void }) {
+  const t = useT();
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const commit = () => {
+    const next = draft.trim();
+    if (next !== value) onSave(next);
+  };
+
+  return (
+    <SettingRow
+      icon={Terminal}
+      label={t("dev.settings.build")}
+      desc={t("dev.settings.build.desc")}
+      divider={false}
+    >
+      <input
+        className="dev-build-input"
+        type="text"
+        value={draft}
+        placeholder={t("dev.settings.build.placeholder")}
+        spellCheck={false}
+        autoComplete="off"
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+        }}
+      />
+    </SettingRow>
   );
 }
 

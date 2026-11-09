@@ -1,11 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  buildTail,
+  buildVerdict,
   devNotes,
   parseGitPulse,
   parseNetstat,
   trackGit,
   trackPorts,
+  type BuildRaw,
+  type BuildRun,
   type DevNote,
   type GitPulse,
   type GitRaw,
@@ -24,6 +28,10 @@ import {
  *
  * **Sans dossier choisi, aucune commande git n'est lancée.** Le dossier vient
  * des réglages, jamais d'une devinette.
+ *
+ * La vérification de build suit la même règle, en plus strict : sa commande est
+ * écrite par l'utilisateur, et elle ne part que sur un clic. Aucun minuteur ne
+ * la relance, aucune ouverture de panneau ne la déclenche.
  */
 
 const PORTS_INTERVAL_MS = 15_000;
@@ -41,17 +49,35 @@ export interface DevState {
   error: string | null;
   /** Le dossier suivi, tel qu'il a été choisi. */
   folder: string;
+  /** La dernière vérification de build, ou null si aucune n'a encore tourné. */
+  build: BuildRun | null;
+  /** Vrai pendant l'exécution : le bouton attend. */
+  buildRunning: boolean;
+  /** La commande de vérification enregistrée, vide par défaut. */
+  buildCommand: string;
+  /** Lance la vérification. Sans commande ni dossier, ne fait rien. */
+  runBuild: () => void;
 }
 
-const EMPTY: DevState = { pulse: null, ports: [], notes: [], names: {}, at: 0, error: null, folder: "" };
+/** Ce que le relevé périodique tient : ni le dossier, ni la vérification. */
+type Signals = Omit<DevState, "folder" | "build" | "buildRunning" | "buildCommand" | "runBuild">;
+
+const EMPTY: Signals = { pulse: null, ports: [], notes: [], names: {}, at: 0, error: null };
 
 interface ProcessRow {
   pid: number;
   name: string;
 }
 
-export function useDev(enabled: boolean, folder: string, active: boolean): DevState {
-  const [state, setState] = useState<DevState>(EMPTY);
+export function useDev(
+  enabled: boolean,
+  folder: string,
+  active: boolean,
+  buildCommand: string,
+): DevState {
+  const [state, setState] = useState<Signals>(EMPTY);
+  const [build, setBuild] = useState<BuildRun | null>(null);
+  const [buildRunning, setBuildRunning] = useState(false);
   const pulseRef = useRef<GitPulse | null>(null);
   const portsRef = useRef<PortEntry[]>([]);
 
@@ -122,7 +148,39 @@ export function useDev(enabled: boolean, folder: string, active: boolean): DevSt
     pulseRef.current = null;
     portsRef.current = [];
     setState(EMPTY);
+    setBuild(null);
   }, [enabled]);
 
-  return { ...state, folder };
+  const runBuild = useCallback(() => {
+    // Deux clics pendant une compilation ne lancent pas deux compilations : le
+    // second ne ferait qu'attendre le premier en consommant un processus.
+    if (buildRunning) return;
+    if (buildCommand.trim() === "" || folder.trim() === "") return;
+    setBuildRunning(true);
+    // On efface le verdict précédent : laisser « réussi » pendant qu'une
+    // nouvelle commande tourne serait un mensonge.
+    setBuild(null);
+    invoke<BuildRaw>("dev_run_build", { folder, command: buildCommand })
+      .then((raw) => {
+        setBuild({
+          verdict: buildVerdict(raw),
+          durationMs: raw.duration_ms,
+          lines: buildTail(raw.lines),
+          at: Date.now(),
+        });
+      })
+      .catch((error) => {
+        // `no-folder`, `folder-missing`, `no-command` : le backend refuse de
+        // lancer. On l'affiche plutôt que de laisser le panneau muet.
+        setBuild({
+          verdict: "failed",
+          durationMs: 0,
+          lines: buildTail([String(error)]),
+          at: Date.now(),
+        });
+      })
+      .finally(() => setBuildRunning(false));
+  }, [buildRunning, buildCommand, folder]);
+
+  return { ...state, folder, build, buildRunning, buildCommand, runBuild };
 }

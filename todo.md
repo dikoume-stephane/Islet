@@ -170,7 +170,8 @@
 - [x] L0g — Réglages onglet Notch : `islet-dev-enabled` et `islet-dev-folder` (sélecteur de dossier natif, retrait, lecture seule)
 - [ ] L0h — **À vérifier sur Windows** : compiler `dev.rs` (pas de toolchain ici), choisir un dépôt, vérifier branche et retard, puis libérer un port de test
 - [ ] L1 — **Vérifier sur Windows** que `netstat` reste en anglais sur un système français (l'interprétation s'ancre sur `LISTENING`)
-- [ ] L2 — **Build watcher** (P3-B10) : commande enregistrée, exécutée à la demande, ✅/❌ et durée
+- [x] L2 — **Build watcher** (P3-B10) ✅ : `islet-dev-build` enregistrée dans les réglages, `dev_run_build` dans Rust (cmd /C, plafond de trois minutes, stdout et stderr mêlés), bouton dans le panneau avec verdict et durée, fin de la sortie sur quatre lignes ; 12 tests sur le nettoyage de la sortie et le verdict
+- [ ] L2b — **Vérifier sur Windows** que `cmd /C` trouve bien `bun`, `cargo` et `npm` (mêmes variables qu'un terminal ouvert à la main), et qu'une commande de trois minutes est bien arrêtée
 - [ ] L3 — **Focus guard** (P3-B11) : mode focus = Ne pas déranger + chrono + Is au repos
 - [ ] L4 — **Rappels de contexte en conseils d'Is** (P3-B12, suite) : brancher `devNotes` sur `pickTip` avec délais de répétition
 

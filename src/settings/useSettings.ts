@@ -32,6 +32,8 @@ export function useSettings() {
   // avant que l'utilisateur en choisisse un.
   const [devEnabled, setDevEnabled] = useState(true);
   const [devFolder, setDevFolder] = useState("");
+  // Vide par défaut : aucune commande n'est proposée à la place de l'utilisateur.
+  const [devBuild, setDevBuild] = useState("");
   const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
     () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
   );
@@ -178,6 +180,8 @@ export function useSettings() {
       apply(getVal("islet-dev-enabled"), setDevEnabled, readBool);
       const storedFolder = getVal("islet-dev-folder");
       if (storedFolder !== null) setDevFolder(storedFolder);
+      const storedBuild = getVal("islet-dev-build");
+      if (storedBuild !== null) setDevBuild(storedBuild);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -516,6 +520,16 @@ export function useSettings() {
   const clearDevFolder = () => {
     setDevFolder("");
     saveSetting("islet-dev-folder", "");
+  };
+
+  /**
+   * La commande de vérification. Elle n'est enregistrée qu'à la validation du
+   * champ, pas à chaque frappe : personne n'a besoin d'écrire six brouillons
+   * dans `settings.json` avant d'avoir fini de taper `bun run build`.
+   */
+  const changeDevBuild = (command: string) => {
+    setDevBuild(command);
+    saveSetting("islet-dev-build", command);
   };
 
   const toggleTodo = () => {
@@ -981,6 +995,8 @@ export function useSettings() {
     devFolder,
     pickDevFolder,
     clearDevFolder,
+    devBuild,
+    changeDevBuild,
     keyboardIndicatorsEnabled,
     toggleKeyboardIndicators,
     timerEnabled,

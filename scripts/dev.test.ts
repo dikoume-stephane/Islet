@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  BUILD_TAIL,
+  buildTail,
+  buildVerdict,
   devNotes,
   DIRTY_AFTER_MS,
   formatAge,
+  formatDuration,
   isExposedAddress,
   MAX_PORTS,
   parseGitPulse,
@@ -282,5 +286,78 @@ describe("formatAge", () => {
   it("ne bronche pas sur une valeur absurde", () => {
     assert.equal(formatAge(Number.NaN), "0 min");
     assert.equal(formatAge(-5000), "0 min");
+  });
+});
+
+describe("buildTail", () => {
+  it("garde la fin de la sortie, là où se trouve l'erreur", () => {
+    const lines = ["vite v7.0.0 building", "transform 42 modules", "x unused variable", "error: exit 1"];
+    assert.deepEqual(buildTail(lines, 2), ["x unused variable", "error: exit 1"]);
+    assert.equal(buildTail(lines).length, BUILD_TAIL);
+  });
+
+  it("retire les couleurs d'un terminal", () => {
+    const ansi = "\u001b[32m✓\u001b[0m built in 3.4s";
+    assert.deepEqual(buildTail([ansi], 4), ["✓ built in 3.4s"]);
+  });
+
+  it("laisse tomber les lignes vides et les espaces de fin", () => {
+    assert.deepEqual(buildTail(["", "   ", "cargo: ok   ", ""], 4), ["cargo: ok"]);
+  });
+
+  it("ne bronche pas sur une sortie vide", () => {
+    assert.deepEqual(buildTail([], 4), []);
+    assert.deepEqual(buildTail(["a"], 0), []);
+  });
+});
+
+describe("buildVerdict", () => {
+  const raw = (code: number | null, timed_out = false) => ({
+    code,
+    timed_out,
+    duration_ms: 1000,
+    lines: [],
+  });
+
+  it("un code zéro est une réussite", () => {
+    assert.equal(buildVerdict(raw(0)), "ok");
+  });
+
+  it("un code non zéro est un échec", () => {
+    assert.equal(buildVerdict(raw(1)), "failed");
+    assert.equal(buildVerdict(raw(null)), "failed");
+  });
+
+  it("une commande arrêtée n'est ni une réussite ni un échec", () => {
+    assert.equal(buildVerdict(raw(null, true)), "timeout");
+    // Même si le shell avait déjà rendu zéro avant d'être tué.
+    assert.equal(buildVerdict(raw(0, true)), "timeout");
+  });
+});
+
+describe("formatDuration", () => {
+  it("reste en millisecondes sous la seconde", () => {
+    assert.equal(formatDuration(0), "0 ms");
+    assert.equal(formatDuration(850), "850 ms");
+  });
+
+  it("donne un dixième sous la dizaine de secondes", () => {
+    assert.equal(formatDuration(3_400), "3.4 s");
+    assert.equal(formatDuration(9_999), "9.9 s");
+  });
+
+  it("arrondit à la seconde au-delà", () => {
+    assert.equal(formatDuration(10_000), "10 s");
+    assert.equal(formatDuration(48_700), "48 s");
+  });
+
+  it("repasse aux minutes, puis aux heures", () => {
+    assert.equal(formatDuration(60_000), "1 min");
+    assert.equal(formatDuration(125 * 60_000), "2 h 05");
+  });
+
+  it("ne bronche pas sur une valeur absurde", () => {
+    assert.equal(formatDuration(Number.NaN), "0 ms");
+    assert.equal(formatDuration(-10), "0 ms");
   });
 });

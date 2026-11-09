@@ -58,7 +58,10 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 - **J5 — Signaux du développeur** (première moitié) : `src/lib/dev.ts` (interprétation de `netstat`,
   âge des ports, lecture de git, remarques de contexte), `src-tauri/src/dev.rs` (trois commandes git en
   lecture seule, netstat brut), `useDev` + `NotchDev`, réglages `islet-dev-enabled` /
-  `islet-dev-folder`. **33 tests**. Restent le build watcher (B10) et le focus guard (B11).
+  `islet-dev-folder`. **34 tests**.
+- **J5 — Build watcher** (P3-B10) : `dev_run_build` (cmd /C dans le dossier suivi, plafond de trois
+  minutes, stdout et stderr mêlés, sortie tronquée à sa fin), bouton dans le panneau avec verdict et
+  durée, champ `islet-dev-build` dans les réglages. **12 tests** de plus. Reste le focus guard (B11).
 
 - **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
   chrono/minuteur libre (P3-C3), to-do du jour (P3-C5), indicateurs clavier (P3-C6) et pilule

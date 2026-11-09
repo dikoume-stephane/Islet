@@ -4200,3 +4200,146 @@ img {
 .dev-foot-button:hover {
     color: #fff;
 }
+
+/* ─── La vérification de build ───────────────────────────────────────────── */
+
+.dev-build {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dev-build-run {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(100, 210, 255, 0.18);
+    color: #9fe4ff;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-build-run:hover:not(:disabled) {
+    background: rgba(100, 210, 255, 0.3);
+    color: #fff;
+}
+
+.dev-build-run:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dev-build-command {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dev-build-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* La pastille porte le verdict, la durée le précise. */
+.dev-build-verdict::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.dev-build-verdict.is-ok {
+    background: rgba(50, 215, 75, 0.14);
+    color: #32d74b;
+}
+
+.dev-build-verdict.is-failed {
+    background: rgba(255, 69, 58, 0.16);
+    color: #ff6b60;
+}
+
+.dev-build-verdict.is-timeout {
+    background: rgba(255, 214, 10, 0.14);
+    color: #ffd60a;
+}
+
+.dev-build-out {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    max-height: 44px;
+    overflow-y: auto;
+    padding: 3px 6px;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.28);
+}
+
+.dev-build-out::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dev-build-out::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 2px;
+}
+
+.dev-build-line {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 9.5px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dev-build-out.is-failed .dev-build-line {
+    color: rgba(255, 140, 130, 0.85);
+}
+
+.dev-build-empty {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 2px;
+}
+
+.dev-spin {
+    animation: islet-dev-spin 900ms linear infinite;
+}
+
+@keyframes islet-dev-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dev-spin {
+        animation: none;
+    }
+
+    .dev-build-run {
+        transition: none;
+    }
+}

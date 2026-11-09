@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { GitBranch, ArrowUp, ArrowDown, Radio, X, Settings, ExternalLink } from "lucide-react";
-import { formatAge, type DevNote } from "../lib/dev";
+import {
+  GitBranch,
+  ArrowUp,
+  ArrowDown,
+  Radio,
+  X,
+  Settings,
+  ExternalLink,
+  Play,
+  Loader2,
+} from "lucide-react";
+import { formatAge, formatDuration, type BuildVerdict, type DevNote } from "../lib/dev";
 import { shortPath } from "../lib/shelf";
 import type { DevState } from "../hooks/useDev";
 import { useT } from "../i18n";
@@ -51,6 +61,14 @@ export function NotchDev({ dev, onClose }: NotchDevProps) {
     } finally {
       setKilling(null);
     }
+  };
+
+  /** La phrase complète d'un verdict, pour l'infobulle et les lecteurs d'écran. */
+  const verdictText = (verdict: BuildVerdict, durationMs: number): string => {
+    const age = formatDuration(durationMs);
+    if (verdict === "ok") return t("dev.build.ok", { age });
+    if (verdict === "timeout") return t("dev.build.timeout", { age });
+    return t("dev.build.failed", { age });
   };
 
   const noteText = (note: DevNote): string => {
@@ -127,6 +145,52 @@ export function NotchDev({ dev, onClose }: NotchDevProps) {
           {dev.notes.map((note) => (
             <span className="dev-note" key={`${note.kind}-${"port" in note ? note.port : ""}`}>
               {noteText(note)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {dev.buildCommand.trim() === "" ? (
+        <div className="dev-build-empty">{t("dev.build.none")}</div>
+      ) : (
+        <div className="dev-build">
+          <button
+            type="button"
+            className="dev-build-run"
+            onClick={dev.runBuild}
+            disabled={dev.buildRunning || dev.folder.trim() === ""}
+            aria-label={t("dev.build.run")}
+          >
+            {dev.buildRunning ? (
+              <Loader2 className="dev-spin" size={11} strokeWidth={2.6} />
+            ) : (
+              <Play size={11} strokeWidth={2.6} />
+            )}
+            <span>{dev.buildRunning ? t("dev.build.running") : t("dev.build.run")}</span>
+          </button>
+          <span className="dev-build-command" title={dev.buildCommand}>
+            {dev.buildCommand}
+          </span>
+          {dev.build && !dev.buildRunning && (
+            <span
+              className={`dev-build-verdict is-${dev.build.verdict}`}
+              title={verdictText(dev.build.verdict, dev.build.durationMs)}
+            >
+              {formatDuration(dev.build.durationMs)}
+            </span>
+          )}
+        </div>
+      )}
+
+      {dev.build && !dev.buildRunning && dev.build.lines.length > 0 && (
+        <div
+          className={`dev-build-out is-${dev.build.verdict}`}
+          title={verdictText(dev.build.verdict, dev.build.durationMs)}
+          aria-live="polite"
+        >
+          {dev.build.lines.map((line, index) => (
+            <span className="dev-build-line" key={`${index}-${line.slice(0, 12)}`}>
+              {line}
             </span>
           ))}
         </div>

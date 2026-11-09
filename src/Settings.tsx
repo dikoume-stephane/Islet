@@ -249,6 +249,8 @@ function SettingsApp() {
               devFolder={settings.devFolder}
               pickDevFolder={settings.pickDevFolder}
               clearDevFolder={settings.clearDevFolder}
+              devBuild={settings.devBuild}
+              changeDevBuild={settings.changeDevBuild}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

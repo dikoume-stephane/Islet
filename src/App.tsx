@@ -670,6 +670,7 @@ function App() {
   // Les signaux du développeur ne lisent rien tant qu'aucun dossier n'est choisi.
   const [settingsDevEnabled, setSettingsDevEnabled] = useState(() => localStorage.getItem("islet-dev-enabled") !== "false");
   const [settingsDevFolder, setSettingsDevFolder] = useState(() => localStorage.getItem("islet-dev-folder") ?? "");
+  const [settingsDevBuild, setSettingsDevBuild] = useState(() => localStorage.getItem("islet-dev-build") ?? "");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -734,6 +735,7 @@ function App() {
       setSettingsTodoEnabled(getVal("islet-todo-enabled", "true") !== "false");
       setSettingsDevEnabled(getVal("islet-dev-enabled", "true") !== "false");
       setSettingsDevFolder(getVal("islet-dev-folder", "") ?? "");
+      setSettingsDevBuild(getVal("islet-dev-build", "") ?? "");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -869,6 +871,7 @@ function App() {
       "islet-todo-enabled": setSettingsTodoEnabled,
       "islet-dev-enabled": setSettingsDevEnabled,
       "islet-dev-folder": setSettingsDevFolder,
+      "islet-dev-build": setSettingsDevBuild,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -1169,7 +1172,7 @@ function App() {
   }, [settingsDevEnabled, isletMode]);
 
   // Le panneau n'est relevé que lorsqu'il est ouvert : ailleurs, rien ne tourne.
-  const dev = useDev(settingsDevEnabled, settingsDevFolder, isletMode === 'dev');
+  const dev = useDev(settingsDevEnabled, settingsDevFolder, isletMode === 'dev', settingsDevBuild);
 
   useEffect(() => {
     if (!settingsTodoEnabled && isletMode === 'todos') {

@@ -220,7 +220,8 @@ fn main() {
             todo::todo_remove,
             todo::todo_clear_done,
             dev::dev_git_status,
-            dev::dev_listening_ports
+            dev::dev_listening_ports,
+            dev::dev_run_build
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());
