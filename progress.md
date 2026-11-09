@@ -55,6 +55,11 @@ Détail complet dans `ROADMAP.md` § PHASE 3.
 - **J3 — Personnage** : `src/lib/character.ts` (réducteur d'humeur, cadres de dessin, regard, sommeil),
   `IsSprite` (sprite SVG animé), conseil du notch, aperçu vivant dans l'onglet Is et accueil. **39 tests**.
 
+- **J5 — Signaux du développeur** (première moitié) : `src/lib/dev.ts` (interprétation de `netstat`,
+  âge des ports, lecture de git, remarques de contexte), `src-tauri/src/dev.rs` (trois commandes git en
+  lecture seule, netstat brut), `useDev` + `NotchDev`, réglages `islet-dev-enabled` /
+  `islet-dev-folder`. **33 tests**. Restent le build watcher (B10) et le focus guard (B11).
+
 - **J4 — Parité Nusa** : presse-papier (P3-C9), paroles synchronisées (P3-C1), étagère (P3-C2),
   chrono/minuteur libre (P3-C3), to-do du jour (P3-C5), indicateurs clavier (P3-C6) et pilule
   minimale (P3-C8) livrés, **323 tests** TypeScript au vert. L'hydratation (P3-C4) a été écartée à la

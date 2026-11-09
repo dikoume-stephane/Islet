@@ -25,6 +25,8 @@ import { useShelf } from "./hooks/useShelf";
 import { NotchShelf } from "./components/NotchShelf";
 import { useTodos } from "./hooks/useTodos";
 import { NotchTodos } from "./components/NotchTodos";
+import { NotchDev } from "./components/NotchDev";
+import { useDev } from "./hooks/useDev";
 import { pendingReminders } from "./lib/todo";
 import { collapsedPill, minimalPillActive } from "./lib/pill";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
@@ -665,6 +667,9 @@ function App() {
   // Les tâches du jour : actives par défaut, comme l'étagère. Rien ne sort de
   // la machine, et une liste vide n'apprend rien à personne.
   const [settingsTodoEnabled, setSettingsTodoEnabled] = useState(() => localStorage.getItem("islet-todo-enabled") !== "false");
+  // Les signaux du développeur ne lisent rien tant qu'aucun dossier n'est choisi.
+  const [settingsDevEnabled, setSettingsDevEnabled] = useState(() => localStorage.getItem("islet-dev-enabled") !== "false");
+  const [settingsDevFolder, setSettingsDevFolder] = useState(() => localStorage.getItem("islet-dev-folder") ?? "");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
     () => (localStorage.getItem("islet-timer-enabled") ?? localStorage.getItem("islet-calendar-enabled")) !== "false",
   );
@@ -727,6 +732,8 @@ function App() {
       setSettingsLyricsEnabled(getVal("islet-lyrics-enabled", "false") === "true");
       setSettingsShelfEnabled(getVal("islet-shelf-enabled", "true") !== "false");
       setSettingsTodoEnabled(getVal("islet-todo-enabled", "true") !== "false");
+      setSettingsDevEnabled(getVal("islet-dev-enabled", "true") !== "false");
+      setSettingsDevFolder(getVal("islet-dev-folder", "") ?? "");
       setSettingsTimerEnabled((getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
       setSettingsTimerSoundEnabled(getVal("islet-timer-sound-enabled", "true") !== "false");
       setSettingsStopwatchEnabled((getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled", "true")) !== "false");
@@ -860,6 +867,8 @@ function App() {
       "islet-lyrics-enabled": setSettingsLyricsEnabled,
       "islet-shelf-enabled": setSettingsShelfEnabled,
       "islet-todo-enabled": setSettingsTodoEnabled,
+      "islet-dev-enabled": setSettingsDevEnabled,
+      "islet-dev-folder": setSettingsDevFolder,
       "islet-timer-enabled": setSettingsTimerEnabled,
       "islet-timer-sound-enabled": setSettingsTimerSoundEnabled,
       "islet-stopwatch-enabled": setSettingsStopwatchEnabled,
@@ -923,7 +932,7 @@ function App() {
     invoke("change_notch_mode", { mode: notchMode });
   }, [notchMode, windowLabel]);
 
-  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos' | 'command-center' | 'status'>('status');
+  const [isletMode, setIsletMode] = useState<'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos' | 'dev' | 'command-center' | 'status'>('status');
   // Lyrics for the track that is playing. The hook is called unconditionally:
   // it does nothing (and asks nothing) while the setting is off.
   const lyrics = useLyrics({
@@ -990,9 +999,9 @@ function App() {
     // Paused:  command-center → status → music → calendar (secondary, after status)
     const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
     // Lyrics sit next to the music mode: same subject, one notch width apart.
-    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos')[] = musicBeforeStatus
-      ? ['command-center', 'music', 'lyrics', 'status', 'todos', 'calendar', 'shelf', 'clipboard']
-      : ['command-center', 'status', 'music', 'lyrics', 'todos', 'shelf', 'calendar', 'clipboard'];
+    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'clipboard' | 'lyrics' | 'shelf' | 'todos' | 'dev')[] = musicBeforeStatus
+      ? ['command-center', 'music', 'lyrics', 'status', 'dev', 'todos', 'calendar', 'shelf', 'clipboard']
+      : ['command-center', 'status', 'music', 'lyrics', 'dev', 'todos', 'shelf', 'calendar', 'clipboard'];
     const availableModes = modes.filter(m => {
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
@@ -1000,6 +1009,7 @@ function App() {
       if (m === 'lyrics' && !(settingsLyricsEnabled && mediaInfo.has_media)) return false;
       if (m === 'shelf' && !settingsShelfEnabled) return false;
       if (m === 'todos' && !settingsTodoEnabled) return false;
+      if (m === 'dev' && !settingsDevEnabled) return false;
       return true;
     });
 
@@ -1152,6 +1162,15 @@ function App() {
   }, [settingsTodoEnabled, todos.tasks, notchMode, triggerEventPeek]);
 
   // Un panneau qu'on vient d'éteindre ne doit pas rester ouvert.
+  useEffect(() => {
+    if (!settingsDevEnabled && isletMode === 'dev') {
+      setIsletMode('status');
+    }
+  }, [settingsDevEnabled, isletMode]);
+
+  // Le panneau n'est relevé que lorsqu'il est ouvert : ailleurs, rien ne tourne.
+  const dev = useDev(settingsDevEnabled, settingsDevFolder, isletMode === 'dev');
+
   useEffect(() => {
     if (!settingsTodoEnabled && isletMode === 'todos') {
       setIsletMode('status');
@@ -1648,6 +1667,7 @@ function App() {
     if (isletMode === 'lyrics') return 340;
     if (isletMode === 'shelf') return 340;
     if (isletMode === 'todos') return 350;
+    if (isletMode === 'dev') return 350;
     if (isCalendarMode) return settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270;
     if (isletMode === 'command-center' && isHovered) {
       const totalWidgets = statusWidgets.left.length + statusWidgets.right.length;
@@ -1673,6 +1693,7 @@ function App() {
     if (isletMode === 'lyrics') return 320;
     if (isletMode === 'shelf') return 300;
     if (isletMode === 'todos') return 340;
+    if (isletMode === 'dev') return 380;
     if (isletMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
     if (isletMode === 'command-center') return isHovered ? 230 : 36;
     if (isletMode === 'status') return 36;
@@ -1692,6 +1713,7 @@ function App() {
   const isLyricsMode = isletMode === 'lyrics';
   const isShelfMode = isletMode === 'shelf';
   const isTodosMode = isletMode === 'todos';
+  const isDevMode = isletMode === 'dev';
 
   // Close compact media player expansions when notch is unhovered or mode changes
   useEffect(() => {
@@ -1755,8 +1777,8 @@ function App() {
           scaleY: 1,
           borderTopLeftRadius: isImpacted ? 0 : 18,
           borderTopRightRadius: isImpacted ? 0 : 18,
-          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
-          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode ? 28 : 18,
+          borderBottomLeftRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode || isDevMode ? 28 : 18,
+          borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode || isDevMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
         }}
@@ -1775,7 +1797,7 @@ function App() {
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
           if (isletMode === 'music') {
             setIsletMode(targetMode);
-          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'todos' || isletMode === 'status') {
+          } else if (isletMode === 'command-center' || isletMode === 'calendar' || isletMode === 'clipboard' || isletMode === 'lyrics' || isletMode === 'shelf' || isletMode === 'todos' || isletMode === 'dev' || isletMode === 'status') {
             setIsletMode(targetMode);
           }
         }}
@@ -2474,6 +2496,23 @@ function App() {
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   >
                     <NotchTodos todos={todos} onClose={() => setIsletMode('status')} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Développeur : le dépôt suivi et les ports qui écoutent. */}
+              <AnimatePresence>
+                {isDevMode && (
+                  <motion.div
+                    className="dev-content"
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  >
+                    <NotchDev dev={dev} onClose={() => setIsletMode('status')} />
                   </motion.div>
                 )}
               </AnimatePresence>

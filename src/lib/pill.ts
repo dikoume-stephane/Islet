@@ -29,6 +29,7 @@ export type PillMode =
   | "lyrics"
   | "shelf"
   | "todos"
+  | "dev"
   | "command-center";
 
 /**
@@ -41,6 +42,7 @@ export const PANEL_MODES: readonly PillMode[] = [
   "lyrics",
   "shelf",
   "todos",
+  "dev",
   "command-center",
 ];
 

@@ -90,8 +90,30 @@ With **All Monitors** and more than one display, the **Per-Monitor Behavior** to
 | `islet-shelf-enabled` | `"true"` / `"false"` | `"true"` | Accept files dropped on the notch and keep them in the shelf. Off means the drop handler is not even registered. |
 | `islet-keyboard-indicators-enabled` | `"true"` / `"false"` | `"true"` | Show a brief overlay when Caps Lock, Num Lock, Scroll Lock or the input language changes. Off means the backend reads nothing. |
 | `islet-todo-enabled` | `"true"` / `"false"` | `"true"` | Show today's tasks in the notch. Off means the file is not read and the reminder never fires. |
+| `islet-dev-enabled` | `"true"` / `"false"` | `"true"` | Show the developer panel (branch, changed files, listening ports). Off means neither `git` nor `netstat` runs. |
+| `islet-dev-folder` | string | `""` | The repository Islet reads. Empty means no `git` command is ever launched. Chosen with the folder picker in Settings › Notch. |
 | `islet-timer-state` | JSON object | absent | The running countdown, stored as an absolute target (`{"v":1,"t":1500000,"e":1762345678901,"h":0}`). Written by the timer, not a settings-window field. |
 | `islet-stopwatch-state` | JSON object | absent | The stopwatch: accumulated time, start of the current segment, and laps. Written by the stopwatch, not a settings-window field. |
+
+### Developer signals
+
+The notch has a Developer panel with two things: the state of one git repository, and the ports
+listening on this machine.
+
+**The repository is the one you picked**, in Settings › Notch › Developer. Empty by default, and while
+it is empty no `git` command runs at all: Islet never guesses a folder to look into. What is read is
+three read-only answers, `rev-parse`, `status --porcelain` and `rev-list --count --left-right`, launched
+with `--no-optional-locks` so a background refresh never fights a `git status` you have running.
+
+**The ports come from `netstat -ano -p TCP`**, reported line by line by Rust and interpreted in
+TypeScript, where the IPv4/IPv6 and localisation quirks are covered by tests. Each row shows the port,
+the owning process, how long it has been held, and a yellow dot when the port listens on every interface
+rather than the loopback: that is the one worth closing. The × frees the port by ending the process,
+through the same protected-process guard as the process list.
+
+Three remarks appear above the list when they apply: commits behind the upstream branch, a branch left
+dirty for more than twelve minutes, a port held for more than two hours. Nothing runs while the panel is
+closed, and nothing at all while the setting is off.
 
 ### Minimal pill
 

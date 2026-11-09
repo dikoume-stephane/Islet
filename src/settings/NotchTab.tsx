@@ -21,6 +21,8 @@ import {
   Layers,
   Trash2,
   ListTodo,
+  GitBranch,
+  FolderGit2,
 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
@@ -29,6 +31,7 @@ import { StatusWidgetConfig } from "../components/StatusWidgetConfig";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 import { usePerMonitor } from "./usePerMonitor";
 import { useT } from "../i18n";
+import { shortPath } from "../lib/shelf";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -55,6 +58,11 @@ interface NotchTabProps {
   toggleShelf: () => void;
   todoEnabled: boolean;
   toggleTodo: () => void;
+  devEnabled: boolean;
+  toggleDev: () => void;
+  devFolder: string;
+  pickDevFolder: () => void;
+  clearDevFolder: () => void;
   timerEnabled: boolean;
   toggleTimerEnabled: () => void;
   timerSoundEnabled: boolean;
@@ -113,6 +121,11 @@ export function NotchTab({
   toggleShelf,
   todoEnabled,
   toggleTodo,
+  devEnabled,
+  toggleDev,
+  devFolder,
+  pickDevFolder,
+  clearDevFolder,
   timerEnabled,
   toggleTimerEnabled,
   timerSoundEnabled,
@@ -434,6 +447,36 @@ export function NotchTab({
       <div className="setting-group-label">{t("notch.widgets")}</div>
       <div className="setting-group">
         <StatusWidgetConfig value={statusWidgets} onChange={handleWidgetsChange} hasBattery={hasBattery} />
+      </div>
+
+      <div className="setting-group-label">{t("dev.settings.group")}</div>
+      <div className="setting-group">
+        <SettingRow icon={GitBranch} label={t("dev.settings.enable")} desc={t("dev.settings.enable.desc")}>
+          <label className="toggle-switch">
+            <input type="checkbox" checked={devEnabled} onChange={toggleDev} />
+            <span className="slider"></span>
+          </label>
+        </SettingRow>
+
+        {devEnabled && (
+          <SettingRow
+            icon={FolderGit2}
+            label={t("dev.settings.folder")}
+            desc={devFolder === "" ? t("dev.settings.folder.desc") : shortPath(devFolder, 3)}
+            divider={false}
+          >
+            <div className="dev-folder-actions">
+              {devFolder !== "" && (
+                <button type="button" className="dev-folder-button" onClick={clearDevFolder}>
+                  {t("dev.settings.clear")}
+                </button>
+              )}
+              <button type="button" className="dev-folder-button is-primary" onClick={pickDevFolder}>
+                {t("dev.settings.pick")}
+              </button>
+            </div>
+          </SettingRow>
+        )}
       </div>
     </>
   );

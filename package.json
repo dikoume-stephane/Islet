@@ -12,7 +12,7 @@
     "bump": "bun scripts/bump-version.mjs",
     "test:assistant": "node_modules/.bin/esbuild scripts/assistant.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/assistant.test.mjs --log-level=error && node --test .test-build/assistant.test.mjs",
     "test:theme": "node_modules/.bin/esbuild scripts/theme.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/theme.test.mjs --log-level=error && node --test .test-build/theme.test.mjs",
-    "test": "npm run test:assistant && npm run test:theme && npm run test:clipboard && npm run test:lyrics && npm run test:shelf && npm run test:clock && npm run test:todo && npm run test:keyboard && npm run test:pill && npm run test:character",
+    "test": "npm run test:assistant && npm run test:theme && npm run test:clipboard && npm run test:lyrics && npm run test:shelf && npm run test:clock && npm run test:todo && npm run test:keyboard && npm run test:pill && npm run test:character && npm run test:dev",
     "test:clipboard": "node_modules/.bin/esbuild scripts/clipboard.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/clipboard.test.mjs --log-level=error && node --test .test-build/clipboard.test.mjs",
     "test:lyrics": "node_modules/.bin/esbuild scripts/lyrics.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/lyrics.test.mjs --log-level=error && node --test .test-build/lyrics.test.mjs",
     "test:shelf": "node_modules/.bin/esbuild scripts/shelf.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/shelf.test.mjs --log-level=error && node --test .test-build/shelf.test.mjs",
@@ -20,7 +20,8 @@
     "test:todo": "node_modules/.bin/esbuild scripts/todo.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/todo.test.mjs --log-level=error && node --test .test-build/todo.test.mjs",
     "test:keyboard": "node_modules/.bin/esbuild scripts/keyboard.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/keyboard.test.mjs --log-level=error && node --test .test-build/keyboard.test.mjs",
     "test:pill": "node_modules/.bin/esbuild scripts/pill.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/pill.test.mjs --log-level=error && node --test .test-build/pill.test.mjs",
-    "test:character": "node_modules/.bin/esbuild scripts/character.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/character.test.mjs --log-level=error && node --test .test-build/character.test.mjs"
+    "test:character": "node_modules/.bin/esbuild scripts/character.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/character.test.mjs --log-level=error && node --test .test-build/character.test.mjs",
+    "test:dev": "node_modules/.bin/esbuild scripts/dev.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/dev.test.mjs --log-level=error && node --test .test-build/dev.test.mjs"
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",

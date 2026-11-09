@@ -244,6 +244,11 @@ function SettingsApp() {
               toggleShelf={settings.toggleShelf}
               todoEnabled={settings.todoEnabled}
               toggleTodo={settings.toggleTodo}
+              devEnabled={settings.devEnabled}
+              toggleDev={settings.toggleDev}
+              devFolder={settings.devFolder}
+              pickDevFolder={settings.pickDevFolder}
+              clearDevFolder={settings.clearDevFolder}
               timerEnabled={settings.timerEnabled}
               toggleTimerEnabled={settings.toggleTimerEnabled}
               timerSoundEnabled={settings.timerSoundEnabled}

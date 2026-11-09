@@ -1624,3 +1624,51 @@ input:checked + .slider:before {
   outline: 2px solid var(--islet-accent, #007aff);
   outline-offset: 2px;
 }
+
+/* ─── Dossier suivi (signaux du développeur) ─────────────────────────────── */
+
+.dev-folder-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dev-folder-button {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-folder-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #fff);
+}
+
+.dev-folder-button.is-primary {
+  background: rgba(100, 210, 255, 0.16);
+  border-color: rgba(100, 210, 255, 0.4);
+  color: #9fe4ff;
+}
+
+.dev-folder-button.is-primary:hover {
+  background: rgba(100, 210, 255, 0.26);
+  color: #fff;
+}
+
+.light-mode .dev-folder-button {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light-mode .dev-folder-button.is-primary {
+  background: rgba(10, 132, 255, 0.12);
+  border-color: rgba(10, 132, 255, 0.32);
+  color: #0a6cc4;
+}

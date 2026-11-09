@@ -158,6 +158,22 @@
   - [x] J9d — Réglage `islet-notch-pill-minimal` (éteint par défaut) dans l'onglet Notch, libellé et description bilingues
   - [ ] J9e — **À vérifier sur Windows** : activer le réglage, lancer un morceau et vérifier que le notch replié ne montre que l'heure, puis le survoler et retrouver pochette et widgets
 
+## Bloc L — Signaux du développeur (J5)
+
+### L0 — Git pulse, port radar et rappels de contexte ✅ livré 2026-11-05
+- [x] L0a — `src/lib/dev.ts` : interpretation de `netstat` (IPv4, IPv6, boucle locale, en-têtes traduits), suivi de l'âge des ports, lecture des trois sorties de git, remarques de contexte, format d'âge — **34 tests**
+- [x] L0b — `scripts/dev.test.ts` + `npm run test:dev`, branché dans `npm run test`
+- [x] L0c — `src-tauri/src/dev.rs` : `dev_git_status` (trois commandes en lecture seule, `--no-optional-locks`, refus si le dossier n'est pas un dépôt) et `dev_listening_ports` (netstat borné, sorties brutes)
+- [x] L0d — `useDev` : ne lit rien quand le réglage est coupé ni quand le panneau est fermé ; ports toutes les 15 s, git toutes les 20 s
+- [x] L0e — `NotchDev` : branche, pastilles sale / avance / retard, remarques, liste des ports avec propriétaire, âge, exposition réseau et bouton de libération ; états vides et erreurs parlantes
+- [x] L0f — Câblage notch : mode `dev` (molette), 350 × 380, rayon bas 28
+- [x] L0g — Réglages onglet Notch : `islet-dev-enabled` et `islet-dev-folder` (sélecteur de dossier natif, retrait, lecture seule)
+- [ ] L0h — **À vérifier sur Windows** : compiler `dev.rs` (pas de toolchain ici), choisir un dépôt, vérifier branche et retard, puis libérer un port de test
+- [ ] L1 — **Vérifier sur Windows** que `netstat` reste en anglais sur un système français (l'interprétation s'ancre sur `LISTENING`)
+- [ ] L2 — **Build watcher** (P3-B10) : commande enregistrée, exécutée à la demande, ✅/❌ et durée
+- [ ] L3 — **Focus guard** (P3-B11) : mode focus = Ne pas déranger + chrono + Is au repos
+- [ ] L4 — **Rappels de contexte en conseils d'Is** (P3-B12, suite) : brancher `devNotes` sur `pickTip` avec délais de répétition
+
 ## Bloc K — Assistant « Is » (J3, J5)
 
 ### K1 — Le personnage (J3) ✅ livré 2026-11-05

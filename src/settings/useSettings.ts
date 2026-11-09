@@ -6,6 +6,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import type { UpdateCheckResult } from "../updater";
 import { useSettingsSync } from "../hooks/useSettingsSync";
 import { applyTheme, hexToHsl } from "../theme";
+import { t as translate } from "../i18n";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 
 function saveSetting(key: string, value: string) {
@@ -27,6 +28,10 @@ export function useSettings() {
   const [lyricsEnabled, setLyricsEnabled] = useState(false);
   const [shelfEnabled, setShelfEnabled] = useState(true);
   const [todoEnabled, setTodoEnabled] = useState(true);
+  // Développeur : aucun dossier par défaut, donc aucune commande git lancée
+  // avant que l'utilisateur en choisisse un.
+  const [devEnabled, setDevEnabled] = useState(true);
+  const [devFolder, setDevFolder] = useState("");
   const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
     () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
   );
@@ -170,6 +175,9 @@ export function useSettings() {
       apply(getVal("islet-lyrics-enabled"), setLyricsEnabled, readBool);
       apply(getVal("islet-shelf-enabled"), setShelfEnabled, readBool);
       apply(getVal("islet-todo-enabled"), setTodoEnabled, readBool);
+      apply(getVal("islet-dev-enabled"), setDevEnabled, readBool);
+      const storedFolder = getVal("islet-dev-folder");
+      if (storedFolder !== null) setDevFolder(storedFolder);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -479,6 +487,35 @@ export function useSettings() {
     const next = !keyboardIndicatorsEnabled;
     setKeyboardIndicatorsEnabled(next);
     saveSetting("islet-keyboard-indicators-enabled", String(next));
+  };
+
+  const toggleDev = () => {
+    const next = !devEnabled;
+    setDevEnabled(next);
+    saveSetting("islet-dev-enabled", String(next));
+  };
+
+  const pickDevFolder = async () => {
+    try {
+      const { open: openDialog } = await import("@tauri-apps/plugin-dialog");
+      const chosen = await openDialog({
+        title: translate("dev.settings.folder"),
+        directory: true,
+        multiple: false,
+      });
+      if (typeof chosen === "string" && chosen !== "") {
+        setDevFolder(chosen);
+        saveSetting("islet-dev-folder", chosen);
+      }
+    } catch {
+      // Un sélecteur qui échoue ne doit pas laisser croire qu'un dossier a été
+      // choisi : on ne touche à rien.
+    }
+  };
+
+  const clearDevFolder = () => {
+    setDevFolder("");
+    saveSetting("islet-dev-folder", "");
   };
 
   const toggleTodo = () => {
@@ -939,6 +976,11 @@ export function useSettings() {
     toggleShelf,
     todoEnabled,
     toggleTodo,
+    devEnabled,
+    toggleDev,
+    devFolder,
+    pickDevFolder,
+    clearDevFolder,
     keyboardIndicatorsEnabled,
     toggleKeyboardIndicators,
     timerEnabled,

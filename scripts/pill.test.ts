@@ -72,6 +72,7 @@ describe("minimalPillActive", () => {
       "lyrics",
       "shelf",
       "todos",
+      "dev",
       "command-center",
     ];
     for (const mode of PANEL_MODES) {

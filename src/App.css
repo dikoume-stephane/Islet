@@ -3903,3 +3903,300 @@ img {
         transition: none;
     }
 }
+
+/* ─── Panneau développeur (branche, ports) ──────────────────────────────── */
+
+.dev-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.dev-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 4px 10px 8px;
+    box-sizing: border-box;
+}
+
+.dev-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+}
+
+.dev-head-icon {
+    display: flex;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.dev-branch {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Les écarts avec le dépôt distant se lisent d'un coup d'œil, sans mot. */
+.dev-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.dev-tag.is-dirty {
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+}
+
+.dev-tag.is-ahead {
+    background: rgba(50, 215, 75, 0.14);
+    color: #32d74b;
+}
+
+.dev-tag.is-behind {
+    background: rgba(100, 210, 255, 0.14);
+    color: #64d2ff;
+}
+
+.dev-close {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dev-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.dev-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: inherit;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--islet-text, #fff);
+    cursor: pointer;
+}
+
+.dev-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.dev-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dev-note {
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #ffd60a;
+}
+
+.dev-ports-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+}
+
+.dev-ports-count {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.dev-ports {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.dev-ports::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dev-ports::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 2px;
+}
+
+.dev-ports-empty {
+    padding: 8px 6px;
+    font-size: 11px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+}
+
+.dev-port {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 6px;
+    border-radius: 7px;
+    font-size: 11px;
+}
+
+.dev-port:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dev-port-number {
+    min-width: 40px;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--islet-text, #fff);
+}
+
+.dev-port-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.dev-port-age {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, 0.34);
+}
+
+/* Une pastille jaune signale un port joignable depuis le réseau : c'est celui
+   qu'on n'a pas voulu laisser ouvert. */
+.dev-port-scope {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.dev-port-scope.is-exposed {
+    background: #ffd60a;
+    box-shadow: 0 0 6px rgba(255, 214, 10, 0.5);
+}
+
+.dev-port-kill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.28);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.dev-port:hover .dev-port-kill,
+.dev-port-kill:focus-visible {
+    opacity: 1;
+}
+
+.dev-port-kill:hover {
+    background: rgba(255, 69, 58, 0.18);
+    color: #ff453a;
+}
+
+.dev-port-kill:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.dev-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.34);
+}
+
+.dev-foot-path {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    direction: rtl;
+    text-align: left;
+}
+
+.dev-foot-button {
+    display: flex;
+    padding: 2px;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.dev-foot-button:hover {
+    color: #fff;
+}

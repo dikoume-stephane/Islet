@@ -22,6 +22,7 @@ mod lyrics;
 mod shelf;
 mod todo;
 mod keyboard_indicators;
+mod dev;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -217,7 +218,9 @@ fn main() {
             todo::todo_toggle,
             todo::todo_set_due,
             todo::todo_remove,
-            todo::todo_clear_done
+            todo::todo_clear_done,
+            dev::dev_git_status,
+            dev::dev_listening_ports
         ])
         .setup(|app| {
             init_taskbar_marker(app.handle());

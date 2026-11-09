@@ -5,6 +5,41 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-05 (9) — J5, première moitié : les signaux du développeur
+
+**Fait**
+- `src/lib/dev.ts` : interprétation de `netstat -ano -p TCP` (IPv4, IPv6, boucle locale, en-têtes
+  traduits), suivi de l'âge des ports, lecture des trois sorties de git, remarques de contexte, format
+  d'âge. **34 tests**.
+- `src-tauri/src/dev.rs` : `dev_git_status` (trois commandes en lecture seule, `--no-optional-locks`,
+  refus si le dossier n'est pas un dépôt) et `dev_listening_ports` (sortie netstat bornée, brute).
+- `useDev` + `NotchDev` : panneau du notch avec branche, pastilles sale / avance / retard, remarques,
+  ports avec propriétaire, âge, exposition réseau et bouton de libération.
+- Réglages onglet Notch : `islet-dev-enabled`, `islet-dev-folder` avec sélecteur de dossier natif.
+- P3-B8, P3-B9 et P3-B12 livrés. Restent B10 (build watcher) et B11 (focus guard).
+
+**Constats**
+- Le partage Rust/TypeScript n'est pas une habitude, c'est une nécessité ici. Un parseur de `netstat`
+  est exactement le code qui se trompe en silence sur une ligne IPv6, et qui ne **compile** que sur
+  Windows. En le déplaçant côté TypeScript, il se vérifie sur des lignes figées : les en-têtes sont
+  traduits par Windows, les lignes ne le sont pas, donc l'ancrage est sur `LISTENING` et non sur une
+  position de colonne.
+- `git rev-list --count --left-right` répond « derrière puis devant ». L'inverser aurait donné un
+  panneau qui ment sans que personne ne s'en aperçoive ; c'est un test.
+- Le workspace m'a fait perdre une dizaine de minutes : un `</div>` inséré un peu trop haut a avalé la
+  fermeture du groupe voisin, et TypeScript signalait l'erreur trois cents lignes plus loin. Leçon :
+  quand on insère un groupe de réglages, vérifier la pile des balises, pas seulement le message.
+
+**Bloqué**
+- `dev.rs` n'est pas compilé ici : pas de toolchain Rust.
+
+**À faire ensuite**
+- Sur Windows : choisir un dépôt, lire la branche et le retard, libérer un port de test ; vérifier que
+  `netstat` reste en anglais sur un système français.
+- J5 reste : build watcher (B10), focus guard (B11), puis brancher les remarques sur `pickTip`.
+
+---
+
 ## 2026-11-05 (8) — J3 : le personnage
 
 **Fait**

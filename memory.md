@@ -467,3 +467,32 @@ répond à deux questions, et ce sont celles qui se trompent à la main.
   rasteriser un SVG et de le **regarder**. À refaire pour tout futur dessin.
 - Nom : `islet-assistant-name` (déjà là depuis l'accueil).
 
+---
+
+## 16. Signaux du développeur (J5 moitié, livré 2026-11-05)
+
+`src/lib/dev.ts` décide, `dev.rs` rapporte, `useDev` + `NotchDev` affichent.
+
+- **`parseNetstat(lines)`** : ancre sur `LISTENING` (les en-têtes sont traduits, les lignes non), prend
+  l'adresse locale à `stateIndex - 2`, le PID en dernier, retire les crochets IPv6.
+- **`trackPorts(previous, listeners, now)`** : fusionne IPv4/IPv6 d'un même port, garde `since` tant que
+  le **même pid** tient le port, repart à `now` sinon ; trie par port ; plafond `MAX_PORTS = 40`.
+- **`isExposedAddress`** : `0.0.0.0`, `::`, `*` → joignable du réseau (pastille jaune).
+- **`parseGitPulse({branch, porcelain, counts})`** : `dirty` = lignes non vides de `porcelain` ;
+  `counts` = « derrière puis devant » (`behind` puis `ahead`) ; branche vide → `?`, `HEAD` → détachée.
+- **`trackGit`** : `dirtySince` naît au premier relevé sale, meurt quand la branche redevient propre.
+- **`devNotes(pulse, ports, now)`** : `behind > 0`, `dirty` depuis ≥ `DIRTY_AFTER_MS` (12 min), port tenu
+  depuis ≥ `PORT_HELD_MS` (2 h) ; **deux remarques au maximum**. Les ports système sont écartés
+  (`PORT_NOTE_MIN = 1024`, PID 0 et 4) : ils sont ouverts depuis toujours, les signaler serait du bruit.
+- **`formatAge(ms)`** : « 12 min », « 2 h 05 » ; des nombres, la langue se met autour.
+- **Rust** : `dev_git_status(folder)` refuse `no-folder` / `folder-missing` / `not-a-repository` ;
+  `git` lancé `-C <folder>` avec `--no-optional-locks` ; `dev_listening_ports()` rend les lignes brutes
+  de `netstat -ano -p TCP` (plafond 4000).
+- **`useDev(enabled, folder, active)`** : ne lit rien si le réglage est coupé **ou** le panneau fermé ;
+  ports 15 s, git 20 s ; `get_running_processes` fournit les noms de propriétaires.
+- Réglages : `islet-dev-enabled` (true), `islet-dev-folder` ("" → aucune commande git).
+- Mode notch `dev` : 350 × 380, rayon bas 28, présent dans la molette après `lyrics`.
+- ⚠️ `dev.rs` n'est **pas compilé** ici. Restent B10 (build watcher) et B11 (focus guard).
+- Piège rencontré : insérer un groupe de réglages au mauvais endroit avale le `</div>` du groupe voisin,
+  et TypeScript le signale 300 lignes plus bas. Vérifier la pile des balises, pas le message.
+
