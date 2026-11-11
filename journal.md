@@ -5,6 +5,41 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-09 (13) — Première compilation réelle, et un exécutable qui sort en code 1
+
+**Fait**
+- Le portillon de sortie (`scripts/audit.mjs`, `npm run prerelease`) et `RELEASE.md`.
+- `reset_settings` n'était enregistré qu'une fois dans `generate_handler!` : un doublon silencieux,
+  retiré.
+- Le commerce de la première machine Windows : **`src-tauri` compile**. 1 min 00 s, une seule
+  remarque, `unused import: HGLOBAL` dans `clipboard.rs`, corrigée.
+- Trace de démarrage : `startup: init`, `startup: single instance mutex acquired`,
+  `startup: building application`, `setup: begin`, `setup: done`, `run: ready`, `run: exit requested`,
+  `run: exit`, `run: window <label> destroyed`, `quit: restoring taskbar and exiting`,
+  `quit: relaunching`, et le cas de la webview qui meurt dans les trente secondes.
+
+**Constats**
+- Un exécutable qui sort en code 1 ne laisse **rien** dans le terminal : pas de panique, pas de
+  message, juste `process didn't exit successfully`. C'est le pire cas à diagnostiquer, et c'est
+  exactement celui qu'on a eu. La sortie du 2026-11-04 venait de la mémoire ; ici la compilation
+  aboutit.
+- La cause probable est une tuerie, pas un arrêt propre : `TerminateProcess(handle, 1)` et `taskkill`
+  produisent ce code, alors que `handle.exit(0)` et une panique produisent 0 et 101. Rien ne
+  l'affirme pourtant, et c'est bien le problème.
+- Le journal applicatif (`%APPDATA%\com.2DS.islet\logs\islet.log`) existait mais ne disait rien du
+  démarrage : `main.rs` n'y écrivait jamais. Il ne pouvait donc pas répondre à la seule question
+  posée. C'est cette lacune qui est corrigée, pas le symptôme.
+
+**Bloqué**
+- La cause exacte de la sortie en code 1 n'est pas établie : il faut relancer et lire le journal.
+
+**À faire ensuite**
+- Relancer `bun run tauri dev`, lire `islet.log`. Si `run: exit requested` apparaît, c'est un arrêt
+  demandé ; si `webview died right after launch` apparaît, c'est WebView2 ; si le journal s'arrête
+  net après `setup: done`, c'est une tuerie extérieure.
+
+---
+
 ## 2026-11-05 (12) — J6 clos, et J7 entamé : l'assistance IA
 
 **Fait**

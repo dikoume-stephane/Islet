@@ -412,7 +412,6 @@ pub fn start_watcher(app: AppHandle) {
 /// Put text back on the clipboard. Returns false when another application is
 /// holding it.
 unsafe fn write_clipboard_text(text: &str) -> bool {
-    use windows::Win32::Foundation::HGLOBAL;
     use windows::Win32::System::DataExchange::{
         CloseClipboard, EmptyClipboard, OpenClipboard, SetClipboardData,
     };

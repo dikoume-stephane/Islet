@@ -2379,6 +2379,7 @@ pub fn clear_volume_mixer_rect() {
 /// handlers so that any shutdown path (including Task Manager's WM_CLOSE) behaves
 /// identically.
 pub fn restore_taskbar_and_exit(handle: &AppHandle) {
+    crate::diagnostics::log("quit: restoring taskbar and exiting");
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     NATIVE_TASKBAR_HIDDEN.store(false, Ordering::SeqCst);
     for (_, w) in handle.webview_windows() {
@@ -2504,6 +2505,7 @@ pub async fn restart_islet(handle: AppHandle) {
 
 /// Relaunches the process. Also used for webview crashes, reloading pages can't fix those.
 pub fn relaunch_islet(handle: &AppHandle) {
+    crate::diagnostics::log("quit: relaunching");
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     if let Some(w) = handle.get_webview_window("main") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("dock") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }

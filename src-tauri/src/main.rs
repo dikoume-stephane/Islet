@@ -52,6 +52,7 @@ fn main() {
     }
 
     diagnostics::init();
+    crate::diagnostics::log("startup: init");
 
     unsafe {
         let _ = SetConsoleCtrlHandler(Some(ctrl_handler), true);
@@ -69,6 +70,7 @@ fn main() {
         let err = GetLastError();
 
         if err.0 == 183 {
+            crate::diagnostics::log("startup: another instance owns the mutex, asking it to open settings and leaving");
             // Another instance is already running — signal it to open settings
             if let Ok(h_event) = OpenEventW(SYNCHRONIZATION_ACCESS_RIGHTS(0x00100002), false, windows::core::PCWSTR(event_name.as_ptr())) {
                 let _ = SetEvent(h_event);
@@ -82,9 +84,11 @@ fn main() {
             let _ = SINGLE_INSTANCE_EVENT_HANDLE.set(h_event.0 as isize);
         }
         if let Some(h) = h_mutex { let _ = SINGLE_INSTANCE_MUTEX_HANDLE.set(h.0 as isize); }
+        crate::diagnostics::log("startup: single instance mutex acquired");
     }
 
     setup_brightness_worker();
+    crate::diagnostics::log("startup: building application");
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -226,6 +230,7 @@ fn main() {
             ai::ai_post
         ])
         .setup(|app| {
+            crate::diagnostics::log("setup: begin");
             init_taskbar_marker(app.handle());
             // Crash-recovery: if a previous session was force-killed while the native
             // taskbar was hidden, restore it now. Runs before the frontend re-hides it
@@ -426,15 +431,26 @@ fn main() {
                     })
                     .build(app)?;
             }
+            crate::diagnostics::log("setup: done");
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
-    app.run(|_, event| {
-        if let tauri::RunEvent::Exit = event {
+    // Le journal dit pourquoi la boucle se termine : sans lui, une sortie
+    // inattendue ne laisse aucune trace, l'exe s'arrêtant sans rien écrire.
+    app.run(|_, event| match &event {
+        tauri::RunEvent::Ready => crate::diagnostics::log("run: ready"),
+        tauri::RunEvent::ExitRequested { .. } => crate::diagnostics::log("run: exit requested"),
+        tauri::RunEvent::Exit => {
+            crate::diagnostics::log("run: exit");
             set_taskbar_visibility(true, true);
             NATIVE_TASKBAR_HIDDEN.store(false, Ordering::Relaxed);
-
         }
+        tauri::RunEvent::WindowEvent {
+            label,
+            event: tauri::WindowEvent::Destroyed,
+            ..
+        } => crate::diagnostics::log(&format!("run: window {label} destroyed")),
+        _ => {}
     });
 }

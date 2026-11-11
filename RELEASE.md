@@ -51,6 +51,28 @@ de probabilité :
 3. Un nom de commande dans `src-tauri/src/main.rs` (le `generate_handler!`) : s'il ne correspond à rien,
    l'erreur parle de fonction introuvable.
 
+### Si l'app se ferme toute seule
+
+`error: process didn't exit successfully ... (exit code: 1)` ne dit rien par lui-même : un exécutable
+tué sort avec ce code, sans écrire une ligne. Le journal, lui, sait. Il est ici :
+
+```
+Get-Content "$env:APPDATA\com.2DS.islet\logs\islet.log" -Tail 40
+```
+
+Il se lit comme une histoire, dans l'ordre : `startup: init`, `startup: single instance mutex
+acquired`, `startup: building application`, `setup: begin`, `setup: done`, `run: ready`. L'endroit où
+l'histoire s'arrête est l'endroit du problème.
+
+| Dernière ligne | Ce que ça veut dire |
+|---|---|
+| `startup: another instance owns the mutex` | Une autre Islet tournait déjà : la fermer, ou vérifier la barre système |
+| `setup: begin` sans `setup: done` | Le montage échoue : la ligne d'erreur est juste au-dessus |
+| `run: exit requested` | Quelque chose a demandé l'arrêt (menu, `quit_islet`, erreur de webview) |
+| `webview died right after launch` | WebView2 meurt au démarrage : voir la mise à jour de WebView2 |
+| `quit: restoring taskbar and exiting` | Une sortie propre, par le menu ou par la touche d'arrêt |
+| rien après `setup: done` | Le processus a été tué de l'extérieur : antivirus, ou un `taskkill` |
+
 ### Les cinq vérifications à faire dans la foulée
 
 1. **Panneau développeur** : molette sur le notch jusqu'au panneau « dev ». Il doit afficher « Aucun

@@ -3294,6 +3294,7 @@ fn recover_from_webview_failure(handle: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         // A webview dying right after launch would die again after a relaunch, so give the taskbar back and exit.
         if started.is_some_and(|elapsed| elapsed < Duration::from_secs(30)) {
+            crate::diagnostics::log("webview died right after launch, exiting instead of relaunching");
             crate::commands::restore_taskbar_and_exit(&handle);
         } else {
             crate::diagnostics::log("webview process failed, relaunching");
