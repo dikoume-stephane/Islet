@@ -73,6 +73,10 @@ l'histoire s'arrête est l'endroit du problème.
 | `quit: restoring taskbar and exiting` | Une sortie propre, par le menu ou par la touche d'arrêt |
 | rien après `setup: done` | Le processus a été tué de l'extérieur : antivirus, ou un `taskkill` |
 
+Si le message parle de `rustc-LLVM ERROR: out of memory` et non du journal, le problème est en amont
+de l'exécution : la compilation a manqué de mémoire. Voir la section « If the Rust build runs out of
+memory » du README, et `scripts/dev.ps1 -Clean` une fois.
+
 ### Les cinq vérifications à faire dans la foulée
 
 1. **Panneau développeur** : molette sur le notch jusqu'au panneau « dev ». Il doit afficher « Aucun

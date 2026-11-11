@@ -99,7 +99,20 @@ chrono-tz = "0.10"
 # errors.
 #
 # Dropping debug info for third-party crates roughly halves peak RAM and makes
-# cold builds noticeably faster. Islet's own code keeps full debug info, so
-# breakpoints and readable stack traces in `src-tauri/src` still work.
+# cold builds noticeably faster.
 [profile.dev.package."*"]
 debug = false
+
+# Islet's own crate is the other half of the problem: sixteen thousand lines,
+# plus every one of the 129 commands expanded by `generate_handler!`, all fed to
+# one rustc in full debug info (`-C debuginfo=2`). That single process is what
+# hits `rustc-LLVM ERROR: out of memory` on a machine that already builds the
+# ~600 dependencies fine.
+#
+# `debug = 1` keeps line tables: a panic or a backtrace still says which file and
+# which line, which is exactly what the log needs, and costs a fraction of the
+# memory. `incremental` is off because its query cache is another few gigabytes
+# on a crate this size, and it only ever helps when editing `src-tauri` itself.
+[profile.dev]
+debug = 1
+incremental = false

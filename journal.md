@@ -5,6 +5,41 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-09 (14) — LLVM manque de mémoire sur le crate Islet lui-même
+
+**Symptôme** — Deuxième `bun run tauri dev` : `rustc-LLVM ERROR: out of memory`, `Allocation failed`,
+puis `rustc` tué avec `STATUS_STACK_BUFFER_OVERRUN` (0xc0000409). La première compilation, elle, avait
+abouti en une minute : le même code, la même machine, deux résultats.
+
+**Diagnostic** — Le correctif du 2026-11-04 ne visait que les dépendances :
+`[profile.dev.package."*"] debug = false`. Le crate Islet, lui, restait en `-C debuginfo=2` (visible
+dans la ligne de commande citée par l'erreur). Or c'est le plus gros objet unique du build : seize mille
+lignes, plus les 129 commandes dépliées par `generate_handler!`. Selon ce que la machine a de libre au
+moment du codegen, ce seul processus passe ou casse. Un build qui réussit une fois n'est pas un build
+qui réussit toujours.
+
+**Correctifs**
+1. `[profile.dev] debug = 1` : les tables de lignes restent, les variables locales disparaissent. Une
+   panique dit toujours son fichier et sa ligne, ce qui est exactement ce dont le journal a besoin.
+2. `[profile.dev] incremental = false` : le cache de requêtes d'`incremental` pèse plusieurs gigaoctets
+   sur un crate de cette taille, et il ne sert que si l'on modifie `src-tauri` lui-même.
+3. README et RELEASE.md : dire que le profil est déjà réglé, et renvoyer au nettoyage quand l'erreur
+   vient de la compilation et non de l'exécution.
+
+**Constats**
+- Le message d'erreur du jour ne parle pas de l'application mais de `rustc`. Confondre les deux fait
+  chercher un bug dans le code alors que la machine a seulement manqué de place.
+- `incremental = false` rallonge chaque compilation du crate Islet d'une poignée de secondes. C'est le
+  prix d'un build qui ne dépend plus de ce qui tournait à côté.
+
+**Bloqué**
+- La compilation n'a pas été retentée : elle se fait sur la machine Windows.
+
+**À faire ensuite**
+- Relancer. Si la mémoire manque encore, `scripts/dev.ps1 -Clean` puis `-Jobs 1`.
+
+---
+
 ## 2026-11-09 (13) — Première compilation réelle, et un exécutable qui sort en code 1
 
 **Fait**

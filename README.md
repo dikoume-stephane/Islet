@@ -167,6 +167,8 @@ cd ..
 
 `scripts/dev.ps1` prints your RAM, free space on `C:` and your Rust toolchain, then rebuilds with two parallel jobs. Pass `-Jobs 4` if you have 16 GB or more, and `-Clean` to wipe `target/` first. A cold build needs about 15 GB free.
 
+The build profile is already tuned for this: dependencies are compiled without debug info, and Islet's own crate with `debug = 1` (line tables only) and `incremental = false`. Those two settings keep panic traces readable while cutting LLVM's peak memory on the largest single compilation unit of the build.
+
 Two things help beyond that: keep other heavy apps closed during the first build, and exclude `src-tauri/target` and `%USERPROFILE%\.rustup` from real-time antivirus scanning. If `rustc -vV` reports a `host:` that is not `x86_64`, you have a 32-bit toolchain, which cannot use more than ~3 GB and will run out of memory regardless — fix it with `rustup default stable-x86_64-pc-windows-msvc`.
 
 ## Contributing
