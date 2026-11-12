@@ -129,6 +129,7 @@ fn main() {
             set_dock_hovered,
             set_notch_hovered,
             set_notch_hidden,
+            set_notch_activatable,
             set_dock_dragging,
             get_active_windows,
             get_app_icon,

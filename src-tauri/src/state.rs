@@ -131,6 +131,10 @@ pub static MONITOR_SYNC_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 pub static MENU_IS_OPEN: AtomicBool = AtomicBool::new(false);
 pub static MENU_RECT: Mutex<Option<IntRect>> = Mutex::new(None);
 pub static DOCK_IS_DRAGGING: AtomicBool = AtomicBool::new(false);
+/// Le notch est normalement `WS_EX_NOACTIVATE` : il ne vole jamais le focus.
+/// Ce drapeau lui rend l'activation le temps qu'un champ de saisie est ouvert,
+/// sans quoi aucun caractère tapé ne lui parvient.
+pub static NOTCH_ACTIVATABLE: AtomicBool = AtomicBool::new(false);
 pub static ICON_CACHE: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 
 pub static INSTALLED_APPS_CACHE: OnceLock<Mutex<Vec<AppInfo>>> = OnceLock::new();

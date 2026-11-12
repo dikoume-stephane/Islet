@@ -1900,6 +1900,14 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
             }
 
             // --- Main (TopBar) Interaction ---
+            // Un fichier qu'on glisse n'est pas une souris qui passe : le bouton
+            // gauche reste enfoncé. Sans cette distinction, la fenêtre reste
+            // transparente à la souris tant qu'on n'a pas touché le bord de
+            // l'écran, et le dépôt n'atteint jamais la webview.
+            let dragging = unsafe {
+                use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+                (GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000) != 0
+            };
             {
                 if let Some(main_win) = app_handle.get_webview_window("main") {
                     if main_win.is_visible().unwrap_or(false) {
@@ -1938,7 +1946,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                                     // A hidden notch must not eat clicks, in smart/peek it's off screen most of the time.
                                     let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), "main");
                                     let hover_active = is_notch_hovered || now < MH_TOPBAR_EXPIRY_MS.load(Ordering::Relaxed);
-                                    if (!notch_hidden || hover_active)
+                                    if (!notch_hidden || hover_active || dragging)
                                         && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
                                         is_click_interactive = true;
                                     }
@@ -1952,7 +1960,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                                     // Keep this immediate (not dwell-gated), the notch rect lags the animation and flipping
                                     // click-through mid-hover makes it flicker. Still gated on the notch being visible or hovered.
                                     let edge_pad = (60.0 * scale) as i32;
-                                    if !fg_fs && in_top_band && (!notch_hidden || hover_active)
+                                    if !fg_fs && in_top_band && (!notch_hidden || hover_active || dragging)
                                         && cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad {
                                         is_click_interactive = true;
                                     }
@@ -2277,7 +2285,7 @@ fn hit_test_extra_notch_windows(app_handle: &AppHandle, cursor: windows::Win32::
                 let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), &label);
                 let hover_active = is_notch_hovered
                     || now < crate::state::get_i64(crate::state::notch_extra_expiry_ms(), &label, 0);
-                if (!notch_hidden || hover_active)
+                if (!notch_hidden || hover_active || dragging)
                     && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
                     is_click_interactive = true;
                 }

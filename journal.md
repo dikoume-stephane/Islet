@@ -5,6 +5,43 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-12 (15) — Cinq bugs vus à l'usage, et ce qu'ils avaient en commun
+
+**Fait**
+- **On ne pouvait rien taper dans le notch.** `WS_EX_NOACTIVATE` est re-stampé en permanence par
+  `re_assert_topmost` et par le hitbox : le notch ne vole jamais le focus, c'est voulu, mais aucune
+  frappe ne lui parvient non plus. Nouvelle commande `set_notch_activatable` : le style tombe pendant
+  qu'un champ est ouvert, revient aussitôt refermé. Le drapeau `NOTCH_ACTIVATABLE` empêche le hitbox de
+  le remettre pendant la saisie.
+- **Tous les boutons avaient le même texte.** Le `title` du message manqué était posé sur la barre
+  entière, donc le titre natif de Windows s'affichait sur n'importe quel survol et par-dessus
+  l'interface. Le libellé passe en `aria-label` : les lecteurs d'écran le lisent, Windows n'en fait plus
+  une bulle blanche. Les cinq boutons ronds du centre de contrôle reçoivent leur propre libellé.
+- **La croix des conseils était un carré blanc.** `.assistant-tip-close` n'existait pas dans la
+  feuille de style : le navigateur dessinait son bouton par défaut.
+- **Les phrases longues sortaient des panneaux.** `.islet` porte `white-space: nowrap` pour l'heure, et
+  tout le texte des panneaux en héritait. Les blocs de prose reprennent le retour à la ligne.
+- **L'étagère ne réagissait pas à un fichier approché.** Deux causes cumulées : rien n'ouvrait le
+  panneau à l'approche, et une fenêtre transparente à la souris n'est pas une cible de dépôt pour OLE.
+  Le hitbox considère désormais qu'un bouton gauche enfoncé n'est pas un simple survol : le notch
+  redevient interactif pendant un glisser, même replié.
+
+**Constats**
+- Quatre de ces cinq bugs viennent du même endroit : le notch est une fenêtre qui ne veut pas exister
+  pour Windows. Pas de focus, pas d'activation, transparente à la souris. Chaque fois qu'on lui demande
+  un comportement de fenêtre normale (saisir, recevoir un fichier, afficher une bulle), il faut le lui
+  rendre explicitement, puis le lui retirer.
+- Un bouton sans libellé n'est pas seulement une gêne : il hérite du texte du parent, et le `title` du
+  parent parlait à sa place.
+- Le bouton des icônes cachées échoue toujours en silence ; il écrit maintenant dans le journal à
+  chaque étape franchie.
+
+**Bloqué**
+- Rien de tout cela n'est vérifié à l'écran : pas de navigateur ici. Le compilateur est le juge du
+  reste.
+
+**À faire ensuite**
+- Faire relire les cinq correctifs à l'usage, puis reprendre la sortie.
 ## 2026-11-09 (14) — LLVM manque de mémoire sur le crate Islet lui-même
 
 **Symptôme** — Deuxième `bun run tauri dev` : `rustc-LLVM ERROR: out of memory`, `Allocation failed`,

@@ -533,10 +533,16 @@ pub fn re_assert_topmost(hwnd: HWND) {
             0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOSENDCHANGING,
         );
-        // Re-stamp NOACTIVATE + TOOLWINDOW — HWND_TOPMOST can cause these to be reset
-        // by the shell on some Windows builds
+        // Re-stamp TOOLWINDOW, and NOACTIVATE only when no field is waiting for
+        // the keyboard. Re-stamping it while the user types would take the focus
+        // away mid-word.
         let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as usize;
-        let new_ex = ex | WS_EX_NOACTIVATE.0 as usize | WS_EX_TOOLWINDOW.0 as usize;
+        let mut new_ex = ex | WS_EX_TOOLWINDOW.0 as usize;
+        if !crate::state::NOTCH_ACTIVATABLE.load(std::sync::atomic::Ordering::Relaxed) {
+            new_ex |= WS_EX_NOACTIVATE.0 as usize;
+        } else {
+            new_ex &= !(WS_EX_NOACTIVATE.0 as usize);
+        }
         SetWindowLongPtrW(hwnd, GWL_EXSTYLE, new_ex as isize);
     }
 }

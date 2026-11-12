@@ -1179,6 +1179,14 @@ function App() {
     if (notchMode === 'peek') triggerEventPeek(4000);
   }, [shelf.flash, settingsShelfEnabled, notchMode, triggerEventPeek]);
 
+  // Un fichier qui approche ouvre l'étagère. La cible doit être visible avant
+  // qu'on lâche : sinon on lâche dans le vide, et le geste ne s'apprend pas.
+  useEffect(() => {
+    if (!shelf.hovering || !settingsShelfEnabled || isletMode === 'shelf') return;
+    setIsletMode('shelf');
+    if (notchMode === 'peek') triggerEventPeek(4000);
+  }, [shelf.hovering, settingsShelfEnabled, isletMode, notchMode, triggerEventPeek]);
+
   // A disabled shelf must not keep a panel open, nor keep swallowing drops.
   useEffect(() => {
     if (!settingsShelfEnabled && isletMode === 'shelf') {
@@ -1797,9 +1805,11 @@ function App() {
         <motion.div
           ref={isletRef}
           className={`islet ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isSignalling ? 'is-signalling' : ''}`}
-          // The marker doubles as a tooltip: hovering the notch reads back the
-          // message that was missed, without reopening anything.
-          title={
+          // Pas de `title` ici : le titre natif porte sur toute la barre, donc
+          // chaque bouton du notch héritait du même texte et Windows affichait
+          // une bulle blanche par-dessus l'interface. Le message manqué reste
+          // lisible par les lecteurs d'écran, et le clic l'efface.
+          aria-label={
             isSignalling && assistantUnread
               ? tipPlainText(assistantUnread.message, t)
               : undefined
@@ -1827,6 +1837,21 @@ function App() {
           borderBottomRightRadius: isCalendarMode || isClipboardMode || isLyricsMode || isShelfMode || isTodosMode || isDevMode ? 28 : 18,
           filter: "blur(0px)",
           pointerEvents: 'auto'
+        }}
+        // Le notch ne prend jamais le focus. Un champ de saisie, lui, en a besoin
+        // pour recevoir le clavier : on rend la fenêtre activable pendant qu'il
+        // est ouvert, et on lui retire ce droit aussitôt refermé.
+        onFocus={(e) => {
+          const tag = (e.target as HTMLElement).tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA") {
+            invoke("set_notch_activatable", { active: true }).catch(() => {});
+          }
+        }}
+        onBlur={(e) => {
+          const tag = (e.target as HTMLElement).tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA") {
+            invoke("set_notch_activatable", { active: false }).catch(() => {});
+          }
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -2395,30 +2420,40 @@ function App() {
                       <button
                         className={`cc-circular-btn ${batterySaverEnabled ? 'active' : ''}`}
                         onClick={(e) => { e.stopPropagation(); openBatterySaverSettings(); }}
+                        title={t("cc.batterySaver")}
+                        aria-label={t("cc.batterySaver")}
                       >
                         <BatterySaverIcon />
                       </button>
                       <button
                         className="cc-circular-btn"
                         onClick={(e) => { e.stopPropagation(); invoke("open_tray_window"); }}
+                        title={t("cc.tray")}
+                        aria-label={t("cc.tray")}
                       >
                         <TrayIcon />
                       </button>
                       <button
                         className="cc-circular-btn"
                         onClick={(e) => { e.stopPropagation(); invoke("open_notification_center"); }}
+                        title={t("cc.notifications")}
+                        aria-label={t("cc.notifications")}
                       >
                         <BellIcon />
                       </button>
                       <button
                         className="cc-circular-btn"
                         onClick={(e) => { e.stopPropagation(); openSettingsWindow(); }}
+                        title={t("cc.settings")}
+                        aria-label={t("cc.settings")}
                       >
                         <SettingsIcon />
                       </button>
                       <button
                         className="cc-circular-btn"
                         onClick={(e) => { e.stopPropagation(); invoke("restart_islet"); }}
+                        title={t("cc.restart")}
+                        aria-label={t("cc.restart")}
                       >
                         <ReloadIcon />
                       </button>
