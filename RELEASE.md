@@ -107,6 +107,16 @@ Le script commence par refuser de travailler si les six fichiers de version ne s
 `TAURI_SIGNING_PRIVATE_KEY` n'est pas dans l'environnement : la mise à jour automatique a besoin d'une
 signature, et une release non signée casserait les installations existantes.
 
+Les notes publiées viennent de `RELEASE_NOTES.md`, qui est écrit pour être lu par un utilisateur et non
+par un développeur :
+
+```
+powershell -ExecutionPolicy Bypass -File scripts\release.ps1 -Version 1.4.1 -NotesFile RELEASE_NOTES.md -DryRun
+```
+
+Sans `-NotesFile`, le script reprend le corps du dernier commit et le dit à l'écran : pratique en cours
+de route, illisible une fois publié.
+
 Il produit, dans `release/` :
 
 | Fichier | À quoi il sert |

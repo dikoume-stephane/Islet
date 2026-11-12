@@ -7,6 +7,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Git writes UTF-8; PowerShell 5.1 would decode it with the console code page and
+# turn every accent in the release notes into mojibake.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 function Invoke-Step([string]$label, [scriptblock]$body) {
     Write-Host "`n==> $label" -ForegroundColor Cyan
     $ErrorActionPreference = "Continue"
@@ -55,12 +60,16 @@ New-Item -ItemType Directory $out | Out-Null
 if ($NotesFile) {
     $notes = Get-Content $NotesFile -Raw
 } else {
-    $notes = (git log -1 --pretty=format:"%b" --no-merges | Out-String).Trim()
-    if (-not $notes) { $notes = (git log -1 --pretty=format:"%s" --no-merges | Out-String).Trim() }
+    $notes = (git -c i18n.logOutputEncoding=UTF-8 log -1 --pretty=format:"%b" --no-merges | Out-String).Trim()
+    if (-not $notes) { $notes = (git -c i18n.logOutputEncoding=UTF-8 log -1 --pretty=format:"%s" --no-merges | Out-String).Trim() }
     $notes = $notes -replace "(?m)^(What's New|Improvements|Changed|Bug Fixes|Other):?\s*$", '### $1'
     git fetch --tags --quiet
     $prev = git tag --sort=-version:refname | Where-Object { $_ -like "v*" -and $_ -ne $tag } | Select-Object -First 1
     if ($prev) { $notes += "`n`n**Full Changelog**: https://github.com/$repo/compare/$prev...$tag" }
+    else {
+        Write-Host "No previous tag: the notes above are the last commit message." -ForegroundColor Yellow
+        Write-Host "Pass -NotesFile <path> to publish a written changelog instead." -ForegroundColor Yellow
+    }
 }
 Write-Host "`nRelease notes:`n$notes`n"
 
