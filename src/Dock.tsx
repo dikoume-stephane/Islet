@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import './Dock.css';
 import { initTheme } from './theme';
+import { initI18n, useT } from './i18n';
 import { useSettingsSync } from './hooks/useSettingsSync';
 
 interface AppInfo {
@@ -133,8 +134,14 @@ function WindowDots({ count }: { count: number }) {
 }
 
 const Dock = memo(function Dock() {
+  const t = useT();
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
   const [pinnedApps, setPinnedApps] = useState<AppInfo[]>([]);
@@ -985,7 +992,7 @@ const Dock = memo(function Dock() {
                   onMouseLeave={() => { setHoveredApp(null); setPressedApp(null); }}
                 >
                   {(!dockPreviewEnabled || (dockPreviewEnabled && hoveredApp === 'search')) && (
-                    <div className="tooltip">Search</div>
+                    <div className="tooltip">{t("dock.win.search")}</div>
                   )}
                   <motion.div
                     className="dock-icon"
@@ -1014,7 +1021,7 @@ const Dock = memo(function Dock() {
                   onMouseLeave={() => { setHoveredApp(null); setPressedApp(null); }}
                 >
                   {(!dockPreviewEnabled || (dockPreviewEnabled && hoveredApp === 'calendar')) && (
-                    <div className="tooltip">Calendar</div>
+                    <div className="tooltip">{t("dock.win.calendar")}</div>
                   )}
                   <motion.div
                     className="dock-icon"
@@ -1370,7 +1377,7 @@ const Dock = memo(function Dock() {
               {contextMenu.app.is_running && contextMenu.app.path !== 'start' && (
                 <>
                   <div className="menu-item" onClick={() => { handleNewInstance(contextMenu.app!); closeMenu(); }}>
-                    Open New Instance
+                    {t("dock.win.newInstance")}
                   </div>
                   <div className="menu-divider" />
                 </>
@@ -1390,7 +1397,7 @@ const Dock = memo(function Dock() {
                       document.getElementById('icon-file-input')?.click();
                     }, 50);
                   }}>
-                    Change Icon...
+                    {t("dock.win.changeIcon")}
                   </div>
                   {(() => {
                     const isHost = isBrowserHost(contextMenu.app!.path);
@@ -1400,7 +1407,7 @@ const Dock = memo(function Dock() {
                         handleRemoveCustomIcon(contextMenu.app!);
                         closeMenu();
                       }}>
-                        Reset Icon
+                        {t("dock.win.resetIcon")}
                       </div>
                     ) : null;
                   })()}
@@ -1408,22 +1415,22 @@ const Dock = memo(function Dock() {
               )}
               <div className="menu-divider" />
               <div className="menu-item" onClick={() => { setShowAddPopup(true); closeMenu(); }}>
-                Add App to Dock...
+                {t("dock.win.addApp")}
               </div>
               <div 
                 className="menu-item has-submenu"
                 onMouseEnter={() => setActiveSubmenu('islet')}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
-                Islet Options
+                {t("dock.win.options")}
                 <span className="submenu-arrow">▶</span>
                 <div className="submenu">
-                  <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>Open Calendar</div>
-                  <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>Open Settings</div>
-                  <div className="menu-item" onClick={() => invoke('restart_islet')}>Restart Islet</div>
-                  <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>Clear Icon Cache</div>
+                  <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>{t("dock.win.openCalendar")}</div>
+                  <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>{t("dock.win.openSettings")}</div>
+                  <div className="menu-item" onClick={() => invoke('restart_islet')}>{t("dock.win.restart")}</div>
+                  <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>{t("dock.win.clearIcons")}</div>
                   <div className="menu-divider" />
-                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>Quit Islet</div>
+                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>{t("dock.win.quit")}</div>
                 </div>
               </div>
               {contextMenu.app.is_running && (
@@ -1446,22 +1453,22 @@ const Dock = memo(function Dock() {
           ) : (
             <>
               <div className="menu-item" onClick={() => { setShowAddPopup(true); closeMenu(); }}>
-                Add App to Dock...
+                {t("dock.win.addApp")}
               </div>
               <div 
                 className="menu-item has-submenu"
                 onMouseEnter={() => setActiveSubmenu('islet')}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
-                Islet Options
+                {t("dock.win.options")}
                 <span className="submenu-arrow">▶</span>
                 <div className="submenu">
-                  <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>Open Calendar</div>
-                  <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>Open Settings</div>
-                  <div className="menu-item" onClick={() => invoke('restart_islet')}>Restart Islet</div>
-                  <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>Clear Icon Cache</div>
+                  <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>{t("dock.win.openCalendar")}</div>
+                  <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>{t("dock.win.openSettings")}</div>
+                  <div className="menu-item" onClick={() => invoke('restart_islet')}>{t("dock.win.restart")}</div>
+                  <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>{t("dock.win.clearIcons")}</div>
                   <div className="menu-divider" />
-                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>Quit Islet</div>
+                  <div className="menu-item quit" onClick={() => invoke('quit_islet')}>{t("dock.win.quit")}</div>
                 </div>
               </div>
             </>
@@ -1527,6 +1534,7 @@ function AddAppPopup({
   pinned: AppInfo[];
   bottom: number;
 }) {
+  const t = useT();
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -1726,7 +1734,7 @@ function AddAppPopup({
             ref={inputRef}
             type="text"
             className="popup-search-input"
-            placeholder="Search apps..."
+            placeholder={t('dock.win.searchApps')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -1784,7 +1792,7 @@ function AddAppPopup({
             <div className="popup-empty">
               {debouncedSearch.trim()
                 ? "No results"
-                : "Running apps show up here — search to pin anything else"}
+                : t("dock.win.empty")}
             </div>
           )}
         </div>

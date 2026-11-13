@@ -42,8 +42,8 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-color);
-  backdrop-filter: blur(25px) saturate(140%);
-  -webkit-backdrop-filter: blur(25px) saturate(140%);
+  backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
+  -webkit-backdrop-filter: var(--islet-material-filter, blur(25px) saturate(140%));
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--window-line);
@@ -578,6 +578,15 @@ input:checked + .slider:before {
   max-height: 240px;
   overflow-y: auto;
   animation: dropdown-pop 0.14s ease;
+}
+
+/* La liste ouverte vit à la racine du document (voir Dropdown.tsx) : elle est
+   positionnée en fixe par rapport à la fenêtre, et non plus dans le panneau qui
+   la rognait. Les décalages viennent du composant, qui mesure son bouton. */
+.dropdown-menu--portal {
+  position: fixed;
+  top: auto;
+  z-index: 9999;
 }
 
 .dropdown-menu--right {
@@ -1302,4 +1311,523 @@ input:checked + .slider:before {
 
 .caldav-providers {
   align-self: flex-start;
+}
+
+/* --- Is tab ------------------------------------------------------------- */
+
+.assistant-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.assistant-slider-value {
+  min-width: 38px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--islet-text, #fff);
+  opacity: 0.8;
+}
+
+.assistant-readout {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--islet-text, #fff);
+  opacity: 0.75;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Is: name field ------------------------------------------------------ */
+
+/* Le personnage : un aperçu vivant, pas une vignette. Le fond reste celui du
+   groupe de réglages, pour que le dessin se détache comme il le fait sur le
+   notch. */
+.assistant-character {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+.assistant-character-sprite {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 60% at 50% 42%, rgba(100, 210, 255, 0.14) 0%, transparent 70%),
+    rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.light-mode .assistant-character-sprite {
+  background:
+    radial-gradient(60% 60% at 50% 42%, rgba(100, 210, 255, 0.18) 0%, transparent 70%),
+    rgba(0, 0, 0, 0.05);
+}
+
+.assistant-character-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.assistant-character-name {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text-color, #fff);
+  letter-spacing: -0.01em;
+}
+
+.assistant-character-mood {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64d2ff;
+}
+
+.assistant-character-hint {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.assistant-character-moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 14px;
+}
+
+.assistant-mood-chip {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.assistant-mood-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #fff);
+}
+
+.assistant-mood-chip.is-active {
+  background: rgba(100, 210, 255, 0.18);
+  border-color: rgba(100, 210, 255, 0.45);
+  color: #9fe4ff;
+}
+
+.light-mode .assistant-mood-chip {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light-mode .assistant-mood-chip.is-active {
+  background: rgba(10, 132, 255, 0.12);
+  border-color: rgba(10, 132, 255, 0.35);
+  color: #0a6cc4;
+}
+
+.assistant-name-input {
+  width: 116px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 550;
+  color: var(--islet-text, #fff);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  outline: none;
+  text-align: right;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.light-mode .assistant-name-input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1c1c1e;
+}
+
+.assistant-name-input:focus {
+  border-color: var(--islet-accent, #007aff);
+}
+
+/* — Theme presets ---------------------------------------------------------
+ * A grid of swatches rather than a dropdown: choosing a theme is a visual
+ * decision, so each card paints the preset's own colours. The little bar is
+ * the notch, drawn at the same proportion, so the card reads as "this is what
+ * the top of my screen will look like".
+ */
+
+.preset-block {
+  margin-bottom: 16px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 8px;
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  background: var(--group-bg);
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.preset-card:hover {
+  border-color: var(--islet-border, rgba(255, 255, 255, 0.2));
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.07));
+}
+
+.preset-card:active {
+  transform: scale(0.985);
+}
+
+/* The selected card gets the accent ring *and* the readable label: the ring
+   alone would not carry the state for anyone with a low-contrast display. */
+.preset-card.active {
+  border-color: var(--islet-accent, #007aff);
+  box-shadow: 0 0 0 1px var(--islet-accent, #007aff) inset;
+  color: var(--text-color);
+}
+
+.preset-card:focus-visible {
+  outline: 2px solid var(--islet-accent, #007aff);
+  outline-offset: 2px;
+}
+
+.preset-swatch {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preset-swatch--dynamic {
+  align-items: center;
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.05));
+  color: var(--text-muted);
+  border: 1px dashed var(--islet-border, rgba(255, 255, 255, 0.2));
+}
+
+/* The notch itself, at a readable scale. `mix-blend-mode` keeps it visible on
+   both a near-black and a near-white swatch. */
+.preset-swatch-bar {
+  width: 58%;
+  height: 7px;
+  margin-bottom: 0;
+  border-radius: 0 0 4px 4px;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.preset-swatch-bar.frost {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(4px);
+}
+
+.preset-swatch-bar.glass {
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.preset-swatch-bar.liquid {
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.preset-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 0 2px;
+}
+
+.preset-card.active .preset-name {
+  font-weight: 650;
+}
+
+/* The material name teaches the vocabulary used everywhere else in the app
+   ("frost", "glass"), so the same word means the same thing in a bug report. */
+.preset-material {
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+  padding: 0 2px;
+}
+
+.preset-hint {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preset-card {
+    transition: none;
+  }
+  .preset-card:active {
+    transform: none;
+  }
+}
+
+/* Small inline action that lives inside a SettingRow, next to a toggle.
+   Same shape as the CalDAV chips so the settings window has one button
+   vocabulary rather than three. */
+.settings-inline-btn {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+  border-radius: 999px;
+  color: var(--islet-text-muted, rgba(255, 255, 255, 0.7));
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-inline-btn:hover:not(:disabled) {
+  background: var(--islet-group-bg, rgba(255, 255, 255, 0.1));
+  color: var(--islet-text, #fff);
+}
+
+.settings-inline-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settings-inline-btn:focus-visible {
+  outline: 2px solid var(--islet-accent, #007aff);
+  outline-offset: 2px;
+}
+
+/* ─── Dossier suivi (signaux du développeur) ─────────────────────────────── */
+
+.dev-folder-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dev-folder-button {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-folder-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #fff);
+}
+
+.dev-folder-button.is-primary {
+  background: rgba(100, 210, 255, 0.16);
+  border-color: rgba(100, 210, 255, 0.4);
+  color: #9fe4ff;
+}
+
+.dev-folder-button.is-primary:hover {
+  background: rgba(100, 210, 255, 0.26);
+  color: #fff;
+}
+
+.light-mode .dev-folder-button {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light-mode .dev-folder-button.is-primary {
+  background: rgba(10, 132, 255, 0.12);
+  border-color: rgba(10, 132, 255, 0.32);
+  color: #0a6cc4;
+}
+
+/* La commande de vérification : un champ qui a la taille d'une commande. */
+.dev-build-input {
+  font-family: "Cascadia Code", ui-monospace, monospace;
+  font-size: 11px;
+  width: 190px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color, #fff);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dev-build-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.dev-build-input:focus {
+  outline: none;
+  border-color: rgba(100, 210, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.light-mode .dev-build-input {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.light-mode .dev-build-input::placeholder {
+  color: rgba(0, 0, 0, 0.28);
+}
+
+/* ─── Durée d'une session de focus ──────────────────────────────────────── */
+
+.focus-presets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.1));
+}
+
+.focus-preset {
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.focus-preset:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-color, #fff);
+}
+
+.focus-preset.is-on {
+  background: rgba(100, 210, 255, 0.18);
+  color: #9fe4ff;
+}
+
+.light-mode .focus-presets {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.light-mode .focus-preset {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.light-mode .focus-preset.is-on {
+  background: rgba(10, 132, 255, 0.14);
+  color: #0a6cc4;
+}
+
+/* ─── Consentement de l'assistance IA ──────────────────────────────────── */
+
+.ai-consent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 440px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 214, 10, 0.07);
+  border: 1px solid rgba(255, 214, 10, 0.18);
+}
+
+.ai-field {
+  font-family: "Cascadia Code", ui-monospace, monospace;
+  font-size: 11px;
+  width: 190px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color, #fff);
+}
+
+.ai-field:focus {
+  outline: none;
+  border-color: rgba(100, 210, 255, 0.5);
+}
+
+.ai-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.ai-scope.is-local {
+  background: rgba(50, 215, 75, 0.12);
+  color: #2fbf4a;
+}
+
+.ai-scope.is-remote {
+  background: rgba(255, 159, 10, 0.14);
+  color: #c47c07;
+}
+
+.ai-test-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-test-result {
+  font-size: 11px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.light-mode .ai-field {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.8);
 }

@@ -16,6 +16,14 @@ mod caldav;
 mod calendar_sync;
 mod ics;
 mod active_look;
+mod signals;
+mod clipboard;
+mod lyrics;
+mod shelf;
+mod todo;
+mod keyboard_indicators;
+mod dev;
+mod ai;
 
 use tauri::Manager;
 use windows::Win32::System::Console::SetConsoleCtrlHandler;
@@ -44,6 +52,7 @@ fn main() {
     }
 
     diagnostics::init();
+    crate::diagnostics::log("startup: init");
 
     unsafe {
         let _ = SetConsoleCtrlHandler(Some(ctrl_handler), true);
@@ -61,6 +70,7 @@ fn main() {
         let err = GetLastError();
 
         if err.0 == 183 {
+            crate::diagnostics::log("startup: another instance owns the mutex, asking it to open settings and leaving");
             // Another instance is already running — signal it to open settings
             if let Ok(h_event) = OpenEventW(SYNCHRONIZATION_ACCESS_RIGHTS(0x00100002), false, windows::core::PCWSTR(event_name.as_ptr())) {
                 let _ = SetEvent(h_event);
@@ -74,9 +84,11 @@ fn main() {
             let _ = SINGLE_INSTANCE_EVENT_HANDLE.set(h_event.0 as isize);
         }
         if let Some(h) = h_mutex { let _ = SINGLE_INSTANCE_MUTEX_HANDLE.set(h.0 as isize); }
+        crate::diagnostics::log("startup: single instance mutex acquired");
     }
 
     setup_brightness_worker();
+    crate::diagnostics::log("startup: building application");
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -117,6 +129,7 @@ fn main() {
             set_dock_hovered,
             set_notch_hovered,
             set_notch_hidden,
+            set_notch_activatable,
             set_dock_dragging,
             get_active_windows,
             get_app_icon,
@@ -171,12 +184,12 @@ fn main() {
             get_cpu_usage,
             get_ram_usage,
             get_disk_space,
+            signals::get_system_signals,
             get_network_speed,
             get_running_processes,
             kill_process,
             export_settings,
             import_settings,
-            reset_settings,
             read_settings_from_path,
             write_settings_to_path,
             updater::check_for_updates,
@@ -188,9 +201,37 @@ fn main() {
             calendar_sync::caldav_get_cache,
             ics::ics_add_link,
             ics::ics_remove_link,
-            ics::ics_detect
+            ics::ics_detect,
+            clipboard::clipboard_get_state,
+            clipboard::clipboard_remember_target,
+            clipboard::clipboard_copy,
+            clipboard::clipboard_paste,
+            clipboard::clipboard_toggle_pin,
+            clipboard::clipboard_remove,
+            clipboard::clipboard_clear,
+            clipboard::clipboard_set_recording,
+            clipboard::clipboard_is_recording,
+            lyrics::lyrics_fetch,
+            lyrics::lyrics_clear_cache,
+            lyrics::lyrics_cache_count,
+            shelf::shelf_list,
+            shelf::shelf_add,
+            shelf::shelf_remove,
+            shelf::shelf_clear,
+            todo::todo_list,
+            todo::todo_add,
+            todo::todo_toggle,
+            todo::todo_set_due,
+            todo::todo_remove,
+            todo::todo_clear_done,
+            dev::dev_git_status,
+            dev::dev_listening_ports,
+            dev::dev_run_build,
+            dev::dev_git_diff,
+            ai::ai_post
         ])
         .setup(|app| {
+            crate::diagnostics::log("setup: begin");
             init_taskbar_marker(app.handle());
             // Crash-recovery: if a previous session was force-killed while the native
             // taskbar was hidden, restore it now. Runs before the frontend re-hides it
@@ -220,6 +261,14 @@ fn main() {
             }
 
             crate::calendar_sync::start_background_sync(app.handle().clone());
+
+            // Is: sample system signals (battery, disks, memory, uptime).
+            signals::start_sampler(app.handle().clone());
+
+            // Clipboard history: watch the clipboard and keep it in memory.
+            // Recording can be turned off from the notch without stopping the
+            // thread, so toggling it is instant and reversible.
+            clipboard::start_watcher(app.handle().clone());
 
             let window = app.get_webview_window("main").unwrap();
             let dock_win = app.get_webview_window("dock").unwrap();
@@ -272,6 +321,8 @@ fn main() {
             let tx = setup_system_worker(app.handle().clone());
             let _ = COMMAND_SENDER.set(tx.clone());
             let _hook = services::setup_keyboard_hook(app.handle().clone());
+            // Les temoins du clavier : Verr Maj, Verr Num, Defil et la langue.
+            keyboard_indicators::start(app.handle().clone());
             setup_taskbar_hook();
             start_window_style_guard(app.handle().clone());
             setup_audio_visualization(app.handle().clone());
@@ -381,15 +432,26 @@ fn main() {
                     })
                     .build(app)?;
             }
+            crate::diagnostics::log("setup: done");
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
-    app.run(|_, event| {
-        if let tauri::RunEvent::Exit = event {
+    // Le journal dit pourquoi la boucle se termine : sans lui, une sortie
+    // inattendue ne laisse aucune trace, l'exe s'arrêtant sans rien écrire.
+    app.run(|_, event| match &event {
+        tauri::RunEvent::Ready => crate::diagnostics::log("run: ready"),
+        tauri::RunEvent::ExitRequested { .. } => crate::diagnostics::log("run: exit requested"),
+        tauri::RunEvent::Exit => {
+            crate::diagnostics::log("run: exit");
             set_taskbar_visibility(true, true);
             NATIVE_TASKBAR_HIDDEN.store(false, Ordering::Relaxed);
-
         }
+        tauri::RunEvent::WindowEvent {
+            label,
+            event: tauri::WindowEvent::Destroyed,
+            ..
+        } => crate::diagnostics::log(&format!("run: window {label} destroyed")),
+        _ => {}
     });
 }

@@ -5,7 +5,8 @@ import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getVersion } from "@tauri-apps/api/app";
 import type { UpdateCheckResult } from "../updater";
 import { useSettingsSync } from "../hooks/useSettingsSync";
-import { hexToHsl } from "../theme";
+import { applyTheme, hexToHsl } from "../theme";
+import { t as translate } from "../i18n";
 import type { WidgetConfig, MonitorInfo, MonitorMode } from "./types";
 
 function saveSetting(key: string, value: string) {
@@ -21,11 +22,31 @@ export function useSettings() {
   const [autostart, setAutostart] = useState(false);
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [calendarEnabled, setCalendarEnabled] = useState(true);
+  const [clipboardEnabled, setClipboardEnabled] = useState(true);
+  const [clipboardPaste, setClipboardPaste] = useState(false);
+  // Off by default: the only feature that talks to a server.
+  const [lyricsEnabled, setLyricsEnabled] = useState(false);
+  const [shelfEnabled, setShelfEnabled] = useState(true);
+  const [todoEnabled, setTodoEnabled] = useState(true);
+  // Développeur : aucun dossier par défaut, donc aucune commande git lancée
+  // avant que l'utilisateur en choisisse un.
+  const [devEnabled, setDevEnabled] = useState(true);
+  const [devFolder, setDevFolder] = useState("");
+  // Vide par défaut : aucune commande n'est proposée à la place de l'utilisateur.
+  const [devBuild, setDevBuild] = useState("");
+  const [focusMinutes, setFocusMinutes] = useState(25);
+  const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
+    () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
+  );
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
   const [musicModeEnabled, setMusicModeEnabled] = useState(true);
   const [musicCompactNotch, setMusicCompactNotch] = useState(true);
+  // Pilule minimale : le notch replié au temps seul. Éteinte par défaut.
+  const [pillMinimal, setPillMinimal] = useState(
+    () => localStorage.getItem("islet-notch-pill-minimal") === "true"
+  );
   const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(true);
   const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(
     () => localStorage.getItem("islet-volume-edge-enabled") !== "false"
@@ -152,6 +173,18 @@ export function useSettings() {
 
       apply(getVal("islet-weather-enabled"), setWeatherEnabled, readBool);
       apply(getVal("islet-calendar-enabled"), setCalendarEnabled, readBool);
+      apply(getVal("islet-clipboard-enabled"), setClipboardEnabled, readBool);
+      apply(getVal("islet-clipboard-paste"), setClipboardPaste, readBool);
+      apply(getVal("islet-lyrics-enabled"), setLyricsEnabled, readBool);
+      apply(getVal("islet-shelf-enabled"), setShelfEnabled, readBool);
+      apply(getVal("islet-todo-enabled"), setTodoEnabled, readBool);
+      apply(getVal("islet-dev-enabled"), setDevEnabled, readBool);
+      const storedFolder = getVal("islet-dev-folder");
+      if (storedFolder !== null) setDevFolder(storedFolder);
+      const storedBuild = getVal("islet-dev-build");
+      if (storedBuild !== null) setDevBuild(storedBuild);
+      const storedFocus = Number(getVal("islet-focus-minutes"));
+      if (Number.isFinite(storedFocus) && storedFocus > 0) setFocusMinutes(storedFocus);
       apply(getVal("islet-timer-enabled") ?? getVal("islet-calendar-enabled"), setTimerEnabled, readBool);
       apply(getVal("islet-timer-sound-enabled"), setTimerSoundEnabled, readBool);
       apply(getVal("islet-stopwatch-enabled") ?? getVal("islet-calendar-enabled"), setStopwatchEnabled, readBool);
@@ -159,6 +192,7 @@ export function useSettings() {
       apply(getVal("islet-music-compact-notch"), setMusicCompactNotch, readBool);
       apply(getVal("islet-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
       apply(getVal("islet-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
+      apply(getVal("islet-keyboard-indicators-enabled"), setKeyboardIndicatorsEnabled, readBool);
       apply(getVal("islet-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
       apply(getVal("islet-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
       apply(getVal("islet-corners-enabled"), setCornersEnabled, readBool);
@@ -270,6 +304,11 @@ export function useSettings() {
     "islet-dock-mixed-reorder": setDockMixedReorder,
     "islet-weather-enabled": setWeatherEnabled,
     "islet-calendar-enabled": setCalendarEnabled,
+    "islet-clipboard-enabled": setClipboardEnabled,
+    "islet-clipboard-paste": setClipboardPaste,
+    "islet-lyrics-enabled": setLyricsEnabled,
+    "islet-shelf-enabled": setShelfEnabled,
+    "islet-todo-enabled": setTodoEnabled,
     "islet-timer-enabled": setTimerEnabled,
     "islet-timer-sound-enabled": setTimerSoundEnabled,
     "islet-stopwatch-enabled": setStopwatchEnabled,
@@ -288,6 +327,7 @@ export function useSettings() {
     "islet-volume-overlay-enabled": setVolumeOverlayEnabled,
     "islet-volume-edge-enabled": setVolumeEdgeEnabled,
     "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+    "islet-keyboard-indicators-enabled": setKeyboardIndicatorsEnabled,
     "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
     "islet-theme-mode": setThemeMode,
     "islet-theme-color": setThemeColor,
@@ -426,6 +466,87 @@ export function useSettings() {
     saveSetting("islet-calendar-enabled", String(next));
   };
 
+  const toggleClipboard = () => {
+    const next = !clipboardEnabled;
+    setClipboardEnabled(next);
+    saveSetting("islet-clipboard-enabled", String(next));
+  };
+
+  const toggleClipboardPaste = () => {
+    const next = !clipboardPaste;
+    setClipboardPaste(next);
+    saveSetting("islet-clipboard-paste", String(next));
+  };
+
+  const toggleLyrics = () => {
+    const next = !lyricsEnabled;
+    setLyricsEnabled(next);
+    saveSetting("islet-lyrics-enabled", String(next));
+  };
+
+  const toggleShelf = () => {
+    const next = !shelfEnabled;
+    setShelfEnabled(next);
+    saveSetting("islet-shelf-enabled", String(next));
+  };
+
+  const toggleKeyboardIndicators = () => {
+    const next = !keyboardIndicatorsEnabled;
+    setKeyboardIndicatorsEnabled(next);
+    saveSetting("islet-keyboard-indicators-enabled", String(next));
+  };
+
+  const toggleDev = () => {
+    const next = !devEnabled;
+    setDevEnabled(next);
+    saveSetting("islet-dev-enabled", String(next));
+  };
+
+  const pickDevFolder = async () => {
+    try {
+      const { open: openDialog } = await import("@tauri-apps/plugin-dialog");
+      const chosen = await openDialog({
+        title: translate("dev.settings.folder"),
+        directory: true,
+        multiple: false,
+      });
+      if (typeof chosen === "string" && chosen !== "") {
+        setDevFolder(chosen);
+        saveSetting("islet-dev-folder", chosen);
+      }
+    } catch {
+      // Un sélecteur qui échoue ne doit pas laisser croire qu'un dossier a été
+      // choisi : on ne touche à rien.
+    }
+  };
+
+  const clearDevFolder = () => {
+    setDevFolder("");
+    saveSetting("islet-dev-folder", "");
+  };
+
+  /**
+   * La commande de vérification. Elle n'est enregistrée qu'à la validation du
+   * champ, pas à chaque frappe : personne n'a besoin d'écrire six brouillons
+   * dans `settings.json` avant d'avoir fini de taper `bun run build`.
+   */
+  const changeDevBuild = (command: string) => {
+    setDevBuild(command);
+    saveSetting("islet-dev-build", command);
+  };
+
+  /** La durée d'une session de focus. Elle ne démarre rien : elle se choisit. */
+  const changeFocusMinutes = (minutes: number) => {
+    setFocusMinutes(minutes);
+    saveSetting("islet-focus-minutes", String(minutes));
+  };
+
+  const toggleTodo = () => {
+    const next = !todoEnabled;
+    setTodoEnabled(next);
+    saveSetting("islet-todo-enabled", String(next));
+  };
+
   const toggleTimerEnabled = () => {
     const next = !timerEnabled;
     setTimerEnabled(next);
@@ -454,6 +575,12 @@ export function useSettings() {
     const next = !musicCompactNotch;
     setMusicCompactNotch(next);
     saveSetting("islet-music-compact-notch", String(next));
+  };
+
+  const togglePillMinimal = () => {
+    const next = !pillMinimal;
+    setPillMinimal(next);
+    saveSetting("islet-notch-pill-minimal", String(next));
   };
 
   const toggleMediaLayout = (layout: "classic" | "compact") => {
@@ -658,6 +785,9 @@ export function useSettings() {
   const handleThemeModeChange = async (mode: string) => {
     setThemeMode(mode);
     saveSetting("islet-theme-mode", mode);
+    // Paint now instead of waiting for the round-trip through settings-changed:
+    // picking a theme has to feel like a switch, not like a save.
+    applyTheme(mode, themeColor, themeOpacity, themeSaturation, themeBrightness);
 
     if (mode === "adaptive") {
       try {
@@ -676,6 +806,7 @@ export function useSettings() {
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
     saveSetting("islet-theme-color", color);
+    applyTheme("custom", color, themeOpacity, themeSaturation, themeBrightness);
 
     try {
       const hsl = hexToHsl(color);
@@ -691,6 +822,7 @@ export function useSettings() {
   const handleOpacityChange = (value: number) => {
     setThemeOpacity(value);
     saveSetting("islet-theme-opacity", String(value));
+    applyTheme(themeMode, themeColor, value, themeSaturation, themeBrightness);
   };
 
   const handleSaturationChange = (value: number) => {
@@ -857,6 +989,27 @@ export function useSettings() {
     setNotchModeValue,
     calendarEnabled,
     toggleCalendar,
+    clipboardEnabled,
+    toggleClipboard,
+    clipboardPaste,
+    toggleClipboardPaste,
+    lyricsEnabled,
+    toggleLyrics,
+    shelfEnabled,
+    toggleShelf,
+    todoEnabled,
+    toggleTodo,
+    devEnabled,
+    toggleDev,
+    devFolder,
+    pickDevFolder,
+    clearDevFolder,
+    devBuild,
+    changeDevBuild,
+    focusMinutes,
+    changeFocusMinutes,
+    keyboardIndicatorsEnabled,
+    toggleKeyboardIndicators,
     timerEnabled,
     toggleTimerEnabled,
     timerSoundEnabled,
@@ -867,6 +1020,8 @@ export function useSettings() {
     toggleMusicMode,
     musicCompactNotch,
     toggleMusicCompactNotch,
+    pillMinimal,
+    togglePillMinimal,
     mediaLayout,
     toggleMediaLayout,
     mediaAmbienceEnabled,

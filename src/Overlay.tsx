@@ -10,6 +10,15 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { MixerIcon, SpeakerIcon } from "./icons";
 import "./Overlay.css";
 import { initTheme } from "./theme";
+import { initI18n, useT } from "./i18n";
+import {
+  changedKinds,
+  indicatorChips,
+  toState,
+  type KeyboardKind,
+  type KeyboardPayload,
+  type KeyboardState,
+} from "./lib/keyboard";
 
 // ─── App Volume Mixer ───────────────────────────────────────────────────────
 
@@ -97,7 +106,7 @@ function MixerTile({
         className="volume-mixer-bar"
         onMouseDown={handleMouseDown}
         onTouchStart={(e) => volumeFromY(e.touches[0].clientY)}
-        title={`${session.name} — ${percentage}%`}
+        title={`${session.name} · ${percentage}%`}
         style={{ cursor: "pointer" }}
       >
         <motion.div
@@ -153,6 +162,7 @@ function VolumeNotch({
   mixerExpanded: boolean;
   onMixerExpandedChange: (expanded: boolean) => void;
 }) {
+  const t = useT();
   const percentage = Math.round(volume * 100);
   const barRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -397,7 +407,7 @@ function VolumeNotch({
               e.stopPropagation();
               onMixerExpandedChange(!mixerExpanded);
             }}
-            title="App volume mixer"
+            title={t("overlay.mixerTitle")}
           >
             <span className="volume-notch-action-icon">
               <SpeakerIcon size={16} muted={isMuted} />
@@ -545,10 +555,64 @@ function BrightnessNotch({
 
 function OverlayApp() {
   useEffect(() => {
-    return initTheme();
+    const stopTheme = initTheme();
+    const stopI18n = initI18n();
+    return () => {
+      stopTheme();
+      stopI18n();
+    };
   }, []);
 
-  type Mode = 'idle' | 'volume' | 'brightness' | 'splash' | 'updating';
+  /**
+ * Les témoins du clavier : Verr Maj, Verr Num et la langue de saisie.
+ *
+ * Trois pastilles, une seule s'allume franchement quand elle vient de changer :
+ * trois voyants qui s'agitent à chaque touche ne disent rien. Le temps d'un
+ * coup d'œil, puis ça s'efface : un indicateur permanent est un meuble, plus un
+ * indicateur.
+ */
+function KeyboardHud({ state, changed }: { state: KeyboardState; changed: KeyboardKind[] }) {
+  const t = useT();
+  const chips = indicatorChips(state);
+
+  const labelFor = (kind: KeyboardKind): string => {
+    if (kind === "caps") return t("kbd.caps");
+    if (kind === "num") return t("kbd.num");
+    if (kind === "scroll") return t("kbd.scroll");
+    return "";
+  };
+
+  return (
+    <motion.div
+      className="keyboard-hud"
+      key="keyboard-hud"
+      initial={{ opacity: 0, y: 10, scale: 0.96, filter: "blur(6px)" }}
+      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: 6, scale: 0.97, filter: "blur(4px)", transition: { duration: 0.15 } }}
+      transition={{ type: "spring", stiffness: 420, damping: 28 }}
+    >
+      <div className="keyboard-hud-chips" role="status" aria-live="polite" aria-label={t("kbd.label")}>
+        {chips.map((chip) => (
+          <span
+            key={chip.kind}
+            className={[
+              "keyboard-chip",
+              chip.on ? "is-on" : "",
+              changed.includes(chip.kind) ? "is-changed" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <span className="keyboard-chip-dot" aria-hidden />
+            {chip.kind === "lang" ? chip.code : labelFor(chip.kind)}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+type Mode = 'idle' | 'volume' | 'brightness' | 'keyboard' | 'splash' | 'updating';
   const [mode, setMode] = useState<Mode>('idle');
   const [updateStatus, setUpdateStatus] = useState<string>('checking');
   const [updateProgress, setUpdateProgress] = useState(0);
@@ -564,6 +628,14 @@ function OverlayApp() {
   const [brightness, setBrightness] = useState(50);
   const [brightnessOverlayEnabled, setBrightnessOverlayEnabled] = useState(() => localStorage.getItem("islet-brightness-overlay-enabled") !== "false");
   const [brightnessEdgeEnabled, setBrightnessEdgeEnabled] = useState(() => localStorage.getItem("islet-brightness-edge-enabled") !== "false");
+
+  // Keyboard indicators
+  const [keyboardState, setKeyboardState] = useState<KeyboardState | null>(null);
+  const [keyboardChanged, setKeyboardChanged] = useState<KeyboardKind[]>([]);
+  const [keyboardIndicatorsEnabled, setKeyboardIndicatorsEnabled] = useState(
+    () => localStorage.getItem("islet-keyboard-indicators-enabled") !== "false"
+  );
+  const keyboardRef = useRef<KeyboardState | null>(null);
 
   // Shared state
   const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("islet-scale") || "1.0"));
@@ -598,6 +670,9 @@ function OverlayApp() {
       }
       if (settings && settings["islet-volume-overlay-enabled"] !== undefined) {
         setVolumeOverlayEnabled(settings["islet-volume-overlay-enabled"] === "true");
+      }
+      if (settings && settings["islet-keyboard-indicators-enabled"] !== undefined) {
+        setKeyboardIndicatorsEnabled(settings["islet-keyboard-indicators-enabled"] !== "false");
       }
     }).catch(console.error);
   }, []);
@@ -683,6 +758,19 @@ function OverlayApp() {
       resetHideTimeout();
     });
 
+    // Témoins du clavier : une seconde et demie d'affichage, puis effacement.
+    const keyboardPromise = listen<KeyboardPayload>("keyboard-indicators", (event) => {
+      if (splashActiveRef.current || !keyboardIndicatorsEnabled) return;
+      const next = toState(event.payload);
+      if (!next) return;
+      setKeyboardChanged(changedKinds(keyboardRef.current, next));
+      keyboardRef.current = next;
+      setKeyboardState(next);
+      setMode('keyboard');
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setMode('idle'), 1500);
+    });
+
     const brightEdgePromise = listen<boolean>("brightness-edge-hover", (event) => {
       if (splashActiveRef.current || !brightnessOverlayEnabled || !brightnessEdgeEnabled) return;
       if (event.payload) {
@@ -732,11 +820,12 @@ function OverlayApp() {
       volEdgePromise.then(fn => fn());
       brightPromise.then(fn => fn());
       brightEdgePromise.then(fn => fn());
+      keyboardPromise.then(fn => fn());
       autoUpdatePromise.then(fn => fn());
       settingsResetPromise.then(fn => fn());
       document.removeEventListener('contextmenu', preventContext);
     };
-  }, [volumeOverlayEnabled, volumeEdgeEnabled, brightnessOverlayEnabled, brightnessEdgeEnabled, resetHideTimeout]);
+  }, [volumeOverlayEnabled, volumeEdgeEnabled, brightnessOverlayEnabled, brightnessEdgeEnabled, keyboardIndicatorsEnabled, resetHideTimeout]);
 
   useSettingsSync(
     {
@@ -744,6 +833,7 @@ function OverlayApp() {
       "islet-volume-edge-enabled": setVolumeEdgeEnabled,
       "islet-brightness-overlay-enabled": setBrightnessOverlayEnabled,
       "islet-brightness-edge-enabled": setBrightnessEdgeEnabled,
+      "islet-keyboard-indicators-enabled": setKeyboardIndicatorsEnabled,
       "islet-scale": setScale,
     }
   );
@@ -758,6 +848,11 @@ function OverlayApp() {
     if (splashActiveRef.current) return;
     if (!brightnessOverlayEnabled && mode === 'brightness') setMode('idle');
   }, [brightnessOverlayEnabled, mode]);
+
+  useEffect(() => {
+    if (splashActiveRef.current) return;
+    if (!keyboardIndicatorsEnabled && mode === 'keyboard') setMode('idle');
+  }, [keyboardIndicatorsEnabled, mode]);
 
   // ── Window Visibility Management ──
   useEffect(() => {
@@ -844,7 +939,7 @@ function OverlayApp() {
     sendBrightness(newBrightness);
   }, [resetHideTimeout, sendBrightness]);
 
-  const isLeft = mode === 'volume';
+  const alignment = mode === 'volume' ? 'flex-start' : mode === 'brightness' ? 'flex-end' : 'center';
 
   return (
     <div className="overlay-container">
@@ -910,7 +1005,7 @@ function OverlayApp() {
 
       {/* Volume / Brightness Overlay */}
       {mode !== 'splash' && mode !== 'updating' && (
-        <div style={{ zoom: scale, height: '100%', display: 'flex', alignItems: 'center', justifyContent: isLeft ? 'flex-start' : 'flex-end', width: '100%' }}>
+        <div style={{ zoom: scale, height: '100%', display: 'flex', alignItems: 'center', justifyContent: alignment, width: '100%' }}>
           <AnimatePresence
             mode="wait"
             onExitComplete={() => {
@@ -933,6 +1028,9 @@ function OverlayApp() {
                 onBrightnessChange={handleBrightnessChange}
                 key="brightness-island"
               />
+            )}
+            {mode === 'keyboard' && keyboardState !== null && (
+              <KeyboardHud state={keyboardState} changed={keyboardChanged} />
             )}
           </AnimatePresence>
         </div>

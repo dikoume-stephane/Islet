@@ -137,6 +137,12 @@ unsafe extern "system" fn keyboard_hook_proc(code: i32, wparam: windows::Win32::
             }
         }
 
+        // Verr Maj, Verr Num et Defil : la touche passe a Windows comme avant, on
+        // ne fait que remarquer qu'elle a ete frappee pour allumer l'indicateur.
+        if (kb.flags.0 & LLKHF_INJECTED.0) == 0 && is_down {
+            crate::keyboard_indicators::observe_key(vk_code.0);
+        }
+
         if (vk_code == VK_VOLUME_MUTE || vk_code == VK_VOLUME_UP || vk_code == VK_VOLUME_DOWN)
             && hook_overlay_enabled("islet-volume-overlay-enabled")
         {
@@ -1894,6 +1900,14 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
             }
 
             // --- Main (TopBar) Interaction ---
+            // Un fichier qu'on glisse n'est pas une souris qui passe : le bouton
+            // gauche reste enfoncé. Sans cette distinction, la fenêtre reste
+            // transparente à la souris tant qu'on n'a pas touché le bord de
+            // l'écran, et le dépôt n'atteint jamais la webview.
+            let dragging = unsafe {
+                use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+                (GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000) != 0
+            };
             {
                 if let Some(main_win) = app_handle.get_webview_window("main") {
                     if main_win.is_visible().unwrap_or(false) {
@@ -1932,7 +1946,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                                     // A hidden notch must not eat clicks, in smart/peek it's off screen most of the time.
                                     let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), "main");
                                     let hover_active = is_notch_hovered || now < MH_TOPBAR_EXPIRY_MS.load(Ordering::Relaxed);
-                                    if (!notch_hidden || hover_active)
+                                    if (!notch_hidden || hover_active || dragging)
                                         && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
                                         is_click_interactive = true;
                                     }
@@ -1946,7 +1960,7 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                                     // Keep this immediate (not dwell-gated), the notch rect lags the animation and flipping
                                     // click-through mid-hover makes it flicker. Still gated on the notch being visible or hovered.
                                     let edge_pad = (60.0 * scale) as i32;
-                                    if !fg_fs && in_top_band && (!notch_hidden || hover_active)
+                                    if !fg_fs && in_top_band && (!notch_hidden || hover_active || dragging)
                                         && cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad {
                                         is_click_interactive = true;
                                     }
@@ -2228,6 +2242,12 @@ fn hit_test_extra_dock_windows(app_handle: &AppHandle, cursor: windows::Win32::F
 }
 
 fn hit_test_extra_notch_windows(app_handle: &AppHandle, cursor: windows::Win32::Foundation::POINT, now: i64, fg_fs: bool) {
+    // Même règle que sur l'écran principal : pendant un glisser de fichier, le
+    // notch doit accepter le curseur même replié, sinon le dépôt n'arrive jamais.
+    let dragging = unsafe {
+        use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+        (GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000) != 0
+    };
     let windows: Vec<(String, tauri::WebviewWindow)> = app_handle.webview_windows().into_iter()
         .filter(|(l, _)| is_notch_label(l) && crate::state::monitor_suffix(l).is_some())
         .collect();
@@ -2271,7 +2291,7 @@ fn hit_test_extra_notch_windows(app_handle: &AppHandle, cursor: windows::Win32::
                 let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), &label);
                 let hover_active = is_notch_hovered
                     || now < crate::state::get_i64(crate::state::notch_extra_expiry_ms(), &label, 0);
-                if (!notch_hidden || hover_active)
+                if (!notch_hidden || hover_active || dragging)
                     && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
                     is_click_interactive = true;
                 }
@@ -3288,6 +3308,7 @@ fn recover_from_webview_failure(handle: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         // A webview dying right after launch would die again after a relaunch, so give the taskbar back and exit.
         if started.is_some_and(|elapsed| elapsed < Duration::from_secs(30)) {
+            crate::diagnostics::log("webview died right after launch, exiting instead of relaunching");
             crate::commands::restore_taskbar_and_exit(&handle);
         } else {
             crate::diagnostics::log("webview process failed, relaunching");

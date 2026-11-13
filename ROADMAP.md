@@ -198,3 +198,408 @@ ELEMENTS MANQUANTS (décisions humaines)
 | P2-6 | `docs/brand/README.md` (charte + procédures de régénération) | ✅ |
 | P2-7 | Remplacer `docs/screenshots/*` par des captures à jour | ⏳ Windows requis |
 | P2-8 | Générer la paire de clés updater (DÉC-5) | ⏳ Utilisateur |
+
+> **P2-7** reste ouvert (nouvelle capture après rebuild) et **P2-8** est fait depuis (clé `BA3FEE8CCD2277FC` intégrée).
+
+---
+
+# 🚀 PHASE 3 — Fonctionnalités
+
+> Ouverte le 2026-11-02. Cadre : **aucune régression** sur l'existant, tout ce qui touche au réseau ou à l'IA est **opt-in**.
+> Les skills Vercel sont installées dans `.claude/skills/` (voir § Recherche).
+
+## 3.0 Vision
+
+Islet n'est plus seulement une barre des tâches remplacée : c'est une **surface d'information permanente** en haut de l'écran. La Phase 3 ajoute trois couches :
+
+1. **Un accueil** — au premier lancement, l'utilisateur configure son Islet au lieu de tomber sur des réglages par défaut.
+2. **Un personnage** — « Is », mascotte-assistante qui vit dans le notch et sert surtout les développeurs.
+3. **Une matière** — un moteur de thèmes qui donne une vraie identité visuelle, dont *Liquid Glass*.
+
+---
+
+## 3.A — Onboarding au premier démarrage ✅ (livré 2026-11-04)
+
+**Demande** : « le panneau de contrôle s'ouvre au premier démarrage pour permettre à l'utilisateur de choisir ses préférences ».
+
+> **Livré** — `src/settings/Onboarding.tsx` (5 étapes) + `Onboarding.css`, rendu dans la fenêtre Settings existante.
+> La fenêtre passe à 720 × 620 pendant l'accueil et s'ouvre 1,2 s après le démarrage, le temps que le notch s'installe.
+> **Écart assumé vs le plan initial** : le choix de langue de l'étape 1 a été retiré. Il n'aurait eu aucun effet
+> visible tant que J8 n'est pas livré, et un réglage qui ne fait rien est pire qu'un réglage absent. Il revient avec l'i18n.
+> **Détection** : `utils::migrate_onboarding_flag` marque comme déjà accueilli tout profil dont `settings.json`
+> contient au moins une clé — un utilisateur existant ne voit donc jamais l'accueil comme une surprise après mise à jour.
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-A1 ✅ | Détection du premier lancement | Clé `islet-onboarded` (settings.json + localStorage), migration douce si absente |
+| P3-A2 ✅ | Fenêtre plein écran d'accueil | Réutilise la fenêtre `settings.html` en mode `onboarding` (évite un 6ᵉ point d'entrée Tauri) |
+| P3-A3 ✅ | Étape 1 — Bienvenue | Nom de l'assistant (« Is » par défaut), choix de la langue d'affichage |
+| P3-A4 ✅ | Étape 2 — Apparence | Sélecteur de thème avec **aperçu en direct** sur le notch réel |
+| P3-A5 ✅ | Étape 3 — Notch ou Dock | Choix du mode, écran cible si plusieurs moniteurs |
+| P3-A6 ✅ | Étape 4 — Confidentialité | Ce qui reste local, ce qui sort sur le réseau (légendes, météo, updates) |
+| P3-A7 ✅ | Étape 5 — Récapitulatif | Résumé + bouton « Terminer », écrire `islet-onboarded: true` |
+| P3-A8 ✅ | Rappel ultérieur | Entrée « Revoir l'accueil » dans Settings › General |
+
+**Contraintes**
+- Aucun blocage : bouton **Passer** à chaque étape.
+- Ne s'affiche **qu'une fois** ; en cas de crash pendant l'accueil, l'état partiel est conservé.
+- Réutilise les composants `SettingRow` / `Dropdown` existants → cohérence visuelle gratuite.
+
+---
+
+## 3.B — Assistant « Is »
+
+**Demande** : « le mini avatar "Is" (ou le nom que l'utilisateur aura choisi) soit un mini assistant, utile pour les dev surtout », avec l'idée d'un avatar « que l'on poussera un peu plus tard ».
+
+### 3.B.1 — Livré : le personnage (2026-11-05)
+
+| ID | État | Ce qui a été fait |
+|---|---|---|
+| P3-B1 | ✅ | Sprite SVG dessiné d'après la mascotte (`docs/brand/islet-mascot-transparent.png`) : dôme, palmier, hémisphère en vague, yeux ronds avec reflet, bouche en « w » |
+| P3-B2 | ✅ | Six humeurs (`idle`, `listening`, `thinking`, `happy`, `alert`, `sleeping`) plus le clignement, tiré au hasard entre 2,4 et 6,6 s |
+| P3-B3 | ✅ | Le regard suit le curseur **dans un rayon de 240 px**, en direction unitaire : au-delà, les yeux reviennent au centre |
+| P3-B4 | ✅ | Endormissement après 45 s sans mouvement, réveil au moindre geste ; l'aperçu des réglages le montre |
+| P3-B5 | ✅ | Nom personnalisable (`islet-assistant-name`), déjà en place depuis l'accueil |
+| P3-B6 | ⏸ | Interaction « pousser » : hors périmètre |
+| P3-B7 | ✅ | `prefers-reduced-motion` coupe le souffle **et** le clignement |
+
+`src/lib/character.ts` tient le réducteur, les cadres d'humeur, le regard et le sommeil ; `scripts/character.test.ts`
+les vérifie (**39 tests**). `src/components/IsSprite.tsx` ne décide rien : il dessine ce qu'on lui dit.
+
+Le personnage apparaît là où Is parle (le conseil du notch), là où on lui donne son nom (l'accueil) et là où on
+le règle (onglet Is), avec un aperçu vivant des six états.
+
+### 3.B.1 Le personnage
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-B1 | Sprite de base | `docs/yessjh.png` (variante fantôme) retravaillée en 5 états ; ou mascotte existante déclinée |
+| P3-B2 | États d'animation | `idle` (respiration), `blink` (clignement aléatoire), `listening`, `thinking`, `happy`, `sleeping`, `alert` |
+| P3-B3 | Regard | Les yeux suivent le curseur quand il est proche du notch (léger parallaxe, pas de suivi hors fenêtre) |
+| P3-B4 | Réveil / sommeil | S'endort après inactivité prolongée, se réveille à l'interaction ou à un événement |
+| P3-B5 | Nom personnalisable | Champ dans l'onboarding, stocké dans `settings.json` (`assistantName`, défaut `"Is"`) |
+| P3-B6 | Interaction « pousser » (plus tard) | Physique ressort sur le sprite, réutilise les springs du notch ; **hors périmètre initial** |
+| P3-B7 | Réduction des animations | Respecte `prefers-reduced-motion` → `idle` statique |
+
+### 3.B.0 — Livré : catalogue de conseils système (2026-11-03 → 2026-11-04)
+
+Is échantillonne la machine toutes les 30 s (Rust `signals.rs`) et affiche **un seul**
+conseil à la fois dans le notch, choisi par une fonction pure (`pickTip`) où vivent
+toutes les décisions : priorités, seuils, délais de répétition.
+
+| # | Conseil | Déclencheur | Gravité | Répétition |
+|---|---|---|---|---|
+| 1 | Batterie critique | ≤ 10 % sur batterie | 🔴 | 10 min |
+| 2 | Batterie faible | ≤ seuil (20 % par défaut) | 🟠 | 30 min |
+| 3 | Autonomie restante | < 90 min alors que le % rassure | 🔵 | 2 h |
+| 4 | Batterie pleine | 100 % branché | 🔵 | 2 h |
+| 5 | Rappel de charge | ≥ seuil de charge (80 %) | 🔵 | 2 h |
+| 6 | Disque critique | < 2 Go libres ou ≥ 97 % utilisé | 🔴 | 2 h |
+| 7 | Disque qui se remplit | sous le plancher d'espace libre (10 %) | 🟠 | 12 h |
+| 8 | Mémoire critique | ≥ 95 % | 🔴 | 45 min |
+| 9 | Mémoire haute | ≥ 90 % | 🟠 | 45 min |
+| 10 | CPU occupé | ≥ 90 % | 🟠 | 30 min |
+| 11 | Redémarrage conseillé | 5 jours d'uptime | 🔵 | 12 h |
+| 12 | Session longue | ≥ seuil d'heures (8 h) | 🔵 | 8 h |
+| 13 | Tard dans la nuit | 00:00 – 04:00 locales | 🔵 | 8 h |
+
+**Principes tenus**
+- Un conseil à la fois, jamais deux ; le notch ne devient pas un flux de notifications.
+- Les messages sont **actionnables** : un temps restant, un volume en Mo, une heure.
+- Priorité = sécurité machine → intégrité des données → confort → hygiène de travail.
+- Tout est réglable (4 catégories, 4 seuils) et désactivable d'un interrupteur.
+- Aucune décision dans le backend : le Rust mesure, le TypeScript décide → testable sans machine Windows.
+- 29 tests de `pickTip()` couvrent seuils, priorités, interrupteurs et cooldowns.
+
+### 3.B.2 Ce qu'Is fait pour un développeur
+
+Le parti pris : **aucune IA requise au départ**. Is agrège des signaux locaux déjà disponibles, sans prompt ni coût. L'IA vient en 3.B.4, en option.
+
+| ID | Signal | Ce qu'Is montre | Source |
+|---|---|---|---|
+| P3-B8 | **Git pulse** ✅ | Branche courante, fichiers modifiés, ahead/behind du dépôt suivi. Livré : trois commandes git en lecture seule, panneau du notch, 34 tests sur l'interprétation | `git` CLI lancé sur le dossier du projet suivi |
+| P3-B9 | **Port radar** ✅ | Ports en écoute, processus associé, âge du port, bouton « libérer ». Livré : `netstat -ano -p TCP` rapporté brut par Rust, interprété et testé en TypeScript | `netstat`, `kill_process` existant |
+| P3-B10 | **Build watcher** ✅ | L'utilisateur enregistre une commande (`bun run build`, `cargo check`…) ; Is l'exécute à la demande et affiche ✅/❌ + durée. Livré : `dev_run_build` (cmd /C borné à trois minutes, sortie mêlée puis tronquée à sa fin), bouton dans le panneau, champ `islet-dev-build` dans les réglages | spawn Rust, sortie capturée |
+| P3-B11 | **Focus guard** ✅ | Mode focus = silence + chrono + Is au repos. Livré : une session marque le minuteur du notch (un seul décompte dans l'app), les conseils d'Is et tous les aperçus sont coupés pendant la session, le bouton du centre de commandes porte le temps restant. Aucune retouche au Ne pas déranger de Windows : c'est le silence d'Islet, pas celui du système | modules notch, `useCountdown` réutilisé |
+| P3-B12 | **Rappels de contexte** ✅ | « 12 min sans commit sur une branche sale », « port 3000 occupé depuis 2 h », « 3 commits de retard ». Livrés dans le panneau ; leur passage en conseils d'Is viendra avec B10 | règles locales, pas de LLM |
+
+> ⚠️ **Aucun accès disque arbitraire** : l'utilisateur choisit explicitement le ou les dossiers que suit Is.
+
+### 3.B.3 Modèle d'état
+
+```
+Is = { mood: idle|listening|thinking|happy|sleeping|alert,
+       signal: none|git|ports|build|focus,
+       speech?: string }   // bulle courte, 1 ligne max
+```
+
+Un seul réducteur, alimenté par des *watchers* Rust (`emit` → `listen`), sur le modèle déjà utilisé par `settings-changed`.
+
+### 3.B.4 Assistance IA (optionnelle, différée)
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-B13 | Fournisseur « local d'abord » ✅ | Ollama ou llama.cpp sur `localhost` — aucun compte, aucune donnée sortante. Livré : `ai_post` en Rust (POST borné, schéma http/https seulement), `src/lib/ai.ts` construit l'adresse et la requête (compatible OpenAI, Ollama compris), adresse et modèle réglables, bouton de test |
+| P3-B14 | Fournisseur « clé à soi » | ⏳ à faire. L'endpoint est déjà réglable ; ce qui manque, c'est **où garder la clé** : le trousseau Windows, jamais `settings.json`. À traiter quand une clé sera vraiment nécessaire |
+| P3-B15 | Portée volontairement étroite | 🔶 deux tâches sur trois. Livré : « expliquer l'échec » (les 120 dernières lignes du build) et « résumer les changements » (`git diff --stat`, jamais le contenu des fichiers). Restent « proposer une commande ». Toujours pas d'agent qui écrit dans le dépôt |
+| P3-B16 | Opt-in strict ✅ | Désactivé par défaut, paragraphe de consentement (ce qui part, vers où, quand), pastille « locale » ou « distante » dans le panneau, une seule question à la fois. Rien ne part sans un clic |
+
+---
+
+## 3.C — Parité fonctionnelle avec Nusa
+
+Nusa = notch Windows (C#/WPF) : musique + **lèvres synchronisées**, focus, eau, shelf, to-do, statut système.
+Islet couvre **déjà** musique, command center, statut, calendrier, Pomodoro, processus. Voici l'écart réel :
+
+| ID | Fonction | État Islet | À faire |
+|---|---|---|---|
+| P3-C1 | **Lecteur + paroles synchronisées** | ✅ (J4) | Paroles via **LRCLIB** (API publique, sans clé), ligne courante mise en avant, clic = seek, décalage ± 5 s par pas de 250 ms, cache local. **Opt-in** : rien ne sort tant que le réglage est off |
+| P3-C2 | **File shelf** | ✅ (J4) | Dépôt de fichiers sur le notch, liste persistante de **chemins** (aucune copie), ouverture en un clic, révélation dans l'Explorateur, fichiers disparus signalés. Glisser-vers-l'extérieur à faire |
+| P3-C3 | **Chronomètre + minuteur** | ✅ (J4) | Chronomètre (tours, meilleur/pire) et minuteur libre en plus du Pomodoro, tous deux ancrés sur une **cible absolue** : justes après une veille ou un redémarrage |
+| P3-C4 | **Suivi d'hydratation** | ⏭️ | Objectif quotidien, ajout rapide, rappels, petite courbe 7 jours. **Écarté à la demande** le 2026-11-05, à reprendre si besoin |
+| P3-C5 | **To-do du jour** | ✅ (J4) | Tâches avec heure d'échéance en langage naturel, rappel via le notch, report au lendemain, sections retard/aujourd'hui/à venir |
+| P3-C6 | **Indicateurs clavier** | ✅ (J4) | Verr Maj / Verr Num / Défil et langue de saisie, en surcouche brève au bas de l'écran, une seule pastille mise en avant |
+| P3-C7 | **Veille plein écran** | ✅ | Rien à faire : déjà géré |
+| P3-C8 | **Modes notch minimalistes** | ✅ (J4) | Pilule minimale : le notch replié réduit au temps seul, plus étroit, sans pochette ni visualiseur ; le survol rend tout |
+| P3-C9 | **Historique du presse-papier** | ✅ (J4) | Livré dans Nusa 1.2, sous la Shelf. Ici : panneau dédié dans le notch, épinglage, recherche, copie au clic, collage direct optionnel, opt-out des gestionnaires de mots de passe |
+
+**Hors périmètre** : eau/paroles/to-do ne nécessitent **aucun compte** ; LRCLIB est interrogé à la demande et le cache reste local.
+
+**P3-C8 en détail** (livré 2026-11-05) : `src/lib/pill.ts` décide quand le réglage s'applique et quelle largeur
+prend le notch replié, `App.tsx` s'y conforme. **21 tests**.
+
+Deux règles, et ce sont celles qu'on se trompe à écrire à la main. La pilule ne gouverne **que le notch au
+repos** : le survol, un conseil, une alerte ou un panneau ouvert reprennent la main, sinon une forme réduite
+resterait réduite pendant qu'on la lit. Et le visualiseur ne compte dans la largeur **que lorsqu'il bouge** :
+au repos ses barres retombent, il n'occupe plus rien de plus que la pochette. Hors mode musique, aucun
+module musical n'entre dans la largeur.
+
+Le réglage `islet-notch-pill-minimal` est **éteint par défaut** : changer la forme du notch sous les pieds de
+quelqu'un qui a réglé ses widgets serait une régression déguisée en finition.
+
+**P3-C6 en détail** (livré 2026-11-05) : `src-tauri/src/keyboard_indicators.rs` est un capteur (crochet clavier
+pour les trois touches, sondage de la disposition au premier plan pour la langue), `src/lib/keyboard.ts` décide
+(table des langues, pastilles, ce qui a changé), `Overlay.tsx` affiche. **19 tests**.
+
+Deux points techniques. `GetKeyState` répond **pour le fil appelant** : il n'est donc lu que depuis le fil du
+crochet clavier, celui qui traite réellement les messages. Et le crochet voit la touche **avant** Windows :
+l'état lu est l'ancien, le nouveau est son inverse, ce qui permet d'annoncer le changement sans attendre.
+La langue se surveille par sondage, un changement de disposition ne produisant aucune touche interceptable
+de façon fiable.
+
+**P3-C5 en détail** (livré 2026-11-05) : `src/lib/todo.ts` décide (saisie d'une heure, retard, sections,
+rappel, report), `src-tauri/src/todo.rs` garde le fichier (`todos.json`, à côté de `settings.json`),
+`NotchTodos.tsx` affiche. **40 tests**.
+
+Trois choix à retenir. **Une échéance est un instant** : « 9h30 » devient un horodatage à la saisie, donc
+le retard se calcule par comparaison et survit à un redémarrage. **Une heure déjà passée veut dire
+demain** : taper « 9 » à 10 h ne crée pas une tâche immédiatement en retard. **Le retard est un état,
+pas une erreur** : la tâche remonte en tête avec une pastille ambre et un bouton « reporter à demain »,
+rien ne disparaît tout seul.
+
+**P3-C3 en détail** (livré 2026-11-05) : `src/lib/clock.ts` porte le modèle (cible absolue, pause, tours,
+relecture méfiante du stockage), `useCountdown` et `useStopwatch` le tiennent à jour et le persistent,
+`NotchClock.tsx` l'affiche. **47 tests**.
+
+Le point qui compte : le minuteur **ne se compte pas à rebours**. Il range l'heure à laquelle il doit
+sonner et compare. Un `setInterval` qui retire une seconde par seconde dérive dès que la machine dort ;
+une soustraction reste juste. C'est aussi ce qui permet de retrouver un minuteur en cours après un
+redémarrage : l'état vit dans `localStorage`, avec validation (cible périmée depuis plus d'un jour,
+horloge qui recule, JSON abîmé : on repart à zéro plutôt que d'afficher `NaN`).
+
+**P3-C2 en détail** (livré 2026-11-05) : `src/lib/shelf.ts` décide (nature du fichier par extension, unités de
+taille, ordre, dédoublonnage, plafond de 24, chemins abrégés), `src-tauri/src/shelf.rs` persiste (`shelf.json`) et
+vérifie l'existence à chaque lecture, `NotchShelf.tsx` affiche. La fenêtre principale accepte les dépôts
+(`dragDropEnabled: true`) et le panneau s'ouvre de lui-même après un dépôt.
+
+⚠️ **Glisser-vers-l'extérieur non livré** : il demande `tauri_plugin_drag::init()` et un essai réel sur Windows.
+Un dépôt qui ne se dépose pas est pire qu'une étagère sans sortie, donc la sortie attend.
+
+**P3-C1 en détail** (livré 2026-11-05) : `src/lib/lyrics.ts` décide (parseur LRC, ligne courante par recherche
+binaire, décalage, cible de seek), `src-tauri/src/lyrics.rs` transporte (LRCLIB, cache disque plafonné à 400
+morceaux, refus si le réglage est off), `NotchLyrics.tsx` affiche (défilement qui suit la lecture sans jamais
+reprendre la main sur un utilisateur qui remonte). 60 tests. Le corps brut de LRCLIB traverse Rust sans être
+reparsé : un seul parseur, celui qui est testé.
+
+**P3-C9 en détail** (livré 2026-11-05) : `src-tauri/src/clipboard.rs` mesure (fil de sondage 400 ms sur
+`GetClipboardSequenceNumber`), `src/lib/clipboard.ts` décide (ordre, épingles, recherche, aperçu) et
+`NotchClipboard.tsx` affiche. L'historique vit **en mémoire seule** ; deux formats d'exclusion Windows sont
+respectés pour ne pas enregistrer ce qu'un gestionnaire de mots de passe copie. Plafond 60 entrées non épinglées,
+texte tronqué à 20 000 caractères, « Vider l'historique » conserve les épinglés.
+
+---
+
+## 3.D — Moteur de thèmes ✅ livré 2026-11-04
+
+**Demande** : « plus de thèmes, avec un thème liquid glass et d'autres que tu vas me proposer ».
+
+### 3.D.1 Refonte du moteur
+
+Aujourd'hui : `themeMode` ∈ {`dark`, `light`, `custom`, `adaptive`} + réglages HSL.
+Cible : **presets nommés** + réglages libres, sans casser `settings.json` existant.
+
+| ID | Tâche | Détail |
+|---|---|---|
+| P3-D1 | Table de presets | Objet `ThemePreset` (variables CSS, blur, rayon, ombres, police d'accent) |
+| P3-D2 | Migration | `themeMode` actuel → preset équivalent (`dark` → `onyx`, `light` → `frost-light`…) |
+| P3-D3 | Aperçu en direct | Applique le preset au notch réel pendant la sélection (onboarding + Appearance) |
+| P3-D4 | Garde-fous d'accessibilité | `prefers-reduced-transparency`, contraste minimum sur le texte, repli opaque si le blur est indisponible |
+| P3-D5 | Thèmes communautaires | Un preset = un fichier JSON ; chargement depuis `themes/` du profil utilisateur |
+
+### 3.D.2 Presets proposés
+
+| Preset | Intention | Signature |
+|---|---|---|
+| **Liquid Glass** ⭐ | La demande explicite | `backdrop-filter: blur() saturate(180%)`, liseré spéculaire `inset 0 1px 0`, réfraction par `feDisplacementMap` là où c'est supporté |
+| **Onyx** | Le défaut actuel, assumé | Noir mat, quasi opaque, aucune distraction |
+| **Frost Light** | Jour / bureaux clairs | Verre laiteux clair, contraste AA garanti |
+| **Aurora** | Vivant, coloré | Dégradé de fond animé très lent, verre par-dessus |
+| **Nord** | Confort, longue session | Palette froide désaturée (inspiration Nord/Solarized) |
+| **Paper** | Minimal imprimé | Aplats crème, ombres douces, zéro transparence |
+| **Neon Grid** | Ambiance dev / rétro | Accents cyan-magenta, grille discrète |
+| **Bento** | Modulaire | Blocs à coins marqués, séparateurs visibles entre modules |
+
+> **Note technique décisive** : sous Tauri, le rendu web passe par **WebView2 = Chromium**. La réfraction SVG (`backdrop-filter: url(#filtre)`) fonctionne donc réellement sur Windows — c'est l'exception au « Chromium only » qui rend le vrai Liquid Glass possible ici, contrairement au web classique.
+
+### 3.D.3 — Livré : ce qui a été fait, et ce qui ne marche pas
+
+**Livré** : `src/theme/presets.ts` (8 presets, une matière par preset), `src/material.css`
+(flou, liseré, reflet, garde-fous), galerie de swatches dans Apparence, 20 tests.
+
+**Correction d'une hypothèse du cadrage** : `backdrop-filter: url(#filtre)` **n'est pas
+implémenté dans Chromium**, y compris WebView2. Seul `filter: url()` l'est, et il
+s'applique à l'élément, pas à ce qui est derrière — donc il ne produit pas une
+réfraction. La couche `feDisplacementMap` a été abandonnée plutôt que livrée en
+illusion : le Liquid Glass d'Islet est **frost + liseré spéculaire + reflet fixe**,
+ce qui donne l'essentiel du rendu sans dépendre d'une fonction absente.
+
+**Découverte utile** : une vitre translucide n'est lisible que si on la densifie.
+À 42 % d'opacité, du texte blanc sur un bureau blanc tombe à 2,4:1. Les alphas sont
+donc calculés : chaque preset doit passer 4,5:1 **sur fond noir et sur fond blanc**,
+et `test:theme` refuse le contraire. Liquid Glass est à 66 %, pas à 42 %.
+
+---
+
+## 3.E — Jalons
+
+| Jalon | Contenu | Dépendance |
+|---|---|---|
+| **J1 — Accueil** ✅ | 3.A complet (sauf sélecteur de langue, reporté en J8) | Aucune |
+| **J2 — Matière** ✅ | 3.D presets + Liquid Glass (2026-11-04) | Aucune |
+| **J3 — Personnage** ✅ | 3.B.1 + 3.B.3 (états, regard, sommeil) — livré 2026-11-05 | J1 (nom de l'assistant) |
+| **J4 — Parité** | 3.C1 (paroles), 3.C3 (chrono), 3.C6 (clavier) | Aucune |
+| **J5 — Dev** | 3.B.8 → 3.B.12 (git, ports, build, focus) — **B8, B9, B10, B11 et B12 livrés**, J5 terminé | J3 |
+| **J6 — Confort** ✅ | 3.C2 (shelf) ✅, 3.C5 (to-do) ✅ ; 3.C4 (eau) écarté à la demande le 2026-11-05 | — |
+| **J7 — IA (option)** | 3.B.13 → 3.B.16 — **B13, B16 livrés et B15 à moitié** ; B14 (clé à soi) à faire | J5 |
+| **J8 — Langues** ✅ | 3.G — interface entière bilingue, 460 clés, 40 tests | J1 |
+
+Ordre recommandé : ~~J1~~ ✅ → ~~J8~~ ✅ → ~~J2~~ ✅ → ~~J4~~ ✅ → ~~J3~~ ✅ → **J5 → J6 → J7**
+(J1/J2 apportent le plus de valeur visible par effort ; J8 juste derrière parce que
+chaque écran livré avant lui est un écran à traduire plus tard).
+
+---
+
+## 3.G — Langues (français / anglais) ✅ livré 2026-11-04
+
+> Demandé par l'utilisateur le 2026-11-04.
+>
+> **Livré** (G1, G2, G3 + l'accueil) : socle `src/i18n/`, sélecteur dans Général,
+> les 14 conseils d'Is, l'interface du notch, l'onglet Is, l'onglet Général et
+> les 5 écrans d'accueil. Décision d'architecture : **pas de dépendance**, deux
+> dictionnaires plats, l'anglais définit le jeu de clés et le français est typé
+> dessus (une clé oubliée = erreur de compilation).
+> **Reste** (G4, G5) : les 8 autres onglets des Réglages, le dock, l'agenda et les
+> surcouches — voir `todo.md` Bloc N.
+
+### 3.G.1 Le problème
+
+Islet affiche aujourd'hui **environ 400 chaînes en anglais codées en dur** dans le JSX,
+les réglages et le catalogue de conseils d'Is. Il n'existe aucune notion de langue dans
+le dépôt : les seules occurrences de « language » concernent la langue du clavier
+(indicateur Nusa) et un paramètre d'API météo.
+
+Un utilisateur francophone — le mainteneur lui-même — lit donc une interface anglaise.
+
+### 3.G.2 Décisions à prendre
+
+| # | Question | Recommandation |
+|---|---|---|
+| DÉC-12 | Bibliothèque | **Aucune dépendance.** Un `t()` maison sur deux dictionnaires plats (`fr.ts`, `en.ts`) suffit pour ~400 clés et évite `react-i18next` + 3 dépendances. |
+| DÉC-13 | Langue par défaut | **Suivre Windows** au premier lancement (`navigator.language`), puis mémoriser le choix explicite. Un utilisateur FR ne doit pas avoir à chercher le réglage. |
+| DÉC-14 | Portée | Interface d'abord (réglages, notch, dock, onglet À propos). Le catalogue d'Is **aussi** : c'est le texte le plus lu. Les noms d'applications, les titres de morceaux et les noms de processus ne sont jamais traduits. |
+| DÉC-15 | Où | Nouvel onglet **Général → Langue**, à côté du thème. Changement appliqué sans redémarrage. |
+
+### 3.G.3 Inventaire du travail
+
+| Zone | Volume | Difficulté |
+|---|---|---|
+| `src/settings/*.tsx` (11 onglets) | ~250 chaînes | Mécanique, gros volume |
+| `src/lib/assistant.ts` (13 conseils) | 16 chaînes + 2 formats | **Le plus utile** : c'est le texte que l'utilisateur lit le plus |
+| `src/App.tsx` (notch) | ~60 chaînes | Quelques pluriels (« 1 min » / « 2 min ») |
+| `src/Dock.tsx` | ~40 chaînes | Menu contextuel surtout |
+| `src/components/*` | ~30 chaînes | Mécanique |
+| Fenêtre À propos / mise à jour | ~15 chaînes | Mécanique |
+
+### 3.G.4 Points de vigilance
+
+- **Les formats ne sont pas des chaînes** : `formatUptime` produit `2 h 42` en français
+  et `2h42` en anglais ; les dates du calendrier passent de « lundi 4 novembre » à
+  « Monday, November 4 ». Prévoir `Intl.DateTimeFormat` avec la langue active, sans
+  jamais coder le format à la main.
+- **Le notch est étroit** : une traduction plus longue casse la ligne unique. Chaque clé
+  traduite doit être vérifiée dans le notch à 290 px, pas seulement dans les réglages.
+- **Le texte est généré côté Rust** pour quelques messages (mise à jour, erreurs de
+  diagnostic). Soit on les remonte en clés résolues côté frontend, soit on accepte
+  qu'ils restent en anglais au premier passage — décision à prendre.
+- **Ne pas casser `islet-*`** : le choix de langue est un `localStorage` de plus
+  (`islet-language`), pas un renommage.
+
+### 3.G.5 Jalons — tous livrés
+
+| Étape | Contenu | État |
+|---|---|---|
+| **G1** | Socle : `t()`, deux dictionnaires plats, `islet-language`, onglet Général | ✅ `a6ce6e4` |
+| **G2** | Catalogue d'Is (13 conseils + temps relatifs, test de longueur ≤ 46 car.) | ✅ `a6ce6e4` |
+| **G3** | Réglages : Apparence, Superpositions, Processus, À propos, Notch, Dock, Agenda | ✅ |
+| **G4** | Notch, dock, agenda, overlays, contrôles de fenêtre, onboarding | ✅ |
+| **G5** | Dates et nombres via `Intl` (`formatDate`, `formatNumber`) | ✅ `a6ce6e4` |
+
+**Bilan : 460 clés dans chaque dictionnaire, aucune chaîne visible en dur dans le JSX.**
+`fr.ts` est typé sur `keyof typeof en` : oublier une traduction est une erreur de
+compilation, pas une phrase anglaise au milieu du français. Les seules chaînes qui
+restent littérales sont celles qui ne se traduisent pas : « Notch », « Is », les noms
+propres d'applications et les crédits du pied de page À propos.
+
+> **Règle pour la suite** : toute fonctionnalité se livre **bilingue du premier coup**.
+> Ajouter un texte, c'est ajouter la clé dans `en.ts` *et* `fr.ts` dans le même commit ;
+> un écran à moitié traduit est un bug, pas une dette.
+
+---
+
+## 3.F — Recherche et sources
+
+### Skills installées (`.claude/skills/`)
+
+`npx skills add vercel-labs/agent-skills` — 5 skills, 644 Ko, 98 fichiers :
+
+| Skill | Usage dans ce projet |
+|---|---|
+| `web-design-guidelines` | Audit d'accessibilité et d'ergonomie de l'UI (fetch des règles à jour) |
+| `vercel-react-best-practices` | 70 règles perf React (re-renders, bundle, effets) |
+| `vercel-composition-patterns` | Découpage des composants du notch et de l'assistant |
+| `vercel-react-view-transitions` | Transitions entre états du notch |
+| `writing-guidelines` | Rédaction des textes UI et de la doc |
+
+> Le registre `skills.sh` n'est pas joignable depuis le sandbox : installation faite **directement depuis GitHub**.
+
+### Nusa (référence)
+
+- Notch C#/WPF pour Windows 10/11, ~30 Mo RAM, 0 % CPU au repos (annoncé).
+- Fonctions : musique + paroles synchronisées (LRCLIB), Pomodoro, rappels d'eau, shelf de fichiers, to-do, overlays volume/luminosité, Caps Lock et langue, batterie/Wi-Fi/casque, masquage en plein écran.
+- Enseignement : la valeur n'est pas dans le nombre de fonctions mais dans **le fait qu'elles tiennent dans un seul objet permanent**.
+
+### Liquid Glass (technique)
+
+- Deux niveaux : **frost** (blur + saturate + liseré) partout ; **réfraction** (`feDisplacementMap` dans `backdrop-filter`) sur Chromium uniquement.
+- Un `feTurbulence` donne un grain organique ; un **displacement map fabriqué** (canal R = X, G = Y, gris au centre) donne la vraie lentille d'Apple.
+- Garde-fous obligatoires : `prefers-reduced-transparency`, `prefers-contrast`, repli opaque par défaut.

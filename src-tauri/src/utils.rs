@@ -451,10 +451,35 @@ fn settings_cache() -> &'static std::sync::Mutex<std::collections::HashMap<Strin
     crate::state::SETTINGS_CACHE.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
 }
 
+/// First-run detection, for installs that predate the welcome flow.
+///
+/// The welcome flow writes `islet-onboarded` when it ends. Someone who has
+/// been running Islet for months has a populated `settings.json` but no flag;
+/// without this, the upgrade would open with a five-screen introduction they
+/// never asked for. A settings file with anything in it therefore counts as
+/// "already welcomed", and only a genuinely empty profile sees the flow.
+///
+/// A fresh install has no file at all, so this is a no-op there.
+fn migrate_onboarding_flag(path: &std::path::Path) {
+    let Ok(content) = std::fs::read_to_string(path) else { return };
+    let Ok(mut settings) = serde_json::from_str::<std::collections::HashMap<String, serde_json::Value>>(&content) else { return };
+    if settings.is_empty() || settings.contains_key("islet-onboarded") {
+        return;
+    }
+    settings.insert(
+        "islet-onboarded".to_string(),
+        serde_json::Value::String("true".to_string()),
+    );
+    if let Ok(out) = serde_json::to_string(&settings) {
+        let _ = std::fs::write(path, out);
+    }
+}
+
 /// Load settings.json into the in-memory cache. Call once at startup.
 pub fn init_settings_cache(app: &tauri::AppHandle) {
     use tauri::Manager;
     if let Some(path) = app.path().app_config_dir().ok().map(|p| p.join("settings.json")) {
+        migrate_onboarding_flag(&path);
         if let Ok(content) = std::fs::read_to_string(path) {
             if let Ok(settings) = serde_json::from_str::<std::collections::HashMap<String, serde_json::Value>>(&content) {
                 if let Ok(mut cache) = settings_cache().lock() {
@@ -508,10 +533,16 @@ pub fn re_assert_topmost(hwnd: HWND) {
             0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOSENDCHANGING,
         );
-        // Re-stamp NOACTIVATE + TOOLWINDOW — HWND_TOPMOST can cause these to be reset
-        // by the shell on some Windows builds
+        // Re-stamp TOOLWINDOW, and NOACTIVATE only when no field is waiting for
+        // the keyboard. Re-stamping it while the user types would take the focus
+        // away mid-word.
         let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as usize;
-        let new_ex = ex | WS_EX_NOACTIVATE.0 as usize | WS_EX_TOOLWINDOW.0 as usize;
+        let mut new_ex = ex | WS_EX_TOOLWINDOW.0 as usize;
+        if !crate::state::NOTCH_ACTIVATABLE.load(std::sync::atomic::Ordering::Relaxed) {
+            new_ex |= WS_EX_NOACTIVATE.0 as usize;
+        } else {
+            new_ex &= !(WS_EX_NOACTIVATE.0 as usize);
+        }
         SetWindowLongPtrW(hwnd, GWL_EXSTYLE, new_ex as isize);
     }
 }

@@ -28,6 +28,32 @@ pub async fn set_notch_hovered(window: Window, hovered: bool) {
     crate::state::set_flag(crate::state::notch_hovered(), window.label(), hovered);
 }
 
+/// Le notch ne prend jamais le focus : il porte `WS_EX_NOACTIVATE`, sinon il
+/// volerait le clavier à l'application en dessous. Conséquence, on ne peut rien
+/// y taper. Cette commande retire le style le temps d'un champ de saisie, puis
+/// le remet, et redonne le focus au clavier quand elle l'accorde.
+#[tauri::command]
+pub fn set_notch_activatable(window: Window, active: bool) {
+    crate::state::NOTCH_ACTIVATABLE.store(active, Ordering::Relaxed);
+    let Ok(hwnd) = window.hwnd() else { return };
+    unsafe {
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
+        };
+        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as usize;
+        let base = ex | WS_EX_TOOLWINDOW.0 as usize;
+        let next = if active {
+            base & !(WS_EX_NOACTIVATE.0 as usize)
+        } else {
+            base | WS_EX_NOACTIVATE.0 as usize
+        };
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, next as isize);
+    }
+    if active {
+        let _ = window.set_focus();
+    }
+}
+
 #[tauri::command]
 pub async fn set_notch_hidden(window: Window, hidden: bool) {
     crate::state::set_flag(crate::state::notch_hidden(), window.label(), hidden);
@@ -2379,6 +2405,7 @@ pub fn clear_volume_mixer_rect() {
 /// handlers so that any shutdown path (including Task Manager's WM_CLOSE) behaves
 /// identically.
 pub fn restore_taskbar_and_exit(handle: &AppHandle) {
+    crate::diagnostics::log("quit: restoring taskbar and exiting");
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     NATIVE_TASKBAR_HIDDEN.store(false, Ordering::SeqCst);
     for (_, w) in handle.webview_windows() {
@@ -2504,6 +2531,7 @@ pub async fn restart_islet(handle: AppHandle) {
 
 /// Relaunches the process. Also used for webview crashes, reloading pages can't fix those.
 pub fn relaunch_islet(handle: &AppHandle) {
+    crate::diagnostics::log("quit: relaunching");
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     if let Some(w) = handle.get_webview_window("main") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("dock") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
