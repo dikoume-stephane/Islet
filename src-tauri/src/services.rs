@@ -2242,6 +2242,12 @@ fn hit_test_extra_dock_windows(app_handle: &AppHandle, cursor: windows::Win32::F
 }
 
 fn hit_test_extra_notch_windows(app_handle: &AppHandle, cursor: windows::Win32::Foundation::POINT, now: i64, fg_fs: bool) {
+    // Même règle que sur l'écran principal : pendant un glisser de fichier, le
+    // notch doit accepter le curseur même replié, sinon le dépôt n'arrive jamais.
+    let dragging = unsafe {
+        use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+        (GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000) != 0
+    };
     let windows: Vec<(String, tauri::WebviewWindow)> = app_handle.webview_windows().into_iter()
         .filter(|(l, _)| is_notch_label(l) && crate::state::monitor_suffix(l).is_some())
         .collect();
