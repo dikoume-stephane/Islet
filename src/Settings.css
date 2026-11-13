@@ -580,6 +580,15 @@ input:checked + .slider:before {
   animation: dropdown-pop 0.14s ease;
 }
 
+/* La liste ouverte vit à la racine du document (voir Dropdown.tsx) : elle est
+   positionnée en fixe par rapport à la fenêtre, et non plus dans le panneau qui
+   la rognait. Les décalages viennent du composant, qui mesure son bouton. */
+.dropdown-menu--portal {
+  position: fixed;
+  top: auto;
+  z-index: 9999;
+}
+
 .dropdown-menu--right {
   right: 0;
 }

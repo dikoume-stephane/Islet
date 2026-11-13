@@ -5,6 +5,35 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-13 (16) — La liste des langues passait sous la carte
+
+**Symptôme** — Dans Réglages puis Général, ouvrir « Suivre Windows » dépliait une liste rognée :
+on en voyait le haut, le reste disparaissait sous le panneau.
+
+**Diagnostic** — La liste était positionnée en absolu dans son bouton, donc dans le flux des
+réglages. `.settings-container` porte `overflow: hidden` et une bordure arrondie, les zones de
+contenu défilent : la première de ces boîtes coupait la liste, et son `z-index` de 200 ne pouvait rien
+contre un ancêtre qui rogne.
+
+**Correctif** — La liste est rendue à la racine du document par un portail, en position fixe, à
+l'endroit mesuré de son bouton, avec bascule vers le haut quand la fenêtre manque de place en
+dessous. Deux références sont écoutées pour le clic extérieur, celle du bouton et celle de la liste :
+sans la seconde, choisir une langue aurait refermé la liste avant de l'appliquer. Un défilement
+referme la liste plutôt que de la laisser flotter à côté de son bouton.
+
+**Constats**
+- Un `z-index` élevé ne protège de rien quand l'ancêtre rogne : c'est l'`overflow` qui décide, et il
+  ne se voit pas dans le code du composant.
+- La même liste sert dans plusieurs onglets ; toutes les occurrences sont corrigées d'un coup.
+
+**Bloqué**
+- Non vérifié à l'écran ici, seulement compilé.
+
+**À faire ensuite**
+- Revoir les captures restantes (barre de progression du lecteur, listes coupées en bas).
+
+---
+
 ## 2026-11-12 (15) — Cinq bugs vus à l'usage, et ce qu'ils avaient en commun
 
 **Fait**
