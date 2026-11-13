@@ -29,6 +29,18 @@ Set-Location $root
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Version must look like 1.3.1" }
 if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw "TAURI_SIGNING_PRIVATE_KEY is not set, so the update can't be signed." }
 
+# A password-protected key without its password only fails at the end of the
+# build, two and a half minutes in, after everything else succeeded. Say it now.
+$keyText = $null
+if (Test-Path -LiteralPath $env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue) {
+    $keyText = Get-Content -LiteralPath $env:TAURI_SIGNING_PRIVATE_KEY -Raw -Encoding UTF8
+} else {
+    $keyText = $env:TAURI_SIGNING_PRIVATE_KEY
+}
+if ($keyText -match "encrypted secret key" -and -not $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD) {
+    throw "The signing key is password-protected: set TAURI_SIGNING_PRIVATE_KEY_PASSWORD in this session before releasing."
+}
+
 $versionFiles = @{
     "package.json"                            = (Get-Content package.json -Raw | ConvertFrom-Json).version
     "src-tauri/tauri.conf.json"               = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
@@ -58,7 +70,9 @@ if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 New-Item -ItemType Directory $out | Out-Null
 
 if ($NotesFile) {
-    $notes = Get-Content $NotesFile -Raw
+    # Get-Content lit en ANSI par defaut sous PowerShell 5.1 : un fichier UTF-8
+    # sans BOM ressortait en mojibake dans les notes publiees.
+    $notes = Get-Content $NotesFile -Raw -Encoding UTF8
 } else {
     $notes = (git -c i18n.logOutputEncoding=UTF-8 log -1 --pretty=format:"%b" --no-merges | Out-String).Trim()
     if (-not $notes) { $notes = (git -c i18n.logOutputEncoding=UTF-8 log -1 --pretty=format:"%s" --no-merges | Out-String).Trim() }
