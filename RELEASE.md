@@ -132,6 +132,44 @@ bêta.
 
 ---
 
+## 3 bis. La clé de signature
+
+Deux variables, dans la même fenêtre que la release :
+
+```
+$env:TAURI_SIGNING_PRIVATE_KEY = Get-Content "$env:USERPROFILE\.tauri\islet.key" -Raw
+$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = "le mot de passe de la clé"
+```
+
+Si la clé n'a pas de mot de passe, la seconde ligne devient `$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""`.
+
+Un mot de passe se perd, et ne se retrouve pas : la clé est chiffrée. Deux issues, et une seule est
+raisonnable avant la première sortie.
+
+**Renouveler la paire** (sans danger tant que personne n'a installé Islet) :
+
+```
+Remove-Item "$env:USERPROFILE\.tauri\islet.key", "$env:USERPROFILE\.tauri\islet.key.pub" -ErrorAction SilentlyContinue
+bun run tauri signer generate -w "$env:USERPROFILE\.tauri\islet.key"
+```
+
+La commande demande un mot de passe : **Entrée deux fois** pour ne pas en mettre. Elle affiche ensuite
+la clé publique. Pour l'inscrire dans le fichier de configuration, sans risque d'erreur d'encodage :
+
+```
+npm run pubkey
+npm run audit
+git add src-tauri/tauri.conf.json
+git commit -m "chore(release): nouvelle cle de signature"
+```
+
+Le script `scripts/set-pubkey.mjs` lit le fichier `.key.pub` tel quel et remplace la valeur de
+`plugins.updater.pubkey` ; `npm run pubkey -- --check` compare sans écrire.
+
+**Après la première sortie, ne renouvelez plus la clé** : la clé publique est embarquée dans les
+applications déjà installées, et une autre clé les empêcherait de vérifier la mise à jour. Sauvegardez
+`islet.key` et son mot de passe en lieu sûr.
+
 ## 4. Après l'installation, sur une machine propre
 
 Installer `Islet-Setup-<version>.exe`, puis :

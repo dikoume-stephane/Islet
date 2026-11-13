@@ -5,6 +5,31 @@ Sections par entrée : **Fait** · **Constats** · **Bloqué** · **À faire ens
 
 ---
 
+## 2026-11-14 (17) — La clé de signature, et le mot de passe qu'on ne retrouve pas
+
+**Fait**
+- `scripts/set-pubkey.mjs` et `npm run pubkey` : la clé publique de `plugins.updater.pubkey` est le
+  contenu entier du fichier `.key.pub` encodé en base64, commentaire compris. Recopier cela à la main
+  est une erreur d'encodage qui attend son heure ; le script lit le fichier octet pour octet et
+  remplace la valeur sur place. `--check` compare sans écrire.
+- RELEASE.md : section « La clé de signature », avec le renouvellement et son avertissement.
+
+**Constats**
+- L'essai à blanc a fabriqué l'installeur complet en 2 min 26, puis échoué sur
+  `Wrong password for that key`. La clé générée plus tôt est chiffrée, et son mot de passe est perdu :
+  c'est la seule chose qui manquait à la sortie.
+- Un mot de passe de clé ne se retrouve pas. Avant la première publication, renouveler la paire ne
+  coûte rien, puisque aucune application installée n'embarque encore de clé publique. Après, cela
+  couperait les mises à jour de tout le monde.
+
+**Bloqué**
+- La sortie attend la nouvelle paire de clés.
+
+**À faire ensuite**
+- `bun run tauri signer generate`, `npm run pubkey`, puis l'essai à blanc.
+
+---
+
 ## 2026-11-13 (16) — La liste des langues passait sous la carte
 
 **Symptôme** — Dans Réglages puis Général, ouvrir « Suivre Windows » dépliait une liste rognée :

@@ -25,7 +25,8 @@
     "test:focus": "node_modules/.bin/esbuild scripts/focus.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/focus.test.mjs --log-level=error && node --test .test-build/focus.test.mjs",
     "test:ai": "node_modules/.bin/esbuild scripts/ai.test.ts --bundle --format=esm --platform=node \"--external:node:*\" --outfile=.test-build/ai.test.mjs --log-level=error && node --test .test-build/ai.test.mjs",
     "audit": "node scripts/audit.mjs",
-    "prerelease": "npm run audit && npm run test && npm run build"
+    "prerelease": "npm run audit && npm run test && npm run build",
+    "pubkey": "node scripts/set-pubkey.mjs"
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",
