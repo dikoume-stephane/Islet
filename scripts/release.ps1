@@ -29,16 +29,19 @@ Set-Location $root
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Version must look like 1.3.1" }
 if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw "TAURI_SIGNING_PRIVATE_KEY is not set, so the update can't be signed." }
 
-# A password-protected key without its password only fails at the end of the
-# build, two and a half minutes in, after everything else succeeded. Say it now.
-$keyText = $null
+# The key pair and the configured public key must be the same pair. A mismatch
+# only surfaces at the very end of the build, when the bundler tries to sign,
+# two and a half minutes after everything else succeeded.
 if (Test-Path -LiteralPath $env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue) {
-    $keyText = Get-Content -LiteralPath $env:TAURI_SIGNING_PRIVATE_KEY -Raw -Encoding UTF8
-} else {
-    $keyText = $env:TAURI_SIGNING_PRIVATE_KEY
-}
-if ($keyText -match "encrypted secret key" -and -not $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD) {
-    throw "The signing key is password-protected: set TAURI_SIGNING_PRIVATE_KEY_PASSWORD in this session before releasing."
+    $pubSibling = "$($env:TAURI_SIGNING_PRIVATE_KEY).pub"
+    if (-not (Test-Path -LiteralPath $pubSibling -ErrorAction SilentlyContinue)) {
+        throw "No public key next to $($env:TAURI_SIGNING_PRIVATE_KEY): expected $pubSibling. The pair must stay together."
+    }
+    $expected = (Get-Content -LiteralPath $pubSibling -Raw -Encoding UTF8).Trim()
+    $configured = [string](Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).plugins.updater.pubkey
+    if ($configured -and $configured.Trim() -ne $expected) {
+        throw "src-tauri/tauri.conf.json carries another updater pubkey than $pubSibling. Run: npm run pubkey"
+    }
 }
 
 $versionFiles = @{

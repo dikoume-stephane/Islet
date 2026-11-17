@@ -163,8 +163,12 @@ git add src-tauri/tauri.conf.json
 git commit -m "chore(release): nouvelle cle de signature"
 ```
 
-Le script `scripts/set-pubkey.mjs` lit le fichier `.key.pub` tel quel et remplace la valeur de
-`plugins.updater.pubkey` ; `npm run pubkey -- --check` compare sans écrire.
+Le fichier `.key.pub` contient **déjà** la valeur attendue : la clé publique encodée telle quelle.
+`scripts/set-pubkey.mjs` la recopie après vérification de sa forme, refuse une clé privée, et remplace
+`plugins.updater.pubkey` sur place ; `npm run pubkey -- --check` compare sans écrire.
+
+`scripts/release.ps1` refuse de commencer si la clé publique du dépôt n'est pas celle qui accompagne la
+clé privée : c'est une erreur qui, sinon, ne se voit qu'à la toute fin du build.
 
 **Après la première sortie, ne renouvelez plus la clé** : la clé publique est embarquée dans les
 applications déjà installées, et une autre clé les empêcherait de vérifier la mise à jour. Sauvegardez
