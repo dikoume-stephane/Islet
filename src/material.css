@@ -1,0 +1,101 @@
+/*
+ * Materials.
+ *
+ * One variable drives every blurry surface: `--islet-material-filter`, written
+ * by `applyTheme()` from the active preset (see src/theme/presets.ts). Surfaces
+ * read it with their historical blur as the fallback, so a settings file written
+ * before presets existed renders exactly as it did.
+ *
+ * The three levels stack:
+ *   matte  — nothing. The variable stays unset.
+ *   frost  — backdrop blur + saturation.
+ *   glass  — a specular rim, so the surface reads as an edge catching light.
+ *   liquid — plus a sheen sweeping across the top third.
+ *
+ * Accessibility is not optional here: blur is decoration, contrast is not.
+ * Reduced transparency and unsupported browsers both fall back to the flat
+ * surface, and `prefers-contrast: more` sharpens the rim instead of removing it.
+ */
+
+:root {
+  --islet-material-rim: transparent;
+  --islet-material-sheen: transparent;
+}
+
+:root[data-material="frost"] {
+  --islet-material-rim: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-material="glass"] {
+  --islet-material-rim: rgba(255, 255, 255, 0.2);
+  --islet-material-sheen: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-material="liquid"] {
+  --islet-material-rim: rgba(255, 255, 255, 0.34);
+  --islet-material-sheen: rgba(255, 255, 255, 0.1);
+}
+
+/* The notch is the flagship surface: it is the one the user sees all day. */
+.islet {
+  backdrop-filter: var(--islet-material-filter, none);
+  -webkit-backdrop-filter: var(--islet-material-filter, none);
+}
+
+/* Specular rim: a single hairline on the top edge. It is what separates glass
+   from a flat translucent rectangle, and it costs one box-shadow. */
+:root[data-material="glass"] .islet,
+:root[data-material="liquid"] .islet {
+  box-shadow: inset 0 1px 0 var(--islet-material-rim);
+}
+
+/* Sheen: a fixed diagonal highlight, not an animation. A moving sheen on a
+   surface that is always on screen is a distraction, and it breaks the
+   "animate transform/opacity only" rule for no benefit. */
+:root[data-material="liquid"] .islet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    158deg,
+    var(--islet-material-sheen) 0%,
+    transparent 38%,
+    transparent 68%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+}
+
+/* — Guardrails ------------------------------------------------------------ */
+
+/* The OS setting exists precisely for this: blur can make text unreadable for
+   some people, so honour it and go flat. The rim stays: it still delineates. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --islet-material-filter: none;
+    --islet-material-sheen: transparent;
+  }
+
+  .islet {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* More contrast: a hazy edge is worse than no edge, so sharpen the rim. */
+@media (prefers-contrast: more) {
+  :root {
+    --islet-material-rim: currentColor;
+    --islet-material-filter: none;
+  }
+}
+
+/* No backdrop-filter at all (old engine, or a disabled compositor): the flat
+   colour is still legible, the sheen is pointless. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --islet-material-filter: none;
+    --islet-material-sheen: transparent;
+  }
+}

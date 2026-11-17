@@ -149,6 +149,28 @@ Bundling the updater archive requires the maintainer's signing key (`TAURI_SIGNI
 bun run tauri build --bundles nsis --no-sign
 ```
 
+<<<<<<< HEAD
+=======
+Before shipping, run the gate: `npm run prerelease` (audit, tests, type-check). [RELEASE.md](RELEASE.md) walks through the rest of the process, including the checks that can only be done on Windows.
+
+>>>>>>> ac414a1 (chore(release): portillon de sortie et procédure de livraison)
+### If the Rust build runs out of memory
+
+The first `tauri dev` build compiles roughly 600 crates. On an 8–16 GB machine, cargo's default "one job per core" can exhaust memory, kill `rustc` mid-build, and fail with misleading messages such as `rustc-LLVM ERROR: out of memory` or `only metadata stub found for rlib dependency core`. Those are symptoms of a crashed compilation, not of broken code.
+
+```powershell
+cd src-tauri
+cargo clean
+cd ..
+.\scripts\dev.ps1
+```
+
+`scripts/dev.ps1` prints your RAM, free space on `C:` and your Rust toolchain, then rebuilds with two parallel jobs. Pass `-Jobs 4` if you have 16 GB or more, and `-Clean` to wipe `target/` first. A cold build needs about 15 GB free.
+
+The build profile is already tuned for this: dependencies are compiled without debug info, and Islet's own crate with `debug = 1` (line tables only) and `incremental = false`. Those two settings keep panic traces readable while cutting LLVM's peak memory on the largest single compilation unit of the build.
+
+Two things help beyond that: keep other heavy apps closed during the first build, and exclude `src-tauri/target` and `%USERPROFILE%\.rustup` from real-time antivirus scanning. If `rustc -vV` reports a `host:` that is not `x86_64`, you have a 32-bit toolchain, which cannot use more than ~3 GB and will run out of memory regardless — fix it with `rustup default stable-x86_64-pc-windows-msvc`.
+
 ## Contributing
 
 Found a bug or have an idea? [Open an issue](https://github.com/dikoume-stephane/Islet/issues) or send a pull request. Say which Windows version and monitor setup you're on if it's a display bug, since that is often what decides it.

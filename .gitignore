@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Test bundle (scripts/test-*.mjs is the source, this is the compiled copy)
+.test-build
 *.local
 /release
 

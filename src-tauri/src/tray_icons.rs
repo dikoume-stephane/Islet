@@ -101,10 +101,19 @@ pub fn open_native_tray(anchor: Option<(i32, i32)>) {
         }
         return;
     }
-    let Ok(_guard) = AUTOMATION_LOCK.try_lock() else { return };
+    let Ok(_guard) = AUTOMATION_LOCK.try_lock() else {
+        crate::diagnostics::log("tray: automation busy, click ignored");
+        return;
+    };
 
-    let Ok(tray) = find_window(c"Shell_TrayWnd") else { return };
-    let Ok(auto) = automation() else { return };
+    let Ok(tray) = find_window(c"Shell_TrayWnd") else {
+        crate::diagnostics::log("tray: Shell_TrayWnd not found");
+        return;
+    };
+    let Ok(auto) = automation() else {
+        crate::diagnostics::log("tray: UI Automation unavailable");
+        return;
+    };
 
     let hidden = !unsafe { IsWindowVisible(tray) }.as_bool();
     let was_hidden_by_islet = hidden && crate::state::NATIVE_TASKBAR_HIDDEN.swap(false, Ordering::SeqCst);
@@ -129,6 +138,9 @@ pub fn open_native_tray(anchor: Option<(i32, i32)>) {
         }
     }
 
+    if !opened {
+        crate::diagnostics::log("tray: show-hidden-icons button not found");
+    }
     if opened {
         FLYOUT_OPEN.store(true, Ordering::SeqCst);
         for _ in 0..40 {

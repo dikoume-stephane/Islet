@@ -1144,6 +1144,7 @@ img {
 }
 
 .timer-display-large {
+    width: 100%;
     text-align: center;
 }
 
@@ -2265,4 +2266,2278 @@ img {
     font-size: 10px;
     text-align: center;
     opacity: 0.35;
+}
+
+/* --- Minuteur et chronomètre, jauge et tours ---------------------------- */
+
+/* Texte réservé aux lecteurs d'écran : visible nulle part, lu partout. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Une seule ligne sous le cadran : l'heure de fin, ou « temps écoulé ». */
+.timer-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0.45;
+    font-variant-numeric: tabular-nums;
+}
+
+.timer-sub.is-done {
+    opacity: 0.85;
+    color: color-mix(in srgb, var(--islet-text, white) 82%, #ff9f0a);
+}
+
+.timer-time-large.is-done {
+    color: color-mix(in srgb, var(--islet-text, white) 84%, #ff9f0a);
+    animation: timer-done-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes timer-done-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+/* La jauge : une barre fine, animée par transform pour ne pas repeindre. */
+.timer-track {
+    position: relative;
+    height: 3px;
+    margin-top: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--islet-text, white) 12%, transparent);
+    overflow: hidden;
+}
+
+.timer-track-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--islet-text, white);
+    opacity: 0.75;
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 0.3s linear;
+}
+
+.timer-presets-new {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* En-tête de la liste des tours : le compte à gauche, l'effacement à droite. */
+.sw-laps-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    min-height: 14px;
+}
+
+.sw-laps-title {
+    font-size: 10px;
+    opacity: 0.4;
+    letter-spacing: 0.02em;
+}
+
+.sw-laps-clear {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--islet-text, white);
+    font-size: 10px;
+    opacity: 0.45;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.sw-laps-clear:hover {
+    opacity: 1;
+}
+
+/* La liste défile au-delà de quelques tours : le panneau ne doit pas grandir. */
+.sw-laps {
+    max-height: 118px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.22)) transparent;
+}
+
+.sw-lap {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--islet-text, white) 8%, transparent);
+}
+
+.sw-lap span:first-child {
+    opacity: 0.55;
+}
+
+.sw-lap-split {
+    text-align: right;
+}
+
+.sw-lap-delta {
+    min-width: 46px;
+    text-align: right;
+    opacity: 0.4;
+}
+
+.sw-lap.is-best {
+    background: color-mix(in srgb, #34c759 18%, transparent);
+}
+
+.sw-lap.is-best .sw-lap-split {
+    color: #34c759;
+}
+
+.sw-lap.is-worst {
+    background: color-mix(in srgb, #ff9f0a 16%, transparent);
+}
+
+.sw-lap.is-worst .sw-lap-split {
+    color: #ff9f0a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .timer-track-fill {
+        transition: none;
+    }
+
+    .timer-time-large.is-done {
+        animation: none;
+    }
+}
+
+/* --- Is tip in the notch ------------------------------------------------ */
+
+.assistant-tip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 0 8px 0 4px;
+    box-sizing: border-box;
+    /* Set inline by AssistantTipView from the tip's severity. */
+    --tip-accent: #64D2FF;
+}
+
+/* Brief outline in the severity colour: makes the whole row flash once, so the
+   shape of the notch changing is not the only cue. */
+.assistant-tip::before {
+    content: "";
+    position: absolute;
+    inset: 2px 4px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1.5px var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-flash 2.2s ease-out forwards;
+}
+
+@keyframes assistant-tip-flash {
+    0% { opacity: 0.9; }
+    55% { opacity: 0.45; }
+    100% { opacity: 0; }
+}
+
+.assistant-tip-avatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Low-intensity halo behind the mascot, kept for as long as the tip is up. */
+.assistant-tip-avatar::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--tip-accent) 0%, transparent 70%);
+    opacity: 0.28;
+    pointer-events: none;
+}
+
+/* The two rings. They are drawn behind the mascot (declared first in the DOM)
+   and expand past the avatar box, which the notch does not clip. */
+.assistant-tip-ring {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 8px;
+    border: 1.5px solid var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-bloom 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.assistant-tip-ring-late {
+    animation-delay: 0.4s;
+}
+
+@keyframes assistant-tip-bloom {
+    0% {
+        opacity: 0.85;
+        transform: scale(1);
+    }
+    65% {
+        opacity: 0.18;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2.6);
+    }
+}
+
+/* Is est dessiné (voir `src/components/IsSprite.tsx`), plus posé en image :
+   ses yeux suivent le curseur du notch. */
+.assistant-tip-avatar .is-sprite {
+    position: relative;
+    z-index: 1;
+}
+
+/* Severity dot, pinned to the avatar corner. */
+.assistant-tip-dot {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tip-accent);
+    border: 1.5px solid #0b0b0d;
+    box-sizing: border-box;
+}
+
+/* Slow heartbeat on the severity dot: the tip keeps a sign of life while it is
+   on screen, without moving the text or stealing focus. */
+.assistant-tip-dot::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.5px solid var(--tip-accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: assistant-tip-ping 2.4s ease-out infinite 0.8s;
+}
+
+@keyframes assistant-tip-ping {
+    0% {
+        opacity: 0.85;
+        transform: scale(0.75);
+    }
+    60% {
+        opacity: 0.25;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2.1);
+    }
+}
+
+/*
+ * A tip is two lines, not one sentence with a dash in it.
+ *
+ * The row is 290 px wide and shares that width with the mascot and the close
+ * button, which leaves ~200 px for text — about 33 characters at 12 px. A
+ * "fact · next step" line therefore truncated right where it mattered, so the
+ * two parts are stacked instead: the fact takes the bold line, the next step
+ * the lighter one. Weight and opacity carry the hierarchy; the severity colour
+ * stays on the dot, where it still means "how urgent" rather than "which word
+ * is important".
+ */
+.assistant-tip-message {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    text-align: left;
+}
+
+/* `.islet` porte `white-space: nowrap` pour que l'heure tienne sur une ligne.
+   Tout le texte des panneaux en héritait, donc les phrases longues sortaient du
+   panneau au lieu de revenir à la ligne. Les blocs de prose reprennent le
+   retour à la ligne ; les libellés courts gardent le nowrap. */
+.dev-empty,
+.dev-note,
+.dev-ports-empty,
+.clip-empty,
+.todo-empty,
+.shelf-empty {
+    white-space: normal;
+}
+
+.dev-branch,
+.dev-port-name,
+.dev-port-age {
+    white-space: nowrap;
+}
+
+/* La croix des conseils n'avait aucune règle : le navigateur dessinait donc son
+   bouton par défaut, un carré blanc au milieu d'une interface sombre. */
+.assistant-tip-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.assistant-tip-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--islet-text, #fff);
+}
+
+.assistant-tip-close:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+/* The fact: the one thing the eye must catch. */
+.assistant-tip-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The next step: present and readable, one step behind — 8:1 on the notch
+   background, so it clears AA for small text without competing with the fact. */
+.assistant-tip-detail {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.62);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Light mode: the notch stays dark, but keep the text contrast. */
+.light-mode .assistant-tip-title {
+    color: #fff;
+}
+
+.light-mode .assistant-tip-detail {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Unread marker on the collapsed notch -------------------------------- */
+
+/* A tip shows for 10-15 s then folds away. Without a trace, the user can never
+   know one was missed, so the notch keeps a coloured outline until the mark is
+   acknowledged. Static on purpose: a permanently animating element at the top
+   of the screen is worse than no reminder at all. */
+.islet.is-signalling {
+    box-shadow:
+        0 0 0 1.5px var(--signal-accent, #64D2FF),
+        0 0 14px -2px var(--signal-accent, #64D2FF);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .assistant-tip {
+        animation: none;
+        transition: none;
+    }
+
+    /* Keep the marking, drop the movement: a static outline instead of rings,
+       a visible dot instead of a heartbeat. */
+    .assistant-tip-ring,
+    .assistant-tip-dot::after {
+        animation: none;
+        display: none;
+    }
+
+    .assistant-tip::before {
+        animation: none;
+        opacity: 0.5;
+    }
+}
+
+/* - Clipboard panel ------------------------------------------------------
+ * Same grammar as the calendar module: no border of its own, one header, a
+ * scrolling body. The notch already draws the surface, so the panel only
+ * arranges rows inside it.
+ */
+
+.clipboard-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 8px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.clip-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.clip-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--islet-text, #fff);
+}
+
+.clip-count {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+.clip-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+}
+
+.clip-header-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.clip-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.clip-action:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.clip-action:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.clip-action.is-pinned {
+    color: #ffd60a;
+}
+
+/* Search field: the notch is 340 px wide here, so the field is a single row
+   with no label above it. The label is the placeholder plus aria-label. */
+.clip-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 7px 0 6px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    flex-shrink: 0;
+}
+
+.clip-search input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 11px;
+}
+
+.clip-search input::placeholder {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.clip-search:focus-within {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.clip-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+}
+
+.clip-section {
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    margin: 4px 2px 3px;
+}
+
+.clip-rows {
+    list-style: none;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.clip-row {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    border-radius: 7px;
+}
+
+.clip-row:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+}
+
+/* The row itself is the copy button; pin and delete sit beside it so a click
+   in the panel never has two meanings. */
+.clip-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 5px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.clip-main:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: -2px;
+}
+
+.clip-preview {
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* "Copied" replaces the preview in place: no toast, no layout shift. */
+.clip-main--flash .clip-preview {
+    color: #32d74b;
+}
+
+.clip-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9.5px;
+    line-height: 1.2;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clip-dot {
+    opacity: 0.5;
+}
+
+.clip-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.clip-row:hover .clip-actions,
+.clip-row:focus-within .clip-actions {
+    opacity: 1;
+}
+
+/* Touch and keyboard users never hover: the actions must stay reachable. */
+@media (hover: none) {
+    .clip-actions { opacity: 1; }
+}
+
+.clip-empty {
+    margin: 14px 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.clip-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 5px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.clip-privacy {
+    flex: 1;
+    min-width: 0;
+    font-size: 9px;
+    line-height: 1.3;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clip-clear {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    font: inherit;
+    font-size: 9.5px;
+    cursor: pointer;
+}
+
+.clip-clear:hover {
+    color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.clip-clear:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+/* The panel is absolutely placed under the 36 px notch bar, exactly like the
+   calendar module: it fills the body and scrolls inside itself. */
+.clipboard-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+/* Announced by screen readers only. */
+.clip-announce {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* - Lyrics panel ----------------------------------------------------------
+ * Same frame as the clipboard: absolutely placed under the notch bar, one
+ * header, one scrolling body, one footer. The words get the room.
+ */
+
+.lyrics-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.lyrics-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 6px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.lyr-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+
+/* Two lines of context in the space of one: the title carries the weight, the
+   artist sits underneath at 9.5 px. */
+.lyr-track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.2;
+}
+
+.lyr-track-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-track-artist {
+    font-size: 9.5px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lyr-action:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.lyr-action:focus-visible,
+.lyr-line:focus-visible,
+.lyr-retry:focus-visible,
+.lyr-offset-value:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.lyr-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+    /* A mask instead of a hard edge: lines leave through a fade, which reads as
+       "there is more" rather than as a cropped list. */
+    mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+
+.lyr-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 0;
+}
+
+/* One line is a button: clicking it seeks. It is padded rather than spaced so
+   the tap target is the row, not the glyphs. */
+.lyr-line {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.42));
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.lyr-line:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+/* Past lines are read, not gone: dimmer, never invisible. */
+.lyr-line.is-past {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.3));
+}
+
+/* The line being sung. Weight and size carry it, not a colour wash: a coloured
+   block behind moving text is unreadable behind a translucent notch. */
+.lyr-line.is-current {
+    color: var(--islet-text, #fff);
+    font-weight: 700;
+    font-size: 13px;
+    transform: translateX(2px);
+}
+
+.lyr-line-text {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Hairline under the current line, filled across its own duration. */
+.lyr-line-progress {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 2px;
+    height: 1.5px;
+    border-radius: 1px;
+    background: var(--islet-accent, #007aff);
+    opacity: 0.65;
+    transform-origin: left center;
+    transition: transform 0.25s linear;
+}
+
+.lyr-plain {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 6px 2px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.lyr-plain-block {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.lyr-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 18px 4px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.lyr-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+    border-radius: 7px;
+    background: transparent;
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 10.5px;
+    cursor: pointer;
+}
+
+.lyr-retry:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+}
+
+/* Loading: bars roughly the shape of lyrics, never a spinner. A spinner in a
+   44 px tall panel means nothing; text-shaped placeholders say "words coming". */
+.lyr-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 14px 4px;
+}
+
+.lyr-skeleton-line {
+    height: 9px;
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        var(--islet-group-bg, rgba(255, 255, 255, 0.06)) 0%,
+        rgba(255, 255, 255, 0.12) 50%,
+        var(--islet-group-bg, rgba(255, 255, 255, 0.06)) 100%
+    );
+    background-size: 200% 100%;
+    animation: lyr-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes lyr-shimmer {
+    0% { background-position: 120% 0; }
+    100% { background-position: -20% 0; }
+}
+
+.lyr-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.lyr-source {
+    flex: 1;
+    min-width: 0;
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyr-offset {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+/* The value is also the reset button: the number is the control people reach
+   for when it is wrong, so it does the obvious thing. */
+.lyr-offset-value {
+    min-width: 38px;
+    padding: 2px 4px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.7));
+    font: inherit;
+    font-size: 9.5px;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+
+.lyr-offset-value:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.lyr-offset-value.is-zero {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+}
+
+.lyr-offset-hint {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+    margin-left: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lyr-skeleton-line {
+        animation: none;
+    }
+
+    .lyr-line,
+    .lyr-line-progress {
+        transition: none;
+    }
+}
+
+/* - To-do du jour ----------------------------------------------------------
+ * La liste du jour dans le notch. Trois sections visibles selon ce qu'elles
+ * contiennent (retard, aujourd'hui, à venir), les tâches faites en bas, et un
+ * champ d'ajout toujours prêt : c'est une liste qu'on remplit debout.
+ */
+
+.todo-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.todo-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 6px 10px 8px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.todo-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.todo-heading {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--islet-text, #fff);
+}
+
+.todo-count {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+.todo-late-badge {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(255, 159, 10, 0.16);
+    color: #ff9f0a;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+/* Ajout : un intitulé large, une heure courte, un bouton. */
+.todo-add {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.todo-add-title,
+.todo-add-time {
+    box-sizing: border-box;
+    padding: 5px 7px;
+    border: 1px solid var(--islet-border, rgba(255, 255, 255, 0.12));
+    border-radius: 7px;
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 10px;
+    outline: none;
+}
+
+.todo-add-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.todo-add-time {
+    width: 52px;
+    flex-shrink: 0;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.todo-add-title::placeholder,
+.todo-add-time::placeholder {
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.todo-add-title:focus,
+.todo-add-time:focus {
+    border-color: var(--islet-accent, #007aff);
+}
+
+.todo-add.is-invalid .todo-add-time {
+    border-color: #ff6b6b;
+}
+
+.todo-add-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    background: var(--islet-text, #fff);
+    color: var(--islet-bg-expanded, #000);
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.todo-add-button:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.todo-add-error {
+    flex-shrink: 0;
+    font-size: 9px;
+    color: #ff6b6b;
+}
+
+.todo-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+}
+
+.todo-section + .todo-section {
+    margin-top: 7px;
+}
+
+.todo-section-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 2px 2px;
+}
+
+.todo-section-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.todo-section-title.is-late {
+    color: #ff9f0a;
+}
+
+.todo-section-count {
+    flex: 1;
+    font-size: 9px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.35));
+}
+
+.todo-postpone-all {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    font: inherit;
+    font-size: 9px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.todo-postpone-all:hover {
+    color: var(--islet-text, #fff);
+}
+
+.todo-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.todo-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 4px 3px 3px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--islet-text, #fff) 5%, transparent);
+}
+
+.todo-row.is-late {
+    background: rgba(255, 159, 10, 0.12);
+}
+
+.todo-row.is-done {
+    opacity: 0.45;
+}
+
+/* La case : un carré cliquable, coché par une coche et non par un fond plein. */
+.todo-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1.5px solid var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+    border-radius: 4px;
+    background: transparent;
+    color: var(--islet-bg-expanded, #000);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.todo-row.is-done .todo-check {
+    background: var(--islet-text, #fff);
+    border-color: var(--islet-text, #fff);
+}
+
+.todo-title {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--islet-text, #fff);
+    font: inherit;
+    font-size: 10.5px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.todo-row.is-done .todo-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.todo-chip {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--islet-text, #fff) 10%, transparent);
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.75));
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.todo-row.is-late .todo-chip {
+    background: rgba(255, 159, 10, 0.22);
+    color: #ffb340;
+    font-weight: 600;
+}
+
+.todo-tools {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.todo-tool {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.todo-tool:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.1));
+    color: var(--islet-text, #fff);
+}
+
+.todo-tool.danger:hover {
+    background: rgba(255, 69, 58, 0.2);
+    color: #ff6961;
+}
+
+.todo-check:focus-visible,
+.todo-title:focus-visible,
+.todo-tool:focus-visible,
+.todo-add-button:focus-visible,
+.todo-postpone-all:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.todo-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 100%;
+    padding: 0 18px;
+    text-align: center;
+}
+
+.todo-empty-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+    opacity: 0.8;
+}
+
+.todo-empty-hint {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .todo-check,
+    .todo-tool,
+    .todo-add-button,
+    .todo-postpone-all {
+        transition: none;
+    }
+}
+
+/* - Shelf panel -----------------------------------------------------------
+ * The files you dropped on the notch. A row is a shortcut: icon, name, size,
+ * one click to open, Explorer and a bin on hover.
+ */
+
+.shelf-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.shelf-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 6px 10px 6px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.shelf-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+}
+
+.shelf-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--islet-text, #fff);
+}
+
+.shelf-count {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+/* Missing files, as a small amber counter that is also the button to clean up. */
+.shelf-prune {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.shelf-prune:hover {
+    background: rgba(255, 214, 10, 0.26);
+}
+
+.shelf-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.6));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shelf-action:hover:not(:disabled) {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.08));
+    color: var(--islet-text, #fff);
+}
+
+.shelf-action:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.shelf-action:focus-visible,
+.shelf-main:focus-visible,
+.shelf-prune:focus-visible,
+.shelf-clear:focus-visible {
+    outline: 2px solid var(--islet-accent, #007aff);
+    outline-offset: 1px;
+}
+
+.shelf-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--islet-scrollbar-thumb, rgba(255, 255, 255, 0.15)) transparent;
+}
+
+.shelf-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.shelf-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 7px;
+}
+
+.shelf-row:hover {
+    background: var(--islet-group-bg, rgba(255, 255, 255, 0.06));
+}
+
+.shelf-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.shelf-main:disabled {
+    cursor: default;
+}
+
+/* The icon carries the kind: a column of identical glyphs would be a list of
+   filenames, which is what the Explorer already does. */
+.shelf-icon {
+    flex-shrink: 0;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.shelf-row:hover .shelf-icon {
+    color: var(--islet-accent, #007aff);
+}
+
+.shelf-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.shelf-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shelf-meta {
+    font-size: 9.5px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* A missing file stays visible, struck through and dimmed: it is information,
+   not a bug to hide. */
+.shelf-row.is-missing .shelf-name {
+    text-decoration: line-through;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.shelf-row.is-missing .shelf-icon {
+    color: #ffd60a;
+    opacity: 0.7;
+}
+
+.shelf-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.shelf-row:hover .shelf-actions,
+.shelf-row:focus-within .shelf-actions {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .shelf-actions { opacity: 1; }
+}
+
+.shelf-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin: 16px 10px;
+    padding: 14px 10px;
+    border: 1px dashed var(--islet-border, rgba(255, 255, 255, 0.14));
+    border-radius: 10px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+    text-align: center;
+}
+
+.shelf-empty-title {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+}
+
+.shelf-empty-hint {
+    font-size: 10px;
+    line-height: 1.45;
+    max-width: 220px;
+}
+
+.shelf-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--islet-border, rgba(255, 255, 255, 0.08));
+}
+
+.shelf-note {
+    flex: 1;
+    min-width: 0;
+    font-size: 9px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shelf-clear {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+    font: inherit;
+    font-size: 9.5px;
+    cursor: pointer;
+}
+
+.shelf-clear:hover {
+    color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+/* Drop feedback: the notch itself says "yes, here". Drawn on the panel border
+   rather than on the panel content, so it works with an empty shelf too. */
+.shelf-panel.is-dropping {
+    outline: 1.5px dashed var(--islet-accent, #007aff);
+    outline-offset: -4px;
+    border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shelf-actions,
+    .shelf-action {
+        transition: none;
+    }
+}
+
+/* ─── Panneau développeur (branche, ports) ──────────────────────────────── */
+
+.dev-content {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 36px);
+    box-sizing: border-box;
+    z-index: 2;
+    display: flex;
+    min-height: 0;
+}
+
+.dev-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 4px 10px 8px;
+    box-sizing: border-box;
+}
+
+.dev-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+}
+
+.dev-head-icon {
+    display: flex;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.dev-branch {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--islet-text, #fff);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Les écarts avec le dépôt distant se lisent d'un coup d'œil, sans mot. */
+.dev-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.dev-tag.is-dirty {
+    background: rgba(255, 214, 10, 0.16);
+    color: #ffd60a;
+}
+
+.dev-tag.is-ahead {
+    background: rgba(50, 215, 75, 0.14);
+    color: #32d74b;
+}
+
+.dev-tag.is-behind {
+    background: rgba(100, 210, 255, 0.14);
+    color: #64d2ff;
+}
+
+.dev-close {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.45));
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dev-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.dev-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: inherit;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--islet-text, #fff);
+    cursor: pointer;
+}
+
+.dev-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.dev-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dev-note {
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #ffd60a;
+}
+
+.dev-ports-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+}
+
+.dev-ports-count {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.dev-ports {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.dev-ports::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dev-ports::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 2px;
+}
+
+.dev-ports-empty {
+    padding: 8px 6px;
+    font-size: 11px;
+    color: var(--islet-text-muted, rgba(255, 255, 255, 0.4));
+}
+
+.dev-port {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 6px;
+    border-radius: 7px;
+    font-size: 11px;
+}
+
+.dev-port:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dev-port-number {
+    min-width: 40px;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--islet-text, #fff);
+}
+
+.dev-port-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.dev-port-age {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, 0.34);
+}
+
+/* Une pastille jaune signale un port joignable depuis le réseau : c'est celui
+   qu'on n'a pas voulu laisser ouvert. */
+.dev-port-scope {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.dev-port-scope.is-exposed {
+    background: #ffd60a;
+    box-shadow: 0 0 6px rgba(255, 214, 10, 0.5);
+}
+
+.dev-port-kill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.28);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.dev-port:hover .dev-port-kill,
+.dev-port-kill:focus-visible {
+    opacity: 1;
+}
+
+.dev-port-kill:hover {
+    background: rgba(255, 69, 58, 0.18);
+    color: #ff453a;
+}
+
+.dev-port-kill:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.dev-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.34);
+}
+
+.dev-foot-path {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    direction: rtl;
+    text-align: left;
+}
+
+.dev-foot-button {
+    display: flex;
+    padding: 2px;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.dev-foot-button:hover {
+    color: #fff;
+}
+
+/* ─── La vérification de build ───────────────────────────────────────────── */
+
+.dev-build {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dev-build-run {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(100, 210, 255, 0.18);
+    color: #9fe4ff;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-build-run:hover:not(:disabled) {
+    background: rgba(100, 210, 255, 0.3);
+    color: #fff;
+}
+
+.dev-build-run:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dev-build-command {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dev-build-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* La pastille porte le verdict, la durée le précise. */
+.dev-build-verdict::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.dev-build-verdict.is-ok {
+    background: rgba(50, 215, 75, 0.14);
+    color: #32d74b;
+}
+
+.dev-build-verdict.is-failed {
+    background: rgba(255, 69, 58, 0.16);
+    color: #ff6b60;
+}
+
+.dev-build-verdict.is-timeout {
+    background: rgba(255, 214, 10, 0.14);
+    color: #ffd60a;
+}
+
+.dev-build-out {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    max-height: 44px;
+    overflow-y: auto;
+    padding: 3px 6px;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.28);
+}
+
+.dev-build-out::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dev-build-out::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 2px;
+}
+
+.dev-build-line {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 9.5px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dev-build-out.is-failed .dev-build-line {
+    color: rgba(255, 140, 130, 0.85);
+}
+
+.dev-build-empty {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 2px;
+}
+
+.dev-spin {
+    animation: islet-dev-spin 900ms linear infinite;
+}
+
+@keyframes islet-dev-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dev-spin {
+        animation: none;
+    }
+
+    .dev-build-run {
+        transition: none;
+    }
+}
+
+/* ─── Le mode focus ─────────────────────────────────────────────────────── */
+
+/* Le bouton du centre de commandes porte le décompte pendant la session : le
+   chrono est déjà dans le notch, il n'a pas besoin d'être répété ailleurs. */
+.cc-focus-time {
+    font-family: "Cascadia Code", ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cc-circular-btn {
+        transition: none;
+    }
+}
+
+/* ─── L'assistance IA dans le panneau ───────────────────────────────────── */
+
+.dev-ai {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px 6px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dev-ai-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Le point dit si le texte sort de la machine. C'est l'information la plus
+   importante du bloc, donc la seule qui soit colorée. */
+.dev-ai-scope {
+    margin-left: auto;
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.dev-ai-scope.is-local {
+    background: rgba(50, 215, 75, 0.14);
+    color: #32d74b;
+}
+
+.dev-ai-scope.is-remote {
+    background: rgba(255, 159, 10, 0.16);
+    color: #ff9f0a;
+}
+
+.dev-ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.dev-ai-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 550;
+    padding: 3px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dev-ai-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.dev-ai-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dev-ai-thinking {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.dev-ai-answer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    max-height: 68px;
+    overflow-y: auto;
+    padding: 3px 18px 3px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.26);
+}
+
+.dev-ai-line {
+    font-size: 10px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.dev-ai-dismiss {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    padding: 2px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.dev-ai-dismiss:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dev-ai-error {
+    font-size: 10px;
+    line-height: 1.4;
+    color: #ff6b60;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dev-ai-button {
+        transition: none;
+    }
 }

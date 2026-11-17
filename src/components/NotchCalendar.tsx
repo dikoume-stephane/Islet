@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { CaldavState, CalEvent } from "../hooks/useCaldav";
+import { useT } from "../i18n";
+import type { MessageKey } from "../i18n/en";
 
 type View = "day" | "week" | "month" | "agenda";
 
-const VIEWS: { id: View; label: string }[] = [
-  { id: "day", label: "Day" },
-  { id: "week", label: "Week" },
-  { id: "month", label: "Month" },
-  { id: "agenda", label: "Agenda" },
+const VIEWS: { id: View; labelKey: MessageKey }[] = [
+  { id: "day", labelKey: "cal.view.day" },
+  { id: "week", labelKey: "cal.view.week" },
+  { id: "month", labelKey: "cal.view.month" },
+  { id: "agenda", labelKey: "cal.view.agenda" },
 ];
 
 const VIEW_KEY = "islet-calendar-view";
@@ -55,6 +57,7 @@ interface Props {
 }
 
 export function NotchCalendar({ caldav, hour12 }: Props) {
+  const t = useT();
   const connected = caldav.connected;
   const today = startOfDay(new Date());
   const [view, setViewState] = useState<View>(readView);
@@ -108,7 +111,7 @@ export function NotchCalendar({ caldav, hour12 }: Props) {
         <span className="month-year">{title}</span>
         {connected && (
           <span className="cal-nav-group">
-            <button className="cal-open" onClick={() => invoke("open_calendar_window").catch(() => {})} title="Open full calendar" aria-label="Open full calendar">
+            <button className="cal-open" onClick={() => invoke("open_calendar_window").catch(() => {})} title={t("cal.open")} aria-label={t("cal.open")}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 3h6v6" />
                 <path d="M10 14L21 3" />
@@ -117,15 +120,15 @@ export function NotchCalendar({ caldav, hour12 }: Props) {
             </button>
             {showToday && (
               <button className="cal-today" onClick={() => setAnchor(today)}>
-                Today
+                {t("cal.window.today")}
               </button>
             )}
             {activeView !== "agenda" && (
               <>
-                <button className="cal-nav" onClick={() => shift(-1)} aria-label="Previous">
+                <button className="cal-nav" onClick={() => shift(-1)} aria-label={t("cal.previous")}>
                   &#8249;
                 </button>
-                <button className="cal-nav" onClick={() => shift(1)} aria-label="Next">
+                <button className="cal-nav" onClick={() => shift(1)} aria-label={t("cal.next")}>
                   &#8250;
                 </button>
               </>
@@ -144,7 +147,7 @@ export function NotchCalendar({ caldav, hour12 }: Props) {
               className={view === v.id ? "active" : ""}
               onClick={() => setView(v.id)}
             >
-              {v.label}
+              {t(v.labelKey)}
             </button>
           ))}
         </div>
@@ -231,6 +234,7 @@ interface TimeProps {
 }
 
 function SelectedDay({ day, events, time, onOpen }: TimeProps & { day: Date; events: CalEvent[]; onOpen: () => void }) {
+  const t = useT();
   const list = eventsOn(events, day);
   const label = day.toLocaleDateString("default", { weekday: "short", day: "numeric" });
   return (
@@ -238,7 +242,7 @@ function SelectedDay({ day, events, time, onOpen }: TimeProps & { day: Date; eve
       <button className="agenda-title" onClick={onOpen}>
         {label} <span aria-hidden>&#8250;</span>
       </button>
-      {list.length === 0 && <div className="agenda-empty">No events</div>}
+      {list.length === 0 && <div className="agenda-empty">{t("cal.noEvents")}</div>}
       {list.slice(0, 3).map((e, i) => (
         <div key={`${e.uid}-${e.start}-${i}`} className="agenda-item" style={colorVar(e)} title={e.location ? `${e.title} · ${e.location}` : e.title}>
           <span className="agenda-dot" />
@@ -265,6 +269,7 @@ function Chip({ event, time }: TimeProps & { event: CalEvent }) {
 }
 
 function WeekList({ anchor, today, events, time, onOpen }: TimeProps & { anchor: Date; today: Date; events: CalEvent[]; onOpen: (d: Date) => void }) {
+  const t = useT();
   const first = addDays(anchor, -anchor.getDay());
   return (
     <div className="cal-scroll">
@@ -278,7 +283,7 @@ function WeekList({ anchor, today, events, time, onOpen }: TimeProps & { anchor:
               <b>{day.getDate()}</b>
             </span>
             <span className="cal-week-events">
-              {list.length === 0 && <span className="cal-none">Free</span>}
+              {list.length === 0 && <span className="cal-none">{t("cal.free")}</span>}
               {list.slice(0, 2).map((e, k) => (
                 <Chip key={`${e.uid}-${e.start}-${k}`} event={e} time={time} />
               ))}
@@ -292,10 +297,11 @@ function WeekList({ anchor, today, events, time, onOpen }: TimeProps & { anchor:
 }
 
 function DayList({ day, events, time }: TimeProps & { day: Date; events: CalEvent[] }) {
+  const t = useT();
   const list = eventsOn(events, day);
   const [nowMs] = useState(() => Date.now());
   if (list.length === 0) {
-    return <div className="cal-empty">Nothing planned</div>;
+    return <div className="cal-empty">{t("cal.nothingPlanned")}</div>;
   }
   return (
     <div className="cal-scroll">
@@ -305,7 +311,7 @@ function DayList({ day, events, time }: TimeProps & { day: Date; events: CalEven
           <div key={`${e.uid}-${e.start}-${i}`} className="cal-day-event" style={colorVar(e)}>
             <span className="cal-day-time">
               {e.allDay ? (
-                <b>All day</b>
+                <b>{t("cal.allDay")}</b>
               ) : (
                 <>
                   <b>{time(e.start)}</b>
@@ -316,7 +322,7 @@ function DayList({ day, events, time }: TimeProps & { day: Date; events: CalEven
             <span className="cal-day-body">
               <span className="cal-day-title">
                 {e.title}
-                {live && <em>Now</em>}
+                {live && <em>{t("cal.now")}</em>}
               </span>
               <span className="cal-day-meta">{[e.location, e.calendar].filter(Boolean).join(" · ")}</span>
             </span>
@@ -328,18 +334,19 @@ function DayList({ day, events, time }: TimeProps & { day: Date; events: CalEven
 }
 
 function AgendaList({ today, events, time, onOpen }: TimeProps & { today: Date; events: CalEvent[]; onOpen: (d: Date) => void }) {
+  const t = useT();
   const groups = Array.from({ length: AGENDA_DAYS }, (_, i) => addDays(today, i))
     .map((day) => ({ day, list: eventsOn(events, day) }))
     .filter((g) => g.list.length > 0);
 
   if (groups.length === 0) {
-    return <div className="cal-empty">Nothing in the next two weeks</div>;
+    return <div className="cal-empty">{t("cal.nothingTwoWeeks")}</div>;
   }
 
   const heading = (day: Date) => {
     const diff = Math.round((day.getTime() - today.getTime()) / 86_400_000);
-    if (diff === 0) return "Today";
-    if (diff === 1) return "Tomorrow";
+    if (diff === 0) return t("cal.window.today");
+    if (diff === 1) return t("cal.window.tomorrow");
     return day.toLocaleDateString("default", { weekday: "short", month: "short", day: "numeric" });
   };
 

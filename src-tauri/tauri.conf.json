@@ -30,7 +30,7 @@
         "skipTaskbar": true,
         "shadow": false,
         "visible": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": true
       },
       {
         "label": "settings",
@@ -152,7 +152,7 @@
       "endpoints": [
         "https://github.com/dikoume-stephane/Islet/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJBM0ZFRThDQ0QyMjc3RkMKUldUOGR5TE5qTzQvdW80RnZZV3FJcWdmV2dnSmF1TllsRi9tczFGQXNFZGpaWS9pbkk1REhxRzAK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxRkJDMUVBQTc3ODcyMkQKUldRdGNuaW42c0g3MFNWUlZheUJKRXpDZHpWRmVGNHVoNGpWVnkwenZFMTdoVWdkZjE2NlVSM2cK"
     }
   }
 }

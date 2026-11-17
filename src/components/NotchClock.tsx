@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import type { Stopwatch } from "../hooks/useStopwatch";
 import { formatStopwatch, parseDuration } from "../clockFormat";
+import { buildLaps, type Lap } from "../lib/clock";
+import { useLanguage, useT } from "../i18n";
 
 type Tab = "timer" | "stopwatch";
 
 const TAB_KEY = "islet-clock-tab";
-const PRESETS = [5, 15, 25, 50];
+
+/** Minutes proposées : les courtes pour les pauses, 25 pour un Pomodoro. */
+const PRESETS = [1, 3, 5, 10, 25, 50];
 
 export function StopwatchReadout({ base, startedAt, precise }: { base: number; startedAt: number | null; precise: boolean }) {
   const [now, setNow] = useState(() => Date.now());
@@ -36,17 +40,38 @@ function readTab(): Tab {
   }
 }
 
+/** L'heure de fin, dans la langue de l'interface et au format de la machine. */
+function endsAtLabel(timestamp: number, language: string): string {
+  try {
+    return new Intl.DateTimeFormat(language, { hour: "2-digit", minute: "2-digit" }).format(new Date(timestamp));
+  } catch {
+    const date = new Date(timestamp);
+    return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  }
+}
+
+/** Écart signé avec le tour précédent, au même format que les temps de tour. */
+function formatDelta(ms: number): string {
+  if (Math.round(ms) === 0) return "";
+  const sign = ms > 0 ? "+" : "−";
+  return `${sign}${formatStopwatch(Math.abs(ms), true)}`;
+}
+
 interface Props {
   timerEnabled: boolean;
   stopwatchEnabled: boolean;
   solo: boolean;
   timerSeconds: number;
   isTimerRunning: boolean;
+  isTimerFinished: boolean;
+  timerEndsAt: number | null;
+  timerProgress: number;
   formatTimerTime: (seconds: number) => string;
   onStartTimer: (seconds: number) => void;
   onToggleTimer: () => void;
   onResetTimer: () => void;
   stopwatch: Stopwatch;
+  onClearLaps: () => void;
 }
 
 export function NotchClock({
@@ -55,11 +80,15 @@ export function NotchClock({
   solo,
   timerSeconds,
   isTimerRunning,
+  isTimerFinished,
+  timerEndsAt,
+  timerProgress,
   formatTimerTime,
   onStartTimer,
   onToggleTimer,
   onResetTimer,
   stopwatch,
+  onClearLaps,
 }: Props) {
   const [savedTab, setSavedTab] = useState<Tab>(readTab);
   const [custom, setCustom] = useState("");
@@ -84,11 +113,16 @@ export function NotchClock({
     onStartTimer(seconds);
   };
 
-  const recentLaps = stopwatch.laps.slice(-3).map((total, i, list) => {
-    const index = stopwatch.laps.length - list.length + i;
-    const previous = index === 0 ? 0 : stopwatch.laps[index - 1];
-    return { number: index + 1, split: total - previous };
-  });
+  const laps: Lap[] = buildLaps(stopwatch.laps);
+  // Le tour en cours n'est pas un tour : il n'est pas dans la liste, et c'est
+  // normal, on ne l'a pas encore bouclé.
+  const recentLaps = laps.slice().reverse();
+  const t = useT();
+  const language = useLanguage();
+  const percent = Math.round(Math.min(1, Math.max(0, timerProgress)) * 100);
+  // Aucun minuteur en mémoire : « Démarrer » n'aurait rien à démarrer, ce sont
+  // les raccourcis et la saisie libre qui créent le minuteur.
+  const idle = timerSeconds === 0 && !isTimerFinished;
 
   return (
     <div className={`timer-column${solo ? " solo" : ""}`}>
@@ -96,7 +130,7 @@ export function NotchClock({
         {timerEnabled && stopwatchEnabled && (
           <div className="clock-tabs" role="tablist">
             <button role="tab" aria-selected={tab === "timer"} className={tab === "timer" ? "active" : ""} onClick={() => pickTab("timer")}>
-              Timer
+              {t("clock.timer")}
             </button>
             <button
               role="tab"
@@ -104,7 +138,7 @@ export function NotchClock({
               className={tab === "stopwatch" ? "active" : ""}
               onClick={() => pickTab("stopwatch")}
             >
-              Stopwatch
+              {t("clock.stopwatch")}
             </button>
           </div>
         )}
@@ -112,21 +146,43 @@ export function NotchClock({
         {tab === "timer" ? (
           <>
             <div className="timer-display-large">
-              <span className="timer-time-large">{formatTimerTime(timerSeconds)}</span>
+              <span className={`timer-time-large${isTimerFinished ? " is-done" : ""}`} role="timer">
+                {formatTimerTime(timerSeconds)}
+              </span>
+              <div
+                className="timer-track"
+                role="progressbar"
+                aria-label={t("clock.progressLabel")}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percent}
+              >
+                <span className="timer-track-fill" style={{ transform: `scaleX(${Math.min(1, Math.max(0, timerProgress))})` }} />
+              </div>
+              {isTimerFinished ? (
+                <span className="timer-sub is-done">{t("clock.done")}</span>
+              ) : isTimerRunning && timerEndsAt !== null ? (
+                <span className="timer-sub">{t("clock.endsAt", { time: endsAtLabel(timerEndsAt, language) })}</span>
+              ) : null}
             </div>
 
             <div className="timer-controls-new">
-              <button onClick={onToggleTimer} className="timer-btn primary">
-                {isTimerRunning ? "Pause" : "Start"}
+              <button onClick={onToggleTimer} className="timer-btn primary" disabled={idle}>
+                {isTimerRunning ? t("clock.pause") : isTimerFinished ? t("clock.restart") : t("clock.start")}
               </button>
               <button onClick={onResetTimer} className="timer-btn secondary">
-                Reset
+                {t("clock.reset")}
               </button>
             </div>
 
             <div className="timer-presets-new">
               {PRESETS.map((mins) => (
-                <button key={mins} onClick={() => onStartTimer(mins * 60)} className="preset-btn-small">
+                <button
+                  key={mins}
+                  onClick={() => onStartTimer(mins * 60)}
+                  className="preset-btn-small"
+                  aria-label={t("clock.presetAria", { minutes: mins })}
+                >
                   {mins}m
                 </button>
               ))}
@@ -139,14 +195,20 @@ export function NotchClock({
                   setCustom(e.target.value);
                   setInvalid(false);
                 }}
-                placeholder="Custom: 12, 1:30 or 0:45:00"
+                placeholder={t("clock.customPlaceholder")}
                 spellCheck={false}
-                aria-label="Custom timer length"
+                aria-label={t("clock.customLabel")}
+                aria-invalid={invalid}
               />
               <button type="submit" disabled={!custom.trim()}>
-                Go
+                {t("clock.go")}
               </button>
             </form>
+
+            {/* Une seule annonce à la fin, pas une par seconde. */}
+            <span className="sr-only" aria-live="polite">
+              {isTimerFinished ? t("clock.done") : ""}
+            </span>
           </>
         ) : (
           <>
@@ -158,22 +220,35 @@ export function NotchClock({
 
             <div className="timer-controls-new">
               <button onClick={stopwatch.toggle} className="timer-btn primary">
-                {stopwatch.running ? "Pause" : "Start"}
+                {stopwatch.running ? t("clock.pause") : t("clock.start")}
               </button>
               <button onClick={stopwatch.lap} className="timer-btn secondary" disabled={!stopwatch.running && stopwatch.base === 0}>
-                Lap
+                {t("clock.lap")}
               </button>
               <button onClick={stopwatch.reset} className="timer-btn secondary">
-                Reset
+                {t("clock.reset")}
               </button>
             </div>
 
-            <div className="sw-laps">
-              {recentLaps.length === 0 && <span className="sw-hint">Laps show up here</span>}
+            <div className="sw-laps-head">
+              <span className="sw-laps-title">
+                {laps.length > 0 ? t("clock.lapsTitle", { count: laps.length }) : t("clock.lapsHint")}
+              </span>
+              {laps.length > 0 && (
+                <button className="sw-laps-clear" onClick={onClearLaps}>
+                  {t("clock.clearLaps")}
+                </button>
+              )}
+            </div>
+
+            <div className="sw-laps" aria-live="polite">
               {recentLaps.map((lap) => (
-                <div key={lap.number} className="sw-lap">
-                  <span>Lap {lap.number}</span>
-                  <span>{formatStopwatch(lap.split, true)}</span>
+                <div key={lap.index} className={`sw-lap${lap.best ? " is-best" : lap.worst ? " is-worst" : ""}`}>
+                  <span>#{lap.index}</span>
+                  <span className="sw-lap-split">{formatStopwatch(lap.splitMs, true)}</span>
+                  <span className="sw-lap-delta">{formatDelta(lap.deltaMs)}</span>
+                  {lap.best && <span className="sr-only">{t("clock.bestLap")}</span>}
+                  {lap.worst && <span className="sr-only">{t("clock.worstLap")}</span>}
                 </div>
               ))}
             </div>
