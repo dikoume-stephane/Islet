@@ -1,0 +1,40 @@
+# Le portillon, exécuté par GitHub au lieu d'être lancé à la main.
+#
+# Il ne compile pas le Rust : six cents crates sur un runner, pour vingt minutes
+# à chaque poussée, coûteraient plus qu'ils ne rapportent. Ce qui est vérifié ici
+# est ce qui casse en silence : une commande appelée mais absente du Rust, une
+# traduction manquante d'un côté, un type qui ne passe plus.
+#
+# La compilation réelle se fait sur une machine Windows, par scripts/release.ps1.
+
+name: Portillon
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  portillon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # `npm install` et non `npm ci` : le dépôt porte deux fichiers de
+      # verrouillage (bun.lock et package-lock.json) et une installation
+      # stricte échouerait au premier écart entre eux, pour un motif qui n'a
+      # rien à voir avec la poussée qu'on veut vérifier.
+      - run: npm install
+
+      - name: Audit
+        run: npm run audit
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build typé
+        run: npm run build
