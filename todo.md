@@ -3,6 +3,13 @@
 > Cases synchronisées avec `ROADMAP.md`. Ordre = ordre d'exécution.
 > Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait · `[⏳]` en attente utilisateur/externe
 
+> **État au 17 novembre 2026.** La 1.4.1 est publiée. Tout ce qui, dans les listes ci-dessous, ne
+> demandait qu'une chose, **compiler** (Rust, `dev.rs`, `lyrics.rs`, `todo.rs`, `ai_post`), est
+> acquis : la version est construite, installée et utilisée. Restent ouvertes les cases qui
+> demandent un comportement à l'écran ou dans le temps : minuteur après une mise en veille, paroles
+> sur une piste qui dérive, animations du personnage, collage dans la fenêtre précédente. Le détail
+> est dans `ETAT_DES_LIEUX.md`, section 5.4.
+
 ## Préparation
 - [x] Lire `AGENTS.md` et indexer le dépôt
 - [x] Scanner les occurrences `nectar` (1 241 × / 70 fichiers)
